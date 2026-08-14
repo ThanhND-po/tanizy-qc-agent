@@ -41,7 +41,7 @@ specs/
 Each feature file starts with:
 
 ```gherkin
-# Feature: [module name] — source: qc/test-cases.md
+# Feature: [module name] — source: qc/test-cases/<feature>-test-cases.md
 @module-xxx @vp-01
 Feature: [Feature Name]
   As a [actor]

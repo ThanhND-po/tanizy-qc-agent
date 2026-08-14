@@ -13,8 +13,8 @@ Produce a structured test case set where **every test case traces to a locked Vi
 | Input | Source |
 |---|---|
 | Approved requirement files | Handoff or user-provided |
-| Locked viewpoints | `qc/test-viewpoints.md` (locked version) |
-| Gap report + open question ledger | `qc/gap-report-*.md`, `qc/open-questions.md` |
+| Locked viewpoints | `qc/test-viewpoints/<feature>-viewpoints.md` (locked version) |
+| Gap report + open question ledger | `qc/gap-reports/<feature>-gap-report.md`, `qc/open-questions.md` |
 | System context, bug base | `qc/refs/system-context.md`, `qc/refs/bug-base.md` |
 
 If viewpoints are not yet locked, run `qc-design-viewpoints` first. A viewpoint that is still under review may only be used with a clear `DRAFT` note in every derived TC.
@@ -42,7 +42,14 @@ Skip a category only with an explicit note, never silently.
 3. Mark **Automation eligibility** per TC with one of: `UI-AUTO` (automatable via Playwright), `API-AUTO` (automatable via API), `BOTH`, or `MANUAL`. Decide by these rules: deterministic UI steps with stable elements → `UI-AUTO`; CRUD/read-only flows exposed by API with verifiable payload → `API-AUTO`; UI-only interactions, visual checks, third-party popups, CAPTCHA, or heavy setup → `MANUAL`. Do not mark `UI-AUTO` when the flow contains visual or subjective checks.
 4. Flag TCs that depend on still-open OQs with `[OQ-XXX]` in the title and a note; they are delivered but visibly provisional.
 5. Generate the traceability matrix cross-checking VP/AC coverage.
-6. Save to `qc/test-cases.md` and `qc/traceability-matrix.md`, present the summary, and ask the user to confirm the save path.
+6. Save to `qc/test-cases/<feature>-test-cases.md` (traceability matrix included
+   as a section at the end of the same file; see
+   `references/material-paths.md`), present the summary, and ask the user to
+   confirm the save path.
+7. If execution results are being recorded in the same session, also create
+   `qc/executions/<feature>-executions.md` with the executions log schema
+   (`qc-report-generator`'s `references/executions-log.md`), pre-filling one
+   row per TC with Result `SKIP` — so runs only need to update results.
 
 ## Test Case Table Template
 
@@ -84,4 +91,5 @@ Skip a category only with an explicit note, never silently.
 - Keep steps atomic and verifiable; expected results must be observable outcomes, not "it works".
 - Test data references must be concrete or reference a generated data set (use `qc/refs/test-data-spec.md` if created).
 - Ask in Vietnamese by default; keep IDs and technical terms in English.
-- Save outputs in the target project, not inside skill folders.
+- Save outputs in the target project, not inside skill folders, following
+  the layout in `references/material-paths.md`.

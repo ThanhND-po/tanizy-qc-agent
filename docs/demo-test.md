@@ -74,19 +74,19 @@ Mở dự án bằng Codex. Kịch bản chính là **Actor mode**: bạn gọi 
    Gọi QC Actor review bộ tài liệu docs/requirements/login-user-story.md,
    system-context và bug-base ở qc/refs/. Task: chạy gap analysis và viewpoints trước.
    ```
-   Kỳ vọng: Actor đọc đầu vào, trình task list, hỏi bạn xác nhận. Sau khi xác nhận, Actor dispatch gap analysis: tìm ra các gap (ví dụ AC2 mâu thuẫn với rate limit chưa định nghĩa, AC4 khoảng thời gian session chưa rõ, không có AC cho "account lockout" dù bug base ám chỉ), tạo `qc/open-questions.md` với OQ-001.. và file `qc/gap-report-login.md`. Câu hỏi mức High được hỏi ngay; câu trả lời được ghi vào ledger.
+   Kỳ vọng: Actor đọc đầu vào, trình task list, hỏi bạn xác nhận. Sau khi xác nhận, Actor dispatch gap analysis: tìm ra các gap (ví dụ AC2 mâu thuẫn với rate limit chưa định nghĩa, AC4 khoảng thời gian session chưa rõ, không có AC cho "account lockout" dù bug base ám chỉ), tạo `qc/open-questions.md` với OQ-001.. và file `qc/gap-reports/login-gap-report.md`. Câu hỏi mức High được hỏi ngay; câu trả lời được ghi vào ledger.
 
 2. **Viewpoint (Actor tiếp tục dispatch, có checkpoint):**
    ```text
    $qc-design-viewpoints — design viewpoint cho US-010
    ```
-   Kỳ vọng: agent trình bảng viewpoint (VP-01 happy flow, VP-02 rejection, VP-03 boundary data, VP-04 regression từ BUG-101...), **dừng để bạn review** và điều chỉnh (thử merge 2 viewpoint hoặc đổi priority), rồi chốt phiên bản locked trong `qc/test-viewpoints.md`.
+   Kỳ vọng: agent trình bảng viewpoint (VP-01 happy flow, VP-02 rejection, VP-03 boundary data, VP-04 regression từ BUG-101...), **dừng để bạn review** và điều chỉnh (thử merge 2 viewpoint hoặc đổi priority), rồi chốt phiên bản locked trong `qc/test-viewpoints/login-viewpoints.md`.
 
 3. **Test case (Actor dispatch tiếp):**
    ```text
    $qc-design-test-cases
    ```
-   Kỳ vọng: `qc/test-cases.md` với TC-LOG-001... có cột Trace (VP + AC), cột Auto (UI-AUTO/API-AUTO/MANUAL), TC phụ thuộc OQ được gắn cờ `[OQ-xxx]`; `qc/traceability-matrix.md` cho thấy AC1-AC4 đều có TC cover.
+   Kỳ vọng: `qc/test-cases/login-test-cases.md` với TC-LOG-001... có cột Trace (VP + AC), cột Auto (UI-AUTO/API-AUTO/MANUAL), TC phụ thuộc OQ được gắn cờ `[OQ-xxx]`; matrix cuối file cho thấy AC1-AC4 đều có TC cover; file `qc/executions/login-executions.md` được tạo sẵn một hàng/TC với Result `SKIP`.
 
 4. **Export Gherkin (bạn yêu cầu thêm):**
    ```text
@@ -104,7 +104,16 @@ Mở dự án bằng Codex. Kịch bản chính là **Actor mode**: bạn gọi 
    ```text
    $qc-run-playwright --scope TC-LOG-001
    ```
-   Kỳ vọng: agent hỏi URL + credential, recon DOM qua browser MCP, chạy TC, báo kết quả PASS/FAIL kèm số vòng auto-heal.
+   Kỳ vọng: agent hỏi URL + credential, recon DOM qua browser MCP, chạy TC, ghi kết quả vào `qc/executions/login-executions.md`, tự append vào `qc/refs/bug-base.md` nếu có defect, báo kết quả PASS/FAIL kèm số vòng auto-heal.
+
+7. **Test report (chọn format):**
+   ```text
+   $qc-report-generator — test cases ở qc/test-cases/login-test-cases.md
+   ```
+   Kỳ vọng: workflow hỏi format (HTML/PPTX/MD/XLSX/CSV); chọn HTML; agent tạo
+   `qc/reports/test-report-login-<date>.html` với summary card, donut + bar
+   chart, coverage theo VP/AC, 4 nhóm issues, confidence statement và
+   GO/CONDITIONAL/NO-GO.
 
 ### Standalone mode — tester gọi từng skill riêng
 

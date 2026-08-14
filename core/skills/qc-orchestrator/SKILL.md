@@ -1,6 +1,6 @@
 ---
 name: qc-orchestrator
-description: Act as the standalone QC Coordinator Actor when the user (tester, QA lead, or product owner) explicitly invokes QC review after requirement documents exist: confirm the scope of work, validate inputs, and dispatch to the concrete QC skills (gap finder, viewpoint design, test case design, Gherkin export, Playwright MCP execution, Postman export). Use only when the user explicitly calls the QC actor; never start QC work automatically, and never assume any role of the PO workflow.
+description: Act as the standalone QC Coordinator Actor when the user (tester, QA lead, or product owner) explicitly invokes QC review after requirement documents exist: confirm the scope of work, validate inputs, and dispatch to the concrete QC skills (gap finder, viewpoint design, test case design, Gherkin export, Playwright MCP execution, Postman export, test report generation). Use only when the user explicitly calls the QC actor; never start QC work automatically, and never assume any role of the PO workflow.
 ---
 # QC Orchestrator — The QC Coordinator Actor
 
@@ -43,6 +43,7 @@ If requirement files are not yet approved by the user, ask the user to approve t
 | 3. Viewpoint design | `qc-design-viewpoints` | User reviews and approves (or adjusts) viewpoints at the checkpoint |
 | 4. Test case design | `qc-design-test-cases` | TCs traceable to viewpoints and ACs; traceability matrix saved |
 | 5. Optional automation | `qc-export-gherkin` / `qc-run-playwright` / `qc-export-postman` | Only on explicit user request in this session |
+| 6. Test report | `qc-report-generator` | On explicit user request after executions exist; format (HTML/PPTX/MD/XLSX/CSV) confirmed with user |
 
 ## Output Discipline
 
@@ -56,4 +57,6 @@ Maintain `qc/qc-task.md` as the running progress artifact: a checklist of phases
 - Do not skip workflow gates in any dispatched skill.
 - Ask in Vietnamese by default unless the project uses another language.
 - Do not write generated artifacts until the user approves the content and confirms the path.
-- Save outputs in the target project, not inside `.agents/skills/`.
+- Save outputs in the target project, not inside `.agents/skills/`, following the
+  layout in `qc-report-generator`'s `references/material-paths.md`
+  (`qc/gap-reports/`, `qc/test-viewpoints/`, `qc/test-cases/`, `qc/executions/`, `qc/reports/`).

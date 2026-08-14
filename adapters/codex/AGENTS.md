@@ -12,6 +12,7 @@ The QC Agent is a **standalone Actor**: it is invoked only when the user explici
 - To convert UI-automation-eligible test cases into Gherkin `.feature` files for Playwright, use the `qc-export-gherkin` skill.
 - To execute defined test cases against the real application via the Playwright MCP, use the `qc-run-playwright` skill.
 - To convert API-automation-eligible test cases into a Postman collection (v2.1), use the `qc-export-postman` skill.
+- To generate a stakeholder-facing test report (HTML/PPTX/Markdown/XLSX/CSV) from execution results, use the `qc-report-generator` skill ($qc-report-generator).
 
 ## Rules
 

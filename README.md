@@ -18,6 +18,7 @@ The Tanizy PO Agent remains a fully independent, public workflow. Users who inst
 - Gherkin export (`.feature` files) for UI-automation-eligible test cases.
 - Test execution through the Playwright MCP with auto-heal, verified locators, and per-TC reporting (only on request).
 - Postman collection v2.1 export for API-automation-eligible test cases.
+- **Stakeholder-facing test report generation** (`qc-report-generator`): aggregates execution results into HTML (primary, with charts), PPTX, Markdown, XLSX, or CSV reports — covering scope, results, coverage by viewpoint/AC, blocking/accepted/stakeholder-aware issues, confidence statement, and GO/NO-GO recommendation — saved to `qc/reports/`.
 
 ## Repository Structure
 
@@ -30,7 +31,9 @@ tanizy-qc-agent/
 │   ├── qc-design-test-cases/ # Traceable test case design
 │   ├── qc-export-gherkin/    # Gherkin export for Playwright
 │   ├── qc-run-playwright/    # Execution via Playwright MCP (on request)
-│   └── qc-export-postman/    # Postman collection export
+│   ├── qc-export-postman/    # Postman collection export
+│   └── qc-report-generator/  # Stakeholder-facing test reports (HTML/PPTX/MD/XLSX/CSV)
+├── refs-templates/           # Seeded runtime refs: system-context, bug-base, OQ ledger
 ├── adapters/codex/AGENTS.md  # Codex routing rules and personalization
 ├── scripts/install.mjs       # No-dependency installer
 ├── docs/                     # Install and demo guides
@@ -121,6 +124,7 @@ $qc-design-test-cases     # traceable test cases + matrix
 $qc-export-gherkin        # UI-eligible TCs to .feature
 $qc-run-playwright        # execute TCs via Playwright MCP (on request)
 $qc-export-postman        # API-eligible TCs to Postman collection
+$qc-report-generator      # test report for stakeholders (HTML/PPTX/MD/XLSX/CSV)
 ```
 
 ## Coexistence With Tanizy PO Agent

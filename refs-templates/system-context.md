@@ -12,6 +12,14 @@ How to fill it (one short session is enough):
 2. Record current behavior, constraints, and known workarounds below.
 3. Note the version/date so the QC Agent can detect stale context.
 
+How the AGENT maintains it (user does not need to edit manually):
+- qc-gap-finder appends newly discovered current-system facts after each
+  analysis (new behavior, constraints, workarounds), with source and date.
+- qc-run-playwright / qc-export-postman append unexpected existing behavior
+  discovered during runs.
+- The agent announces each update in one sentence; the user only confirms
+  sensitive entries.
+
 Rules:
 - Keep entries factual and sourced (which doc/feature/version).
 - When a requirement changes implemented behavior, update the affected row
@@ -33,4 +41,4 @@ Rules:
 
 ## Notes
 
-- Seed version: 1.0 (template khởi tạo)
+- Seed version: 2.0 — agent self-update rules added.

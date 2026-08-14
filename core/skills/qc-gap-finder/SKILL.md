@@ -72,8 +72,12 @@ Rules:
 3. Scan against the Gap Catalog; cluster findings by requirement reference.
 4. For each finding, propose a concrete question with options where possible; do not silently assume away any GAP or AMB.
 5. Ask High-priority OQs now; log the rest to the ledger.
-6. Save the gap analysis report to `qc/gap-report-<feature>.md` using the template structure below.
-7. Present a summary to the user and confirm the assumptions that remain before viewpoints are designed.
+6. **Self-update refs**: append new knowledge discovered during analysis to the
+   runtime refs (rules below) — do NOT ask the user to update them manually.
+7. Save the gap analysis report to `qc/gap-reports/<feature>-gap-report.md`
+   (see `references/material-paths.md`) using the template structure below.
+8. Present a summary to the user and confirm the assumptions that remain
+   before viewpoints are designed.
 
 ## Gap Report Template
 
@@ -98,4 +102,23 @@ Rules:
 - Never treat "simple" features as exempt from gap scanning.
 - Ask in Vietnamese by default; keep technical terms in English.
 - One question per message; prefer multiple choice.
-- Save outputs in the target project, not inside skill folders.
+- Save outputs in the target project, not inside skill folders, following
+  the layout in `references/material-paths.md`.
+
+### Refs Self-Update Rules
+
+After analysis completes, the agent updates the refs itself and announces the
+change in one sentence:
+
+1. **`qc/refs/system-context.md`** — append newly discovered facts about the
+   current system (existing behavior, constraints, workarounds) as new rows,
+   with source doc and today's date. Never delete existing rows.
+2. **`qc/refs/bug-base.md`** — append newly discovered regression-prone areas
+   or fragile spots as new Pending rows, even if no bug ID exists yet
+   (mark Bug ID as `TBD`; fill it later from test runs).
+3. If the refs files do not exist, create them from the seed templates
+   (`refs-templates/` in the package) and fill the first rows — never ask the
+   user to create the files.
+4. Announce once: "Đã cập nhật system-context/bug-base với N phát hiện mới".
+   Ask the user only when a finding is sensitive (e.g. a workaround with
+   compliance impact).

@@ -15,7 +15,7 @@ This skill exists to prevent the common failure of jumping straight from require
 | Input | Source |
 |---|---|
 | Approved requirement files | Handoff or user-provided |
-| Gap report + resolved/assumed OQs | `qc/gap-report-*.md` and `qc/open-questions.md` |
+| Gap report + resolved/assumed OQs | `qc/gap-reports/<feature>-gap-report.md` and `qc/open-questions.md` |
 | System context | `qc/refs/system-context.md` |
 
 If gap analysis has not been run for this feature, run `qc-gap-finder` first.
@@ -41,7 +41,10 @@ Derive viewpoints from these angles; keep only those relevant to the feature and
 2. Map each requirement element to candidate viewpoints (an AC can map to multiple viewpoints; a viewpoint must cite the refs it covers).
 3. Check coverage: every AC and every business rule must appear in at least one viewpoint. Missing coverage means adding a viewpoint, not skipping.
 4. Assign each viewpoint a priority (`P1` must test, `P2` should test, `P3` if time allows) with a one-line rationale.
-5. Write `qc/test-viewpoints.md` with the template below, version it (`Version 1`), and stop at the **checkpoint**.
+5. Write the viewpoints file to
+   `qc/test-viewpoints/<feature|epic|user-story>-viewpoints.md` (see
+   `references/material-paths.md`), version it (`Version 1`), and stop at the
+   **checkpoint**.
 
 ## Checkpoint — User Review Is Mandatory
 
@@ -55,7 +58,8 @@ Present the viewpoint table and ask the user to review jointly. Possible adjustm
 | Add a viewpoint | Verify which refs it covers, add, re-check coverage |
 | "Keep going, viewpoints look fine" | Lock the set; proceed to test case design |
 
-Continue adjusting until the user confirms the viewpoint set. Record the locked version number in `qc/test-viewpoints.md` header and in `qc/qc-task.md`.
+Continue adjusting until the user confirms the viewpoint set. Record the
+locked version number in the viewpoints file header and in `qc/qc-task.md`.
 
 ## Viewpoint File Template
 
@@ -81,4 +85,5 @@ Continue adjusting until the user confirms the viewpoint set. Record the locked 
 - The viewpoint set is locked only after explicit user confirmation; a lock record is mandatory.
 - A viewpoint without covered requirement refs is not allowed.
 - Ask in Vietnamese by default; keep IDs and technical terms in English.
-- Save outputs in the target project, not inside skill folders.
+- Save outputs in the target project, not inside skill folders, following
+  the layout in `references/material-paths.md`.
