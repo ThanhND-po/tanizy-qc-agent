@@ -1,0 +1,35 @@
+{
+  "name": "@thanhndpo/tanizy-qc-agent",
+  "version": "0.2.0",
+  "description": "Portable Quality Control agent workflows for Codex: gap finding with open question management, viewpoint design, traceable test case design, Gherkin export for Playwright, Playwright MCP execution, and Postman collection export.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "tanizy-qc-install": "scripts/install.mjs"
+  },
+  "files": [
+    "core",
+    "adapters",
+    "scripts/install.mjs",
+    "LICENSE"
+  ],
+  "scripts": {
+    "install:agent": "node scripts/install.mjs",
+    "pack:check": "node -e \"console.log('add package validation here')\""
+  },
+  "keywords": [
+    "agent-skills",
+    "quality-control",
+    "test-design",
+    "codex",
+    "playwright",
+    "postman",
+    "gherkin"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ThanhND-po/tanizy-qc-agent.git"
+  },
+  "homepage": "https://github.com/ThanhND-po/tanizy-qc-agent#readme",
+  "author": "ThanhND-po"
+}
