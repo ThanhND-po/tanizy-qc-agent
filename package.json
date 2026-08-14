@@ -1,6 +1,6 @@
 {
   "name": "@thanhndpo/tanizy-qc-agent",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Portable Quality Control agent workflows for Codex: gap finding with open question management, viewpoint design, traceable test case design, Gherkin export for Playwright, Playwright MCP execution, and Postman collection export.",
   "license": "MIT",
   "type": "module",
@@ -11,7 +11,8 @@
     "core",
     "adapters",
     "scripts/install.mjs",
-    "LICENSE"
+    "LICENSE",
+    "refs-templates"
   ],
   "scripts": {
     "install:agent": "node scripts/install.mjs",

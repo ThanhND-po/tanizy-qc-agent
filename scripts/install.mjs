@@ -25,6 +25,7 @@ Options:
   --placement root    Install to PROJECT/.agents/skills and PROJECT/AGENTS.md (root, may conflict with a PO agent)
   --placement qc      Install to PROJECT/qc/.agents/skills and PROJECT/qc/AGENTS.md (default, recommended)
   --dry-run           Print planned copies without writing
+  --skip-refs         Skip seeding qc/refs/ runtime templates
   --force             Overwrite existing QC files in the target project
   --version           Print package version`);
 }
@@ -38,11 +39,13 @@ function optionValue(argv, index, option) {
 }
 
 function parseArgs(argv) {
-  const args = { dryRun: false, force: false, skills: [], placement: "qc" };
+  const args = { dryRun: false, force: false, skills: [], placement: "qc", skipRefs: false };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === "--dry-run") {
       args.dryRun = true;
+    } else if (arg === "--skip-refs") {
+      args.skipRefs = true;
     } else if (arg === "--force") {
       args.force = true;
     } else if (arg === "--project") {
@@ -73,7 +76,7 @@ function skillDirectories() {
     .sort();
 }
 
-function copyPlan(projectRoot, placement, selectedSkills) {
+function copyPlan(projectRoot, placement, selectedSkills, skipRefs = false) {
   const coreSkills = join(repoRoot, "core", "skills");
   const base = placement === "root" ? projectRoot : join(projectRoot, "qc");
   const plan = [];
@@ -87,6 +90,16 @@ function copyPlan(projectRoot, placement, selectedSkills) {
     }
   }
   plan.push({ from: join(repoRoot, "adapters", "codex", "AGENTS.md"), to: join(base, "AGENTS.md") });
+  if (!skipRefs) {
+    const refsSrc = join(repoRoot, "refs-templates");
+    for (const tmpl of readdirSync(refsSrc).sort()) {
+      plan.push({
+        from: join(refsSrc, tmpl),
+        to: join(base, "refs", tmpl),
+        refsSeed: true,
+      });
+    }
+  }
   return plan;
 }
 
@@ -113,12 +126,16 @@ async function main() {
   }
   args.skills = [...new Set(args.skills)];
 
-  const plan = copyPlan(projectRoot, args.placement, args.skills);
+  const plan = copyPlan(projectRoot, args.placement, args.skills, args.skipRefs);
   console.log(`QC Agent install target: codex (${args.placement === "root" ? "root" : "qc/"})`);
   console.log(`Project: ${projectRoot}`);
   console.log(`Skills: ${args.skills.length > 0 ? args.skills.join(", ") : "all"}`);
   for (const item of plan) {
     const exists = existsSync(item.to);
+    if (item.refsSeed && exists && !args.force) {
+      console.log(`Skip (refs seed already present): ${relative(projectRoot, item.to)}`);
+      continue;
+    }
     console.log(`${args.dryRun ? "Would copy" : "Copy"} ${relative(repoRoot, item.from)} -> ${relative(projectRoot, item.to)}${exists ? " (exists)" : ""}`);
     if (args.dryRun) {
       continue;
