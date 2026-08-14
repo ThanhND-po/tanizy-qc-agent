@@ -1,4 +1,8 @@
 ---
+## Global Material Path Rule
+
+Before creating or updating any artifact, read `references/material-paths.md`. This is a global rule for every QC skill, including the runtime `qc-task.md` and `open-questions.md` files; the installer populates this reference from the package canonical source.
+
 name: qc-run-playwright
 description: Execute already-defined test cases via the Playwright MCP (browser tools) when explicitly requested by the user: recon the real DOM, verify locators, run the steps, auto-heal failures up to 5 rounds, and report results per TC ID. Use only when the user says "chạy test qua Playwright", "execute TC with playwright mcp", or similar.
 ---
@@ -51,7 +55,16 @@ If the MCP browser tools are not available in this session, tell the user and st
 8. **Record results.** Write every TC result (status, evidence link, bug ID
    if any) into the executions log. Results feed `$qc-report-generator`
    directly — do not rely on chat history alone.
-9. **Refs self-update.** For every FAIL/BLOCKED caused by a defect (not a
+9. **Update TC status fields.** In the source test cases file
+   `qc/test-cases/<feature>-test-cases.md`, set each executed TC's
+   `Status` to the result (`PASS`, `FAIL`, `BLOCKED`, `SKIP`, `ERROR`),
+   `Test By` to the executor identity (for example `codex (Playwright MCP)`
+   or the tester's name), and `Test Date` to today (`YYYY-MM-DD`). The
+   executions log remains the authoritative record; these fields are the
+   per-TC convenience view that `$qc-report-generator` reads when the log
+   is absent. Only update rows belonging to this run; do not overwrite
+   `Test By`/`Test Date` for TCs from other sessions without stating so.
+10. **Refs self-update.** For every FAIL/BLOCKED caused by a defect (not a
    locator issue), append a row to `qc/refs/bug-base.md` (Bug ID `TBD` until
    filed, or the filed bug ID) and update `qc/refs/system-context.md` if the
    run revealed unexpected existing behavior. Announce the updates in one

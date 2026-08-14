@@ -1,4 +1,8 @@
 ---
+## Global Material Path Rule
+
+Before creating or updating any artifact, read `references/material-paths.md`. This is a global rule for every QC skill, including the runtime `qc-task.md` and `open-questions.md` files; the installer populates this reference from the package canonical source.
+
 name: qc-gap-finder
 description: Analyze approved requirement documents to find gaps, ambiguities, and testability issues compared with testing knowledge, the current system state, and the bug base. Ask clarifying questions, log unanswered ones as Open Questions without blocking materials creation. Use when the user says "QC gap analysis", "tìm điểm mờ", "review requirement", or after requirement files are handed off.
 ---

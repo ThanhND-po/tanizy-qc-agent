@@ -1,4 +1,8 @@
 ---
+## Global Material Path Rule
+
+Before creating or updating any artifact, read `references/material-paths.md`. This is a global rule for every QC skill, including the runtime `qc-task.md` and `open-questions.md` files; the installer populates this reference from the package canonical source.
+
 name: qc-export-gherkin
 description: Convert defined test cases that are eligible for UI automation (UI-AUTO or BOTH) into Gherkin .feature files runnable with Playwright. Use when the user says "xuất Gherkin", "convert TC sang feature", "gherkin cho TC này", or after test cases are designed and a subset is selected.
 ---

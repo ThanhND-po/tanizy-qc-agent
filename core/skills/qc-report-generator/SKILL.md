@@ -1,6 +1,10 @@
 ---
+## Global Material Path Rule
+
+Before creating or updating any artifact, read `references/material-paths.md`. This is a global rule for every QC skill, including the runtime `qc-task.md` and `open-questions.md` files; the installer populates this reference from the package canonical source.
+
 name: qc-report-generator
-description: Generate stakeholder-facing test reports (HTML/PPTX/Markdown/XLSX/CSV) from QC execution results. Invoke via $qc-report-generator after test execution completes.
+description: Generate stakeholder-facing test reports (HTML/DOCX/PPTX/Markdown/XLSX/CSV) from QC execution results. Invoke via $qc-report-generator after test execution completes.
 metadata:
   runtimes: codex
 ---
@@ -34,7 +38,8 @@ called by `$qc-orchestrator` as the final phase of a QC session.
    requirement docs (for ACs), and optionally `qc/refs/system-context.md` and
    `qc/refs/bug-base.md` (for known/accepted issues).
 4. **Format selection** — Ask the user which format; show the menu from
-   `references/format-guide.md` (default: HTML). Never ask about chart types.
+   `references/format-guide.md` (default: HTML, DOCX is the second option).
+   Never ask about chart types.
 5. **Generate** — Build the report strictly following
    `references/report-content-spec.md` (8 sections, in order) and the chosen
    format guide.
@@ -71,5 +76,7 @@ called by `$qc-orchestrator` as the final phase of a QC session.
 
 - `references/report-content-spec.md` — mandatory report sections and math
 - `references/format-guide.md` — per-format build rules (HTML is primary)
+- `references/docx-format.md` — DOCX build rules (font/Unicode, colors,
+  tables, images, charts, verification)
 - `references/executions-log.md` — execution log schema
 - `references/material-paths.md` — where every material lives

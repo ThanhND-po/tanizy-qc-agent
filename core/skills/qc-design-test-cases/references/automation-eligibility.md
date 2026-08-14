@@ -1,6 +1,8 @@
 # Automation Eligibility Guide
 
-Decide the `Auto` column of each test case with these rules. When in doubt between two classes, choose the more conservative one and note the reason in the TC's Notes column.
+Classify the automation eligibility of each test case with these rules. When in doubt between two classes, choose the more conservative one and note the reason in the TC's Notes column.
+
+The eligibility value feeds the output table's **`Automatable`** and **`Auto Type`** columns; the design skill must set both columns (plus at least one `@Tag`) for every TC.
 
 ## Classification Rules
 
@@ -25,3 +27,13 @@ Decide the `Auto` column of each test case with these rules. When in doubt betwe
 | `UI-AUTO`, `BOTH` | Gherkin `.feature` | `qc-export-gherkin` |
 | `API-AUTO`, `BOTH` | Postman collection | `qc-export-postman` |
 | `UI-AUTO`, `BOTH` | Playwright MCP execution | `qc-run-playwright` |
+
+## Output Column Mapping
+
+| Eligibility | Automatable | Auto Type |
+|---|---|---|
+| `UI-AUTO` | `Yes` | `UI` |
+| `API-AUTO` | `Yes` | `API` |
+| `BOTH` | `Yes` | `UI` (or `API` when the requirement is API-first) |
+| `MANUAL` | `No` | `N/A` |
+| Manual-only visual check inside an automatable flow | `Partial` | `UI` |

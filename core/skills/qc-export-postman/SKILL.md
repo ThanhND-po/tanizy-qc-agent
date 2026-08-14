@@ -1,4 +1,8 @@
 ---
+## Global Material Path Rule
+
+Before creating or updating any artifact, read `references/material-paths.md`. This is a global rule for every QC skill, including the runtime `qc-task.md` and `open-questions.md` files; the installer populates this reference from the package canonical source.
+
 name: qc-export-postman
 description: Convert defined test cases that are eligible for API automation (API-AUTO or BOTH) into a Postman collection (v2.1) that can be imported and run. Use when the user says "xuất Postman", "tạo Postman collection từ TC", "API tests cho TC này", or after test cases are designed and a subset is selected.
 ---

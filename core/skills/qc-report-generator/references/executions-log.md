@@ -25,6 +25,7 @@ write results here before a report is generated.
 | 2 | TC-002 | | VP-05 / AC-4.3 | FAIL | BUG-101: title + link | |
 | 3 | TC-003 | | VP-07 | BLOCKED | blocker: BUG-102 | |
 | 4 | TC-004 | | VP-07 / AC-5.0 | SKIP | | out of scope this run |
+| 5 | TC-005 | | VP-08 / AC-6.2 | NOT_RUN | | created, never executed |
 
 ## Summary
 - Total: 4 | PASS: 1 | FAIL: 1 | BLOCKED: 1 | SKIP: 1 | Pass rate: 50% of executed
@@ -34,6 +35,7 @@ write results here before a report is generated.
 
 | Status | Meaning | Included in pass rate |
 |---|---|---|
+| NOT_RUN | Test case exists but has never been executed | No |
 | PASS | Executed, actual = expected | Yes |
 | FAIL | Executed, actual ≠ expected | No |
 | BLOCKED | Cannot execute (dependency/env defect) | No |
@@ -51,3 +53,11 @@ write results here before a report is generated.
 4. Bugs found get an entry in the summary table and (for FAIL) the bug ID is
    referenced; the agent also appends the finding to `qc/refs/bug-base.md`
    (see agent self-update rule).
+5. **Status fallback.** When no executions log exists, the report reads each
+   TC's `Status`, `Test By`, and `Test Date` columns directly from the test
+   cases file (`qc/test-cases/...`) and computes metrics from those values.
+   Test cases still at `NOT_RUN` are counted as not executed and never inflate
+   the pass rate.
+6. When results come from manual testing, the tester (or the agent recording
+   for them) fills `Test By` and `Test Date` on the corresponding TC rows in
+   the test cases file so the fallback view stays accurate.

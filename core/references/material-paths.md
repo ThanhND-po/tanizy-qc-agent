@@ -21,6 +21,7 @@ qc/
 ├── test-viewpoints/
 │   ├── <epic|feature|user-story>-viewpoints.md
 │   └── ...
+├── field-validation-checklist.md    # Customizable per-project validation checklist (seeded by installer)
 ├── test-cases/
 │   ├── <epic|feature|user-story>-test-cases.md
 │   └── ...

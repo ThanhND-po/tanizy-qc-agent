@@ -1,4 +1,8 @@
 ---
+## Global Material Path Rule
+
+Before creating or updating any artifact, read `references/material-paths.md`. This is a global rule for every QC skill, including the runtime `qc-task.md` and `open-questions.md` files; the installer populates this reference from the package canonical source.
+
 name: qc-design-viewpoints
 description: Design Test Viewpoints from approved requirements and gap findings, present them to the user for joint review and adjustment, and lock the viewpoint set before test case design. Use when the user says "thiết kế viewpoint", "QC viewpoint review", or after gap analysis when test angles need to be agreed.
 ---

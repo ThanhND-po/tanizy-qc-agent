@@ -1,4 +1,8 @@
 ---
+## Global Material Path Rule
+
+Before creating or updating any artifact, read `references/material-paths.md`. This is a global rule for every QC skill, including the runtime `qc-task.md` and `open-questions.md` files; the installer populates this reference from the package canonical source.
+
 name: qc-orchestrator
 description: Act as the standalone QC Coordinator Actor when the user (tester, QA lead, or product owner) explicitly invokes QC review after requirement documents exist: confirm the scope of work, validate inputs, and dispatch to the concrete QC skills (gap finder, viewpoint design, test case design, Gherkin export, Playwright MCP execution, Postman export, test report generation). Use only when the user explicitly calls the QC actor; never start QC work automatically, and never assume any role of the PO workflow.
 ---

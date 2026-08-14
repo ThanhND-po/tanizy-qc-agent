@@ -1,75 +1,79 @@
-# Installing Tanizy QC Agent for Codex
+# Installing Tanizy QC Agent
 
-QC agent skills install under the `qc/` directory by default (`qc/.agents/skills/` and `qc/AGENTS.md`). This keeps them next to the project while coexisting with a Tanizy PO Agent installed at the root, which is the recommended placement when both agents are used in the same project.
+Tanizy QC Agent supports four targets: Gemini CLI, Codex, Claude Code, and Antigravity. The target controls the adapter entrypoint and skill directory; the QC workflow itself remains shared.
 
-## Install via npm (Recommended)
-
-```bash
-npx @thanhndpo/tanizy-qc-agent --project /path/to/project --dry-run   # preview
-npx @thanhndpo/tanizy-qc-agent --project /path/to/project              # install to qc/
-npx @thanhndpo/tanizy-qc-agent --project /path/to/project --placement root  # install to project root
-```
-
-## Install from Local Clone
+## Install via npm
 
 ```bash
-node scripts/install.mjs --project /path/to/project --dry-run
-node scripts/install.mjs --project /path/to/project
-node scripts/install.mjs --project /path/to/project --placement root
+npx @thanhndpo/tanizy-qc-agent --target gemini-cli --project /path/to/project
+npx @thanhndpo/tanizy-qc-agent --target codex --project /path/to/project
+npx @thanhndpo/tanizy-qc-agent --target claude-code --project /path/to/project
+npx @thanhndpo/tanizy-qc-agent --target antigravity --project /path/to/project
 ```
 
-## Install One Skill
-
-A selective install changes only `qc/.agents/skills/<skill-name>` and does not copy or overwrite `AGENTS.md`:
+Preview an installation with `--dry-run` before writing files:
 
 ```bash
-node scripts/install.mjs --project /path/to/project --skill qc-gap-finder
-node scripts/install.mjs --project /path/to/project --skill qc-design-test-cases --skill qc-run-playwright
+npx @thanhndpo/tanizy-qc-agent --target codex --project /path/to/project --dry-run
 ```
 
-Use `--force` only when you intentionally want to overwrite existing QC files in the target project:
+## Install selected skills
+
+Repeat `--skill` to install only the requested workflows:
 
 ```bash
-node scripts/install.mjs --project /path/to/project --skill qc-gap-finder --force
+npx @thanhndpo/tanizy-qc-agent --target codex --project /path/to/project \
+  --skill qc-gap-finder \
+  --skill qc-design-test-cases
 ```
 
-## Manual Copy
+Selective installation also copies the global `material-paths.md` reference into every selected skill and into `qc/material-paths.md`, so the rule applies consistently to `qc-task.md`, `open-questions.md`, gap reports, test materials, executions, and stakeholder reports.
 
-macOS / Linux:
+## Install from a local clone
 
 ```bash
-mkdir -p /path/to/project/qc/.agents/skills
-cp -R core/skills/* /path/to/project/qc/.agents/skills/
-cp adapters/codex/AGENTS.md /path/to/project/qc/AGENTS.md
+node scripts/install.mjs --target codex --project /path/to/project
+node scripts/install.mjs --target gemini-cli --project /path/to/project --skill qc-gap-finder
 ```
 
-Windows PowerShell:
+Use `--force` to overwrite existing adapter or skill files. Runtime reference seeds under `qc/refs/` are preserved by default; use `--skip-refs` to omit them.
 
-```powershell
-New-Item -ItemType Directory -Force C:\path\to\project\qc\.agents\skills
-Copy-Item -Recurse core/skills/* C:\path\to\project\qc\.agents\skills\
-Copy-Item adapters/codex/AGENTS.md C:\path\to\project\qc\AGENTS.md
+## Target layout
+
+| Target | Adapter entrypoint | Skill directory |
+|---|---|---|
+| `gemini-cli` | `GEMINI.md` | `skills/` |
+| `codex` | `AGENTS.md` | `.agents/skills/` |
+| `claude-code` | `CLAUDE.md` | `.claude/skills/` |
+| `antigravity` | `AGENTS.md` plus `.agents/rules/tanizy-qc.md` | `.agents/skills/` |
+
+Every target also receives `qc/material-paths.md`, which is generated from `core/references/material-paths.md`. Each installed skill receives a copy at `references/material-paths.md` because skills must be self-contained when read directly.
+
+## After install
+
+Open the target project in the selected agent. QC starts only after explicit user invocation. The adapter routes requests to the matching `qc-*` skill and requires the global material path rule before any QC artifact is created or updated. The agent does not modify requirement documents and does not start automatically.
+
+For Codex, the normal explicit invocation is `$qc-orchestrator`. For direct workflow use, invoke `$qc-gap-finder`, `$qc-design-viewpoints`, `$qc-design-test-cases`, `$qc-export-gherkin`, `$qc-run-playwright`, `$qc-export-postman`, or `$qc-report-generator` as appropriate.
+
+## Manual adapter copy
+
+Manual copying is supported when npm installation is not available. Copy the target adapter entrypoint and the corresponding core skills to the target-specific locations shown above. Also copy `core/references/material-paths.md` to `qc/material-paths.md` and to each installed skill's `references/material-paths.md`. The installer is recommended because it keeps these copies synchronized.
+
+## Updating
+
+```bash
+npx @thanhndpo/tanizy-qc-agent@latest --target codex --project /path/to/project --force
+npx @thanhndpo/tanizy-qc-agent@latest --target claude-code --project /path/to/project --skill qc-gap-finder --force
 ```
 
-## After Install
+Do not edit copied skill files as the source of truth. Update `core/skills/` or `core/references/material-paths.md` in this repository, then reinstall.
 
-Open the project in Codex. `qc/AGENTS.md` provides routing rules for the QC skills, and installed skills live in `qc/.agents/skills/`. The installer automatically seeds the runtime context files (`qc/refs/system-context.md`, `qc/refs/bug-base.md`, `qc/refs/open-questions.md`); existing refs files are never overwritten unless `--force` is passed (use `--skip-refs` to skip seeding entirely).
+## Legacy Codex placement
 
-## Material Layout (v0.4.0+)
+Versions before the multi-target installer used `--placement root|qc`. That option is no longer supported. Use `--target codex` for the standard Codex layout, or choose another target explicitly.
 
-QC materials live in per-feature subfolders, never in the `qc/` root:
+## Material layout
 
-| Material | Path |
-|---|---|
-| Gap reports | `qc/gap-reports/<feature>-gap-report.md` |
-| Viewpoints | `qc/test-viewpoints/<feature>-viewpoints.md` |
-| Test cases | `qc/test-cases/<feature>-test-cases.md` |
-| Executions log | `qc/executions/<feature>-executions.md` |
-| Test reports | `qc/reports/test-report-<feature>-<YYYY-MM-DD>.<ext>` |
-| Shared refs | `qc/refs/*` (system context, bug base, OQ ledger) |
+All QC artifacts live under `qc/` and follow the rules in `qc/material-paths.md`. The OQ ledger and runtime refs are shared, while gap reports, viewpoints, test cases, executions, and reports use their dedicated directories.
 
-If you are upgrading from v0.3.x and already have `gap-report-*.md` or `qc/test-viewpoints.md` / `qc/test-cases.md` at the old locations, the agent tolerates them during transition but new materials follow the layout above.
-
-## Updating the Codex Adapter
-
-After upgrading, also refresh `qc/AGENTS.md` (copy `adapters/codex/AGENTS.md` over it) so the new `$qc-report-generator` routing entry is active. Reinstalling always copies the latest adapter automatically.
+> Never create a second divergent `material-paths.md` as a source of truth. The package has one canonical source, and installed copies are generated artifacts.

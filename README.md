@@ -6,7 +6,7 @@ The Tanizy PO Agent remains a fully independent, public workflow. Users who inst
 
 ## Supported Tools
 
-- Codex (this package). The skeleton follows the same convention as Tanizy PO Agent, so both agents can coexist in the same project without file conflicts.
+- Gemini CLI, Codex, Claude Code, and Antigravity. The installer selects the target adapter with `--target` and keeps the core QC skills portable across all four environments.
 
 ## What It Supports
 
@@ -14,11 +14,12 @@ The Tanizy PO Agent remains a fully independent, public workflow. Users who inst
 - Gap finding in requirement documents against testing knowledge, the current system state, and the bug base, with Open Questions managed by status (OPEN / ANSWERED / RESOLVED / WAIVED) so unanswered questions never block materials creation.
 - Test Viewpoint design with a mandatory joint review checkpoint: viewpoints are locked only after you confirm or adjust them.
 - Test case design where every case traces to a Viewpoint and an Acceptance Criterion, delivered with a traceability matrix.
-- Automation eligibility per test case (UI-AUTO / API-AUTO / BOTH / MANUAL) decided by explicit rules.
+- Automation eligibility per test case (UI-AUTO / API-AUTO / BOTH / MANUAL) decided by explicit rules, surfaced in the TC table as `Automatable` (Yes/No/Partial) + `Auto Type` (UI/API/Unit/N/A) + `@Tags`.
+- Execution status per test case (`NOT_RUN` → `PASS`/`FAIL`/`BLOCKED`/`SKIP`/`ERROR`) with `Test By` and `Test Date`, so the report generator always has results to aggregate.
 - Gherkin export (`.feature` files) for UI-automation-eligible test cases.
 - Test execution through the Playwright MCP with auto-heal, verified locators, and per-TC reporting (only on request).
 - Postman collection v2.1 export for API-automation-eligible test cases.
-- **Stakeholder-facing test report generation** (`qc-report-generator`): aggregates execution results into HTML (primary, with charts), PPTX, Markdown, XLSX, or CSV reports — covering scope, results, coverage by viewpoint/AC, blocking/accepted/stakeholder-aware issues, confidence statement, and GO/NO-GO recommendation — saved to `qc/reports/`.
+- **Stakeholder-facing test report generation** (`qc-report-generator`): aggregates execution results into HTML (primary, with charts), DOCX, PPTX, Markdown, XLSX, or CSV reports — covering scope, results, coverage by viewpoint/AC, blocking/accepted/stakeholder-aware issues, confidence statement, and GO/NO-GO recommendation — saved to `qc/reports/`.
 
 ## Repository Structure
 
@@ -33,8 +34,9 @@ tanizy-qc-agent/
 │   ├── qc-run-playwright/    # Execution via Playwright MCP (on request)
 │   ├── qc-export-postman/    # Postman collection export
 │   └── qc-report-generator/  # Stakeholder-facing test reports (HTML/PPTX/MD/XLSX/CSV)
+├── core/references/material-paths.md # Single canonical global material-paths rule
 ├── refs-templates/           # Seeded runtime refs: system-context, bug-base, OQ ledger
-├── adapters/codex/AGENTS.md  # Codex routing rules and personalization
+├── adapters/                 # gemini-cli, codex, claude-code, antigravity entrypoints
 ├── scripts/install.mjs       # No-dependency installer
 ├── docs/                     # Install and demo guides
 ├── package.json
@@ -46,33 +48,36 @@ Do not edit copied skill files inside target projects as the source of truth. Up
 ## Install via npm (Recommended)
 
 ```bash
-npx @thanhndpo/tanizy-qc-agent --project /path/to/project
+npx @thanhndpo/tanizy-qc-agent --target codex --project /path/to/project
 ```
 
 Preview the install first:
 
 ```bash
-npx @thanhndpo/tanizy-qc-agent --project /path/to/project --dry-run
+npx @thanhndpo/tanizy-qc-agent --target codex --project /path/to/project --dry-run
 ```
 
-Install to the project root (may conflict with an existing PO agent `AGENTS.md`):
+The same command supports all planned adapters:
 
 ```bash
-npx @thanhndpo/tanizy-qc-agent --project /path/to/project --placement root
+npx @thanhndpo/tanizy-qc-agent --target gemini-cli --project /path/to/project
+npx @thanhndpo/tanizy-qc-agent --target claude-code --project /path/to/project
+npx @thanhndpo/tanizy-qc-agent --target antigravity --project /path/to/project
 ```
+
 
 ### Install One Skill
 
 ```bash
-npx @thanhndpo/tanizy-qc-agent --project /path/to/project --skill qc-gap-finder
-npx @thanhndpo/tanizy-qc-agent --project /path/to/project --skill qc-design-viewpoints
-npx @thanhndpo/tanizy-qc-agent --project /path/to/project --skill qc-design-test-cases
-npx @thanhndpo/tanizy-qc-agent --project /path/to/project --skill qc-export-gherkin
-npx @thanhndpo/tanizy-qc-agent --project /path/to/project --skill qc-run-playwright
-npx @thanhndpo/tanizy-qc-agent --project /path/to/project --skill qc-export-postman
+npx @thanhndpo/tanizy-qc-agent --target codex --project /path/to/project --skill qc-gap-finder
+npx @thanhndpo/tanizy-qc-agent --target codex --project /path/to/project --skill qc-design-viewpoints
+npx @thanhndpo/tanizy-qc-agent --target codex --project /path/to/project --skill qc-design-test-cases
+npx @thanhndpo/tanizy-qc-agent --target codex --project /path/to/project --skill qc-export-gherkin
+npx @thanhndpo/tanizy-qc-agent --target codex --project /path/to/project --skill qc-run-playwright
+npx @thanhndpo/tanizy-qc-agent --target codex --project /path/to/project --skill qc-export-postman
 ```
 
-Repeat `--skill` to select multiple skills. Selective installation copies only the named skill folders and does not overwrite `AGENTS.md`.
+Repeat `--skill` to select multiple skills. Selective installation copies only the named skill folders, their `references/material-paths.md` global-rule copy, `qc/material-paths.md`, and the selected target adapter.
 
 ## Update to Latest Version
 
@@ -89,18 +94,18 @@ npx @thanhndpo/tanizy-qc-agent@latest --project /path/to/project --skill qc-gap-
 ## Install from Local Clone
 
 ```bash
-node scripts/install.mjs --project /path/to/project
-node scripts/install.mjs --project /path/to/project --skill qc-gap-finder
-node scripts/install.mjs --project /path/to/project --placement root
+node scripts/install.mjs --target codex --project /path/to/project
+node scripts/install.mjs --target codex --project /path/to/project --skill qc-gap-finder
+node scripts/install.mjs --target codex --project /path/to/project
 ```
 
-Add `--force` to overwrite existing QC files for the selected items.
+Add `--force` to overwrite existing files for the selected items. Use `--skip-refs` only when the runtime refs seed is managed elsewhere.
 
 ## Working Modes
 
 ### Mode 1 — Coordinator Actor (you invoke QC)
 
-In any Codex session, after requirement documents are approved, invoke the QC Actor explicitly:
+In any supported agent session, after requirement documents are approved, invoke the QC Actor explicitly:
 
 ```text
 Gọi QC Actor review bộ tài liệu này:
@@ -129,7 +134,7 @@ $qc-report-generator      # test report for stakeholders (HTML/PPTX/MD/XLSX/CSV)
 
 ## Coexistence With Tanizy PO Agent
 
-Install the QC package with the default placement (`qc/`) so it lands in `qc/.agents/skills/` and `qc/AGENTS.md`, leaving the PO agent's root-level `.agents/skills/` and `AGENTS.md` untouched. Both agents read the same requirement files; the read-only intake contract is the only interface between them, and nobody installing the public PO agent is ever routed to QC.
+Install with `--target codex` to place skills under `.agents/skills/`, with `--target gemini-cli` under `skills/`, with `--target claude-code` under `.claude/skills/`, or with `--target antigravity` under `.agents/skills/`. All targets create `qc/material-paths.md`, and the same canonical reference is copied into every installed skill, so `qc-task.md` and `open-questions.md` follow the same global rule as gap and report materials. Both agents read the same requirement files; the read-only intake contract is the only interface between them, and nobody installing the public PO agent is ever routed to QC.
 
 ## Important Behavior
 

@@ -7,8 +7,8 @@ Kịch bản test 15 phút bằng một feature nhỏ: **Login với rate limit*
 ```bash
 mkdir -p ~/demo-project && cd ~/demo-project
 git init
-node /path/to/tanizy-qc-agent/scripts/install.mjs --project . --dry-run
-node /path/to/tanizy-qc-agent/scripts/install.mjs --project .
+node /path/to/tanizy-qc-agent/scripts/install.mjs --target codex --project . --dry-run
+node /path/to/tanizy-qc-agent/scripts/install.mjs --target codex --project .
 ```
 
 Kiểm tra kết quả:
@@ -17,6 +17,8 @@ Kiểm tra kết quả:
 demo-project/
 ├── qc/
 │   ├── AGENTS.md
+│   ├── material-paths.md
+│   ├── field-validation-checklist.md   (có thể tùy chỉnh theo project)
 │   ├── .agents/skills/qc-*/
 │   └── refs/          (tạo thủ công sau)
 ```
@@ -86,7 +88,7 @@ Mở dự án bằng Codex. Kịch bản chính là **Actor mode**: bạn gọi 
    ```text
    $qc-design-test-cases
    ```
-   Kỳ vọng: `qc/test-cases/login-test-cases.md` với TC-LOG-001... có cột Trace (VP + AC), cột Auto (UI-AUTO/API-AUTO/MANUAL), TC phụ thuộc OQ được gắn cờ `[OQ-xxx]`; matrix cuối file cho thấy AC1-AC4 đều có TC cover; file `qc/executions/login-executions.md` được tạo sẵn một hàng/TC với Result `SKIP`.
+   Kỳ vọng: `qc/test-cases/login-test-cases.md` với TC-LOG-001... có cột Trace (VP + AC), Module, Risk Level, metadata `Automatable` + `Auto Type` + `@Tags`, `Status = NOT_RUN` với `Test By`/`Test Date` trống; TC phụ thuộc OQ được gắn cờ `[OQ-xxx]`; matrix cuối file cho thấy AC1-AC4 đều có TC cover; validation TCs sinh riêng cho từng field theo `qc/field-validation-checklist.md` (file installer đã seed, bạn có thể tùy chỉnh); file `qc/executions/login-executions.md` được tạo sẵn một hàng/TC với Result `NOT_RUN`.
 
 4. **Export Gherkin (bạn yêu cầu thêm):**
    ```text
@@ -110,17 +112,19 @@ Mở dự án bằng Codex. Kịch bản chính là **Actor mode**: bạn gọi 
    ```text
    $qc-report-generator — test cases ở qc/test-cases/login-test-cases.md
    ```
-   Kỳ vọng: workflow hỏi format (HTML/PPTX/MD/XLSX/CSV); chọn HTML; agent tạo
+   Kỳ vọng: workflow hỏi format (HTML/DOCX/PPTX/MD/XLSX/CSV); chọn HTML; agent tạo
    `qc/reports/test-report-login-<date>.html` với summary card, donut + bar
    chart, coverage theo VP/AC, 4 nhóm issues, confidence statement và
-   GO/CONDITIONAL/NO-GO.
+   GO/CONDITIONAL/NO-GO. Thử thêm lần 2 chọn **DOCX**: file `test-report-login-<date>.docx`
+   mở được bằng Word/LibreOffice, font tiếng Việt không lỗi (không xuất hiện ô vuông/mojibake),
+   bảng trạng thái có màu PASS/FAIL/BLOCKED, chart PNG hiển thị đúng.
 
 ### Standalone mode — tester gọi từng skill riêng
 
 Thử chỉ cài 1 skill để xác nhận chế độ standalone:
 
 ```bash
-node /path/to/tanizy-qc-agent/scripts/install.mjs --project ~/demo-project2 --skill qc-export-gherkin
+node /path/to/tanizy-qc-agent/scripts/install.mjs --target codex --project ~/demo-project2 --skill qc-export-gherkin
 ```
 
 Mở `~/demo-project2` trong Codex, tạo một file TC mẫu rồi gọi `$qc-export-gherkin` — chỉ skill này được cài và vẫn hoạt động độc lập.
@@ -133,5 +137,6 @@ Mở `~/demo-project2` trong Codex, tạo một file TC mẫu rồi gọi `$qc-e
 | 2 | Gap finder tạo OQ ledger | `qc/open-questions.md` có OQ-001+ |
 | 3 | Viewpoint dừng ở checkpoint | Agent hỏi trước khi chốt |
 | 4 | TC có trace | Mỗi TC có cột Trace tới VP và AC |
+| 4b | TC metadata + trạng thái | Mỗi TC có Automatable/Auto Type/Tags, Status = NOT_RUN, Test By/Date trống |
 | 5 | Gherkin tag đủ | Tag `@TC-XXX` trên mọi scenario |
 | 6 | OQ chưa trả lời không chặn delivery | TC vẫn sinh kèm cờ `[OQ-xxx]` |

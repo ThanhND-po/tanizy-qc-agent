@@ -15,7 +15,7 @@ Single screen overview:
 | PASS | N (x%) |
 | FAIL | N |
 | BLOCKED | N |
-| SKIP / not run | N |
+| SKIP / NOT_RUN (never executed) | N |
 | Coverage | x% of viewpoints, y% of ACs |
 | Blockers | N |
 | Verdict | GO / CONDITIONAL GO / NO-GO |
@@ -63,12 +63,15 @@ Links to screenshots, logs, run artifacts — table format, max 2 columns
 - Status values rendered with visual weight per format:
   - HTML: colored badge chips (PASS green, FAIL red, BLOCKED amber).
   - PPTX: colored cells + chart slide.
-  - Markdown: `✅ PASS` / `❌ FAIL` / `🚫 BLOCKED` / `⏭ SKIP` / `⚠ ERROR` markers.
+  - Markdown: `✅ PASS` / `❌ FAIL` / `🚫 BLOCKED` / `⏭ SKIP` / `⚠ ERROR` / `○ NOT_RUN` markers.
 - Dates and IDs are machine-readable (YYYY-MM-DD, TC-NNN, VP-NN, AC-N.N).
 
 ## Coverage Math
 
 - Viewpoint coverage = executed viewpoints ÷ total viewpoints.
 - AC coverage = ACs with ≥1 executed case ÷ total ACs in scope.
-- Pass rate = PASS ÷ executed (excluding SKIP/BLOCKED/ERROR). Report both
+- Pass rate = PASS ÷ executed (excluding SKIP/BLOCKED/ERROR/NOT_RUN). Report both
   pass rate and the absolute FAIL count — pass rate alone hides blockers.
+- `NOT_RUN` test cases (never executed) are counted as "designed, not run" and
+  must never inflate the executed denominator; when reading from TC status
+  fields (see executions-log rule 5), the same exclusion applies.
