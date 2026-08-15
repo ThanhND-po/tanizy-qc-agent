@@ -1,93 +1,96 @@
 ---
-## Global Material Path Rule
-
-Before creating or updating any artifact, read `references/material-paths.md`. This is a global rule for every QC skill, including the runtime `qc-task.md` and `open-questions.md` files; the installer populates this reference from the package canonical source.
-
 name: qc-design-viewpoints
-description: Design Test Viewpoints from approved requirements and gap findings, present them to the user for joint review and adjustment, and lock the viewpoint set before test case design. Use when the user says "thiết kế viewpoint", "QC viewpoint review", or after gap analysis when test angles need to be agreed.
+description: "Design and jointly review source-backed Test Viewpoints, coverage, priority, and blocked scope before Test Case design. Use when the user asks to design QC viewpoints, review testing angles, or lock a Viewpoint revision after an approved gap analysis."
 ---
-# Viewpoint Design — Agree Testing Angles With the User Before Test Cases
 
-## Purpose
+# Design Test Viewpoints
 
-A **Test Viewpoint** is a named testing angle that groups related test intent (for example "Login happy flow", "Permission boundaries", "State transition correctness", "Performance threshold"). Viewpoints sit between requirements and test cases: they guarantee the test set covers every required angle, and they give the user a compact checkpoint to review **before** test cases are written.
+Create a compact, traceable set of testing angles between requirements and Test
+Cases. Do not create Test Cases in this skill.
 
-This skill exists to prevent the common failure of jumping straight from requirements to hundreds of undifferentiated test cases, and to give the user (tester, PO, or QA lead) one place to push back on scope, priority, and test angles.
+## Artifact Contract
 
-## Mandatory Inputs
+Read `references/material-paths.md` and
+`references/viewpoint-catalog.md`. Use the same confirmed scope key as the gap
+report.
 
-| Input | Source |
-|---|---|
-| Approved requirement files | Handoff or user-provided |
-| Gap report + resolved/assumed OQs | `qc/gap-reports/<feature>-gap-report.md` and `qc/open-questions.md` |
-| System context | `qc/refs/system-context.md` |
+## Required Inputs
 
-If gap analysis has not been run for this feature, run `qc-gap-finder` first.
+- approved requirement sources with exact paths and refs;
+- `qc/gap-reports/<scope-key>-gap-report.md`;
+- `qc/open-questions.md`;
+- relevant System Context and Bug Base, when available.
 
-## Viewpoint Catalog (Starting Point)
+If gap analysis is missing, or its gate is `STOP`, stop and hand the task back
+to `qc-gap-finder`. Do not start an unapproved prerequisite phase.
 
-Derive viewpoints from these angles; keep only those relevant to the feature and add feature-specific ones. Never copy this list blindly.
+For a `PARTIAL` gate, design only the source-backed subset. List each blocked
+requirement separately and do not create a provisional Viewpoint for behavior
+whose Expected Result is unknown.
 
-| Angle | Viewpoint family | Typical trigger |
-|---|---|---|
-| Functional happy path | Flow correctness | Every feature |
-| Alternative / negative | Rejection, error handling | Validations, errors in AC |
-| Boundary & data variation | Min/max, formats, empty, special chars | Input fields, limits |
-| State & transitions | Status rules, lifecycle | State machine, workflow |
-| Permission & role | Access control matrix | Roles in actors list |
-| Integration & data flow | Upstream/downstream | Dependencies section |
-| Non-functional | Performance, security, accessibility | NFR document present |
-| Regression | Known bugs, fragile modules | Bug base entries |
+Treat unresolved OQs with `Blocks From Phase = DESIGN` as design blockers. An
+execution-only blocker does not erase source-backed design coverage.
 
-## Execution Steps
+## Workflow
 
-1. Read requirements and the gap report. List every AC, use case step, business rule, and NFR statement.
-2. Map each requirement element to candidate viewpoints (an AC can map to multiple viewpoints; a viewpoint must cite the refs it covers).
-3. Check coverage: every AC and every business rule must appear in at least one viewpoint. Missing coverage means adding a viewpoint, not skipping.
-4. Assign each viewpoint a priority (`P1` must test, `P2` should test, `P3` if time allows) with a one-line rationale.
-5. Write the viewpoints file to
-   `qc/test-viewpoints/<feature|epic|user-story>-viewpoints.md` (see
-   `references/material-paths.md`), version it (`Version 1`), and stop at the
-   **checkpoint**.
+1. Build a source inventory of ACs, business rules, NFRs, state transitions,
+   roles, impact/regression items, and explicit user decisions.
+2. Derive only relevant Viewpoints from the catalog. Do not copy the catalog as
+   a generic checklist.
+3. Give every Viewpoint a stable `VP-<SCOPE-CODE>-NNN` ID, type, priority,
+   rationale, and exact source refs.
+4. Calculate coverage totals separately for AC, business rule, NFR, and
+   impact/regression dimensions.
+5. List blocked items and their OQ IDs outside the Viewpoint table.
+6. Draft the full Viewpoint table and coverage summary in chat.
+7. Ask the user to merge, split, reprioritize, add, drop, or approve items.
+8. Recalculate coverage after every adjustment.
+9. Obtain approval for the locked content and exact path.
+10. Write `qc/test-viewpoints/<scope-key>-viewpoints.md` as the locked revision.
 
-## Checkpoint — User Review Is Mandatory
+Dropping a source-backed Viewpoint requires an explicit waiver and must not be
+reported as covered.
 
-Present the viewpoint table and ask the user to review jointly. Possible adjustments the user may request, and their handling:
-
-| User adjustment | Handling |
-|---|---|
-| Merge or split viewpoints | Update refs and coverage mapping; bump version |
-| Change priority | Update and note reason |
-| Drop a viewpoint | Allowed only if no uncovered AC remains; log the waiver |
-| Add a viewpoint | Verify which refs it covers, add, re-check coverage |
-| "Keep going, viewpoints look fine" | Lock the set; proceed to test case design |
-
-Continue adjusting until the user confirms the viewpoint set. Record the
-locked version number in the viewpoints file header and in `qc/qc-task.md`.
-
-## Viewpoint File Template
+## File Structure
 
 ```markdown
-# Test Viewpoints: [Feature] — Version N (Locked)
-## 1. Scope
-(requirements covered, feature name, date, reviewers)
-## 2. Viewpoint Table
-| VP ID | Viewpoint | Type | Priority | Covered Refs (AC / VP / rules) | Rationale |
-|---|---|---|---|---|---|
-| VP-01 | ... | Flow | P1 | US-010 AC1-AC3 | ... |
-## 3. Coverage Check
-(table: requirement ref → viewpoints covering it; every ref must have ≥1)
-## 4. Open Question Impact
-(OQs whose answers affect viewpoint scope, with status)
-## 5. Review History
-(version, date, adjustment, who)
+# Test Viewpoints: <Scope Key>
+
+## 1. Artifact Header
+| Scope Key | Scope Code | Artifact Type | Revision | State | Parent Gap Revision | Blocking OQs | Approved By | Approved At |
+
+## 2. Source Manifest
+| Source path | Section or ID | Revision or hash |
+
+## 3. Viewpoint Table
+| VP ID | Viewpoint | Type | Priority | Source Refs | Rationale |
+
+## 4. Coverage
+| Dimension | Covered | Total | Blocked | Coverage % |
+
+## 5. Blocked Scope
+| Requirement Ref | OQ ID | Missing Evidence |
+
+## 6. Review History
+| Revision | Date | Change | Reviewer |
 ```
+
+Use relative Markdown links for project-local sources, the gap report, OQ
+ledger, and every existing project artifact referenced by the file. Preserve an
+approved external source as its exact `external, non-portable` locator.
+
+## Quality Gates
+
+- Every Viewpoint has at least one exact source ref.
+- Every covered source item maps to at least one Viewpoint.
+- Blocked items are excluded from the covered numerator.
+- Coverage denominators are explicit and reproducible.
+- The revision is `LOCKED` only after explicit user approval.
+- All relative links resolve.
 
 ## Rules
 
-- Do not write test cases in this skill; only viewpoints, coverage, and review history.
-- The viewpoint set is locked only after explicit user confirmation; a lock record is mandatory.
-- A viewpoint without covered requirement refs is not allowed.
-- Ask in Vietnamese by default; keep IDs and technical terms in English.
-- Save outputs in the target project, not inside skill folders, following
-  the layout in `references/material-paths.md`.
+- Keep requirements and gap findings unchanged.
+- Do not turn Open Questions into assumed Viewpoints.
+- Ask in Vietnamese by default and retain exact IDs and technical terms.
+- Write only after the Persist and Lock Gates pass.

@@ -1,66 +1,81 @@
 ---
-## Global Material Path Rule
-
-Before creating or updating any artifact, read `references/material-paths.md`. This is a global rule for every QC skill, including the runtime `qc-task.md` and `open-questions.md` files; the installer populates this reference from the package canonical source.
-
 name: qc-export-postman
-description: Convert defined test cases that are eligible for API automation (API-AUTO or BOTH) into a Postman collection (v2.1) that can be imported and run. Use when the user says "xuất Postman", "tạo Postman collection từ TC", "API tests cho TC này", or after test cases are designed and a subset is selected.
+description: "Convert locked API-AUTO or BOTH Test Cases with a complete API contract into a traceable Postman Collection v2.1 and manifest. Use when the user asks to export Postman, build a collection from selected TC IDs, or prepare API automation artifacts. This skill exports only and does not execute requests."
 ---
-# Postman Collection Export — API Test Cases to an Importable Collection
 
-## Purpose
+# Export a Postman Collection
 
-Transform test cases with automation eligibility `API-AUTO` or `BOTH` into a **Postman Collection v2.1** JSON file that imports directly into Postman and can be run with the Collection Runner or Newman. The export preserves the traceability chain: every request carries the TC ID and trace refs.
+Create an importable Postman Collection v2.1 without inventing API behavior or
+including secrets.
 
-## Selection Scope
+## Artifact Contract
 
-Accept a scope from the user: a list of TC IDs, a viewpoint ID, a feature code, or "all eligible API TCs". If the user gives no scope, list the eligible API TCs with counts and ask them to choose.
+Read `references/material-paths.md`. Save output below
+`qc/automation/postman/<scope-key>/`.
 
-## Conversion Rules
+## Required Inputs
 
-Each TC maps to one request:
+- locked `qc/test-cases/<scope-key>-test-cases.md` revision;
+- selected `API-AUTO` or `BOTH` TC IDs;
+- source-backed HTTP method, endpoint, auth scheme, headers, payload, response
+  shape, and Expected Results;
+- matching gap report and OQ ledger.
 
-| TC element | Postman mapping |
+Reject any stale case, unresolved OQ that blocks from `DESIGN` or `EXPORT`,
+missing API contract field, or `NEEDS_SPEC` case. Report missing evidence as
+`BLOCKED_SPEC`; do not convert it to `MANUAL` merely because the API contract is
+incomplete.
+
+Read eligibility only from the canonical `Automation Eligibility` column. Do
+not infer it from tags, titles, obsolete derived fields, or HTTP-like wording.
+Treat a missing or unknown canonical value as `BLOCKED_SCHEMA`.
+
+## Mapping
+
+| Test Case field | Postman output |
 |---|---|
-| TC ID, title | Request name `TC-XXX-NNN — <title>` |
-| Trace refs | Request description header: `Trace: VP-XX, US-XXX ACn` |
-| HTTP method, endpoint | From the API spec / requirement; **never invent endpoints** |
-| Request body, headers, auth | From the API spec; map to collection-level auth/variables where shared |
-| Expected result (status, payload rules) | `Tests` script with `pm.test(...)` assertions (status code, required fields, value rules) |
-| Test data / variables | `{{variable}}` references; declare a `variables` block with sensible placeholders |
-| OQ-flagged TC | Request name suffix `[OQ-XXX]` plus description note |
-| Negative cases | Separate requests in the same folder, tagged `@negative` in the name |
+| TC ID and title | Request name and description |
+| VP and source refs | Description trace block |
+| Method and endpoint | Request object from the approved API source |
+| Headers, auth, payload | Collection variables and request fields |
+| Expected Results | `pm.test(...)` assertions |
+| Concrete Test Data | Non-secret values or named environment variables |
 
-Group requests into folders by viewpoint (or by module when viewpoint is not meaningful). Use collection-level variables for base URL, tokens, and shared data; per-request variables only when unique.
+Leave secret variable values empty and document their names in the manifest.
+Never write tokens, passwords, or production personal data into the collection.
 
-## Information Completeness Gate
+## Workflow
 
-A TC is exportable only when the requirement/API spec defines its method, endpoint, and expected response shape. For TCs missing any of these, report them as `NEEDS_REVIEW` in the summary instead of guessing; list exactly which field is missing so the user (or PO agent) can resolve it.
+1. Validate the TC revision, approval state, eligibility, and selected IDs.
+2. Verify the API contract for every request and assertion.
+3. Draft the collection structure and rejected-ID summary in chat.
+4. Show the exact write set.
+5. Obtain explicit content and path approval.
+6. Write `<scope-key>.postman_collection.json` and
+   `<scope-key>-postman-manifest.md`.
+7. Validate JSON structure, traceability, and secret handling.
 
-## Output
+The manifest records Scope Key, Scope Code, Artifact Type, Revision, State,
+locked source TC revision, exported and rejected TC IDs, source coverage,
+validation state, secret variable names, and runtime blockers.
 
-Save the collection under `postman/` in the target project (confirm path with the user):
+## Static Validation Gate
 
-```text
-postman/
-├── <module>.postman_collection.json   # Collection v2.1, importable
-└── README.md                          # index: folder → viewpoint → TC IDs, variables list, how to run
-```
+- `info.schema` is Postman Collection v2.1.
+- Every exported TC appears exactly once.
+- Every request has at least one source-backed assertion.
+- No endpoint, payload field, response field, or expected status is invented.
+- No secret value is embedded.
+- Rejected IDs and reasons appear in the manifest.
+- All relative source links resolve.
 
-End the README with a run instruction block:
-
-```bash
-newman run <module>.postman_collection.json --env-var baseUrl=https://...
-```
-
-## Validation Gate
-
-Before delivery: the JSON validates as Postman Collection v2.1 (correct `info.schema`, request structure, test scripts as strings); every exported TC ID appears exactly once; every request has at least one `pm.test` assertion; `NEEDS_REVIEW` TCs are listed, not silently dropped; no invented endpoints or payload fields exist in the collection.
+Mark the collection `STATIC_VALID` after these checks. Mark it `RUNTIME_READY`
+only when environment variables, credentials, data fixtures, dependencies, and
+cleanup are verified.
 
 ## Rules
 
-- This skill produces collection files only; it does not execute requests unless the user also asks for a run (then use Newman or the API tools available and report per-TC results).
-- Never guess endpoint URLs, methods, or payload schemas from the TC title alone.
-- Keep assertion texts in the same language as the source TCs.
-- Ask in Vietnamese by default; keep technical terms in English.
-- Save outputs in the target project, not inside skill folders.
+- Export only. Do not run Postman, Newman, or API requests in this skill.
+- Keep requirements and source Test Cases unchanged.
+- Ask in Vietnamese by default and retain exact API terms and IDs.
+- Use the descriptive manifest filename defined above.

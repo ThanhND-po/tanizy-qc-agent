@@ -1,30 +1,29 @@
-# Open Questions Ledger
+# QC Open Questions
 
-<!--
-TEMPLATE — This file is seeded by the Tanizy QC Agent installer as an empty
-runtime artifact. runtime artifact. runtime artifact. runtime artifact. runtd
-during QC sessions, so questions are never asked twice across sessions and
-every assumption is traceable.
+This project-owned ledger is seeded at `qc/open-questions.md`. Installer
+updates preserve existing content.
 
-Status values (as defined in qc-gap-finder):
-- OPEN        — chưa có câu trả lời, chưa block materials nếu Medium/Low.
-- ANSWERED    — user/dev đã trả lời, chờ PO cập nhật requirement nếu cần.
-- RESOLVED    — requirement đã được PO cập nhật theo câu trả lời.
-- WAIVED      — user chấp nhận rủi ro rõ ràng; assumption phải được ghi ở
-                requirement ref hoặc trong gap report.
+## Status Values
 
-Rules:
-- High-priority OQs must be asked immediately (không chỉ ghi vào ledger).
-- Medium/Low OQs are appended and announced once.
-- Never delete a row; update its status. History stays traceable.
--->
+- `OPEN`: no decision exists.
+- `ANSWERED`: an explicit decision exists, but the governing source may not be
+  updated yet.
+- `RESOLVED`: the governing source was updated and linked.
+- `WAIVED`: an authorized person explicitly accepted the documented risk.
+
+Silence is not approval. A blocking Open Question prevents downstream work for
+its affected scope.
+
+Use `OQ-<SCOPE-CODE>-NNN`. Keep IDs unique across this ledger and never reuse an
+ID for a different decision.
 
 ## Ledger
 
-| # | Ref (doc + section) | Class | Câu hỏi | Options đề xuất | Priority | Status | Trả lời / Ghi chú |
-|---|---|---|---|---|---|---|---|
-| 1 | | GAP/AMB/MISS | | | High/Med/Low | OPEN | |
+| OQ ID | Scope Key | Source Path and Ref | Type | Question | Proposed Options | Priority | Blocks From Phase | Impacted Artifacts | Status | Decision | Decision Source | Answered At |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
 
-## Notes
+## Revision History
 
-- Seed version: 1.0 (template khởi tạo)
+| Revision | Date | Change | Updated By |
+|---|---|---|---|
+| 1 | | Seed created | Installer |

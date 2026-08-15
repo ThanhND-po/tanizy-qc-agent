@@ -1,79 +1,139 @@
-# Installing Tanizy QC Agent
+# Install Tanizy QC Agent
 
-Tanizy QC Agent supports four targets: Gemini CLI, Codex, Claude Code, and Antigravity. The target controls the adapter entrypoint and skill directory; the QC workflow itself remains shared.
+## Required Input
 
-## Install via npm
+Pass the project root to `--project`. Do not pass the project's `qc/` runtime
+directory.
 
 ```bash
-npx @thanhndpo/tanizy-qc-agent --target gemini-cli --project /path/to/project
-npx @thanhndpo/tanizy-qc-agent --target codex --project /path/to/project
-npx @thanhndpo/tanizy-qc-agent --target claude-code --project /path/to/project
-npx @thanhndpo/tanizy-qc-agent --target antigravity --project /path/to/project
+npx @thanhndpo/tanizy-qc-agent \
+  --target codex \
+  --project /path/to/project \
+  --dry-run
 ```
 
-Preview an installation with `--dry-run` before writing files:
+Review the displayed project root, skill root, runtime root, write actions, and
+legacy warnings. Then install:
 
 ```bash
-npx @thanhndpo/tanizy-qc-agent --target codex --project /path/to/project --dry-run
+npx @thanhndpo/tanizy-qc-agent \
+  --target codex \
+  --project /path/to/project
 ```
 
-## Install selected skills
+## Supported Targets
 
-Repeat `--skill` to install only the requested workflows:
+| Target | Skill root | Managed adapter |
+|---|---|---|
+| `codex` | `.agents/skills/` | QC block in `AGENTS.md` |
+| `gemini-cli` | `skills/` | QC block in `GEMINI.md` |
+| `claude-code` | `.claude/skills/` | QC block in `CLAUDE.md` |
+| `antigravity` | `.agents/skills/` | QC block in `AGENTS.md` plus namespaced rule |
+
+The installer preserves content outside its marked adapter block.
+
+## Existing PO or Project Instructions
+
+The installer appends one block between these markers:
+
+```text
+<!-- BEGIN TANIZY QC AGENT MANAGED BLOCK -->
+<!-- END TANIZY QC AGENT MANAGED BLOCK -->
+```
+
+It does not replace an existing PO block or unmarked project instructions.
+`--force` refreshes only the QC block. Review the dry run and keep PO, project,
+or other agent instructions outside the QC markers.
+
+PO completion does not trigger QC automatically. The user must explicitly
+invoke QC and provide an approved source locator. QC can read an exact source
+inside or outside the project, but keeps it read-only and applies independent
+Scope, Persist, Lock, Execution, and Release Verdict gates.
+
+This guarantee covers QC installer operations. Another installer that replaces
+the whole root adapter can still remove the QC block. Prefer selective updates
+for such packages. After a legacy PO full `--force` update, re-run this QC
+installer with `--force`; it preserves the resulting PO content and restores
+one current QC block.
+
+## Selective Install
+
+Repeat `--skill` to choose exact skill folders:
 
 ```bash
-npx @thanhndpo/tanizy-qc-agent --target codex --project /path/to/project \
+npx @thanhndpo/tanizy-qc-agent \
+  --target codex \
+  --project /path/to/project \
   --skill qc-gap-finder \
   --skill qc-design-test-cases
 ```
 
-Selective installation also copies the global `material-paths.md` reference into every selected skill and into `qc/material-paths.md`, so the rule applies consistently to `qc-task.md`, `open-questions.md`, gap reports, test materials, executions, and stakeholder reports.
+The canonical artifact contract is refreshed across installed QC skills during
+an approved `--force` update so local copies do not diverge.
 
-## Install from a local clone
-
-```bash
-node scripts/install.mjs --target codex --project /path/to/project
-node scripts/install.mjs --target gemini-cli --project /path/to/project --skill qc-gap-finder
-```
-
-Use `--force` to overwrite existing adapter or skill files. Runtime reference seeds under `qc/refs/` are preserved by default; use `--skip-refs` to omit them.
-
-## Target layout
-
-| Target | Adapter entrypoint | Skill directory |
-|---|---|---|
-| `gemini-cli` | `GEMINI.md` | `skills/` |
-| `codex` | `AGENTS.md` | `.agents/skills/` |
-| `claude-code` | `CLAUDE.md` | `.claude/skills/` |
-| `antigravity` | `AGENTS.md` plus `.agents/rules/tanizy-qc.md` | `.agents/skills/` |
-
-Every target also receives `qc/material-paths.md`, which is generated from `core/references/material-paths.md`. Each installed skill receives a copy at `references/material-paths.md` because skills must be self-contained when read directly.
-
-## After install
-
-Open the target project in the selected agent. QC starts only after explicit user invocation. The adapter routes requests to the matching `qc-*` skill and requires the global material path rule before any QC artifact is created or updated. The agent does not modify requirement documents and does not start automatically.
-
-For Codex, the normal explicit invocation is `$qc-orchestrator`. For direct workflow use, invoke `$qc-gap-finder`, `$qc-design-viewpoints`, `$qc-design-test-cases`, `$qc-export-gherkin`, `$qc-run-playwright`, `$qc-export-postman`, or `$qc-report-generator` as appropriate.
-
-## Manual adapter copy
-
-Manual copying is supported when npm installation is not available. Copy the target adapter entrypoint and the corresponding core skills to the target-specific locations shown above. Also copy `core/references/material-paths.md` to `qc/material-paths.md` and to each installed skill's `references/material-paths.md`. The installer is recommended because it keeps these copies synchronized.
-
-## Updating
+## Update
 
 ```bash
-npx @thanhndpo/tanizy-qc-agent@latest --target codex --project /path/to/project --force
-npx @thanhndpo/tanizy-qc-agent@latest --target claude-code --project /path/to/project --skill qc-gap-finder --force
+npx @thanhndpo/tanizy-qc-agent@latest \
+  --target codex \
+  --project /path/to/project \
+  --force
 ```
 
-Do not edit copied skill files as the source of truth. Update `core/skills/` or `core/references/material-paths.md` in this repository, then reinstall.
+`--force` replaces selected package-managed skill folders, canonical contract
+copies, and the managed adapter block. It does not overwrite:
 
-## Legacy Codex placement
+- `qc/open-questions.md`
+- `qc/refs/system-context.md`
+- `qc/refs/bug-base.md`
+- `qc/config/field-validation-checklist.md`
+- content outside the marked QC adapter block
 
-Versions before the multi-target installer used `--placement root|qc`. That option is no longer supported. Use `--target codex` for the standard Codex layout, or choose another target explicitly.
+## Runtime Layout
 
-## Material layout
+```text
+qc/
+├── config/
+├── refs/
+├── open-questions.md
+├── tasks/
+├── gap-reports/
+├── test-viewpoints/
+├── test-cases/
+├── automation/
+├── executions/
+├── evidence/
+└── reports/
+```
 
-All QC artifacts live under `qc/` and follow the rules in `qc/material-paths.md`. The OQ ledger and runtime refs are shared, while gap reports, viewpoints, test cases, executions, and reports use their dedicated directories.
+Use one exact source-derived `scope-key` across all artifact types. Preserve
+prefixes such as `fs-`, `epic-`, `req-`, and `cr-`. Confirm one stable uppercase
+`scope-code` for generated IDs.
 
-> Never create a second divergent `material-paths.md` as a source of truth. The package has one canonical source, and installed copies are generated artifacts.
+## Legacy Layout
+
+The installer detects but never deletes `qc/.agents/skills/`, duplicate OQ
+ledgers, shared `qc/qc-task.md`, and earlier config locations. Validate the new
+installation before manually migrating any project-owned content.
+
+Use this mapping during migration:
+
+| Legacy path or pattern | Canonical handling |
+|---|---|
+| `qc/.agents/skills/qc-*` | Install target-native skills at project root; remove the nested copy only after discovery is verified |
+| `qc/refs/open-questions.md` | Merge unique decisions into `qc/open-questions.md`; do not overwrite either ledger blindly |
+| `qc/qc-task.md` | Split by scope into `qc/tasks/<scope-key>-qc-task.md` |
+| `qc/material-paths.md` | Replace with the package-managed `qc/config/material-paths.md` after comparing custom rules |
+| `qc/field-validation-checklist.md` | Move project customization to `qc/config/field-validation-checklist.md` |
+| `qc/AGENTS.md` | Preserve project rules at the root adapter; do not keep a nested adapter |
+| Artifact filename missing the source prefix | Rename to the exact source-derived scope key and update every relative link |
+
+Migration sequence:
+
+1. Run `--dry-run` against the project root and review all warnings.
+2. Install the new layout without deleting legacy files.
+3. Inventory and compare project-owned content, especially OQ decisions,
+   checklist customization, task history, and relative links.
+4. Merge or rename one scope at a time, then validate links and traceability.
+5. Remove or archive legacy files only after explicit approval and a clean
+   validation result.

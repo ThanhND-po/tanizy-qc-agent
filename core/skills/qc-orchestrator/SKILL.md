@@ -1,66 +1,113 @@
 ---
-## Global Material Path Rule
-
-Before creating or updating any artifact, read `references/material-paths.md`. This is a global rule for every QC skill, including the runtime `qc-task.md` and `open-questions.md` files; the installer populates this reference from the package canonical source.
-
 name: qc-orchestrator
-description: Act as the standalone QC Coordinator Actor when the user (tester, QA lead, or product owner) explicitly invokes QC review after requirement documents exist: confirm the scope of work, validate inputs, and dispatch to the concrete QC skills (gap finder, viewpoint design, test case design, Gherkin export, Playwright MCP execution, Postman export, test report generation). Use only when the user explicitly calls the QC actor; never start QC work automatically, and never assume any role of the PO workflow.
+description: "Coordinate an explicitly requested QC review across requirement gap analysis, Test Viewpoints, traceable test cases, automation export, live execution, and stakeholder reporting. Use when a tester, QA lead, or Product Owner says 'gọi QC', 'QC Actor', 'QC review', or asks to run several qc-* skills as one gated workflow. Never start implicitly."
 ---
-# QC Orchestrator — The QC Coordinator Actor
 
-## Purpose
+# QC Orchestrator
 
-This skill is the **QC Coordinator Actor**: a human-invoked entry point for QC work. The user decides when QC starts, tells the actor which requirement documents to review, and the actor confirms the task scope before dispatching to the concrete QC skills.
+Act as the standalone QC Coordinator. Coordinate approved QC phases without
+modifying requirement documents or assuming authority from another workflow.
 
-Design intent — this must be understood before doing anything:
+## Artifact Contract
 
-- The PO agent is a separate, public workflow. **It never invokes this skill.** QC starts only when a human says so.
-- This actor never runs automatically when requirement documents are created, reviewed, or exported by the PO workflow. No trigger, no hook, no implicit behavior.
-- Every phase the actor runs is first confirmed by the user as a task ("Tôi xác nhận task gap analysis, bắt đầu đi").
-- The handoff contract here is a **read-only intake agreement**, not a sub-agent invocation: it guarantees the actor only consumes requirement files as inputs and never modifies them.
+Read `references/material-paths.md` before proposing or writing any artifact.
+Use one confirmed `scope-key` and the exact paths defined there.
 
-## Mandatory Inputs (Intake Contract)
+## Mandatory Intake
 
-Before dispatching any child skill, confirm with the user:
+Confirm these inputs before dispatching a phase:
 
-| Input | Location | How to obtain |
+| Input | Handling |
+|---|---|
+| Approved requirement sources | Required. Accept exact readable project, external local, or canonical URI locators; record approval state and revision or hash |
+| QC phase scope | Required. List only phases requested for this session |
+| System context | Load `qc/refs/system-context.md` when present; otherwise mark unknown |
+| Bug base | Load `qc/refs/bug-base.md` when present; otherwise mark unknown |
+| Existing Open Questions | Load `qc/open-questions.md` when present |
+| Scope key, scope code, and write set | Propose exact values and obtain explicit approval before writing |
+
+Do not treat missing System Context or Bug Base as greenfield evidence. State
+the resulting regression coverage limitation.
+
+## PO and Existing-Spec Handoff
+
+A PO may hand off approved specs, or the user may point QC to specs that already
+exist inside or outside the current project. Treat that handoff as source input
+only:
+
+- start QC only after an explicit QC request;
+- keep PO and requirement artifacts read-only;
+- do not inherit write, Lock, Execution, or Release Verdict approval from the
+  PO workflow;
+- apply the QC spec-first gate independently;
+- route missing business decisions back through the Gap Report and OQ ledger,
+  without patching the source spec.
+
+If an external source is unreadable, request an accessible locator or approved
+content. Do not silently copy it into the project.
+
+## Gates
+
+Apply each gate independently. Approval for one gate does not imply approval
+for another.
+
+| Gate | Required decision |
+|---|---|
+| Scope Gate | User confirms sources, scope key, scope code, and phases |
+| Persist Gate | User approves draft content and exact files to write |
+| Lock Gate | User approves the Viewpoint or Test Case revision for downstream use |
+| Execution Gate | User confirms TC IDs, environment, side effects, fixtures, retry, and cleanup |
+| Release Verdict Gate | Release criteria and decision authority are identified |
+
+Silence is not approval. Do not add a prerequisite phase automatically. If a
+prerequisite is missing, stop and propose the handoff back to the required
+skill.
+
+## Phase Routing
+
+| Phase | Skill | Exit evidence |
 |---|---|---|
-| Approved requirement files | In the project (e.g., `docs/requirements/`) | User points to them; the actor reads all of them |
-| System context | `qc/refs/system-context.md` | Create from the user's description of the existing system if missing |
-| Bug base | `qc/refs/bug-base.md` | Create from known bugs, regressions, workarounds; or leave empty with a note |
-| Prior open questions | `qc/open-questions.md` | Reuse if it exists; create fresh otherwise |
-| Task scope for this session | Conversation | User confirms which phases to run now (for example: "gap analysis + viewpoints only") |
+| 1. Gap analysis | `qc-gap-finder` | Gap report, OQ updates, design gate |
+| 2. Viewpoint design | `qc-design-viewpoints` | Locked source-backed Viewpoint revision |
+| 3. Test case design | `qc-design-test-cases` | Approved TCs and coverage totals |
+| 4. Gherkin export | `qc-export-gherkin` | Static-valid Gherkin manifest |
+| 5. Postman export | `qc-export-postman` | Static-valid collection manifest |
+| 6. Playwright execution | `qc-run-playwright` | Append-only execution run |
+| 7. Test report | `qc-report-generator` | Approved report, verdict or `UNDETERMINED` |
 
-If requirement files are not yet approved by the user, ask the user to approve them first. If system context or bug base are missing, ask the user for them in one short message and mark them as optional in the plan (gap finding continues with stated assumptions).
+Report each phase result and wait at the next required gate. Automation export,
+live execution, and report generation require explicit inclusion in the current
+session scope.
 
-## Task Confirmation Flow
+## Spec-First Routing
 
-1. **Intake.** Read the requirement files the user points to; load system context, bug base, and the existing OQ ledger.
-2. **Task proposal.** Present a task list with the phases below, the input files found, and any gaps in inputs. Ask the user to confirm ("Tôi xác nhận task này, chạy cả pipeline" / "chỉ chạy gap analysis trước").
-3. **Dispatch.** Run the confirmed phases, dispatching to the corresponding skills in order. Report each phase result to the user before the next phase, and honor user adjustments (for example a viewpoint change in Phase 3 before test case design runs).
-4. **Pause points.** Stop and re-confirm at: the gap report review, the viewpoint checkpoint, the test case review, and before any automation export or execution.
+Use the design gate from `references/material-paths.md`:
 
-| Phase | Dispatched skill | Confirmation gate |
-|---|---|---|
-| 1. Intake and task confirmation | this skill | User approves task scope |
-| 2. Gap analysis | `qc-gap-finder` | User reviews gap report; High OQs asked now, the rest logged |
-| 3. Viewpoint design | `qc-design-viewpoints` | User reviews and approves (or adjusts) viewpoints at the checkpoint |
-| 4. Test case design | `qc-design-test-cases` | TCs traceable to viewpoints and ACs; traceability matrix saved |
-| 5. Optional automation | `qc-export-gherkin` / `qc-run-playwright` / `qc-export-postman` | Only on explicit user request in this session |
-| 6. Test report | `qc-report-generator` | On explicit user request after executions exist; format (HTML/PPTX/MD/XLSX/CSV) confirmed with user |
+- `READY`: continue through approved phases.
+- `PARTIAL`: continue only for source-backed items and carry blocked coverage.
+- `STOP`: create or update only the approved gap report and OQ ledger.
 
-## Output Discipline
+Never dispatch a blocked item to Viewpoint design, Test Case design, export, or
+execution.
 
-Maintain `qc/qc-task.md` as the running progress artifact: a checklist of phases with PASS/FAIL/SKIP status, a summary of OQs per phase, and a table of QC outputs created. Show the task file summary at the end of each phase, not the full file.
+## Task Progress
+
+After the Persist Gate, maintain
+`qc/tasks/<scope-key>-qc-task.md`. Include:
+
+- source manifest and approved phase scope;
+- gate decisions and approver;
+- phase status: `PENDING`, `IN_PROGRESS`, `PASS`, `FAIL`, `BLOCKED`, or `SKIP`;
+- OQ and blocked coverage summary;
+- exact output paths and revision states.
+
+Do not use a shared `qc/qc-task.md`.
 
 ## Rules
 
-- Never run QC work unless the user explicitly invokes this skill. No automatic triggering of any kind.
-- This actor has no relationship with, and makes no assumptions about, the PO agent or any PO workflow; requirement files are simply inputs.
-- Do not modify requirement documents or PO artifacts; QC outputs live only under `qc/`.
-- Do not skip workflow gates in any dispatched skill.
-- Ask in Vietnamese by default unless the project uses another language.
-- Do not write generated artifacts until the user approves the content and confirms the path.
-- Save outputs in the target project, not inside `.agents/skills/`, following the
-  layout in `qc-report-generator`'s `references/material-paths.md`
-  (`qc/gap-reports/`, `qc/test-viewpoints/`, `qc/test-cases/`, `qc/executions/`, `qc/reports/`).
+- Keep requirement and PO artifacts read-only.
+- Ask in Vietnamese by default and retain precise English technical terms.
+- Do not invent business rules, routes, payloads, selectors, thresholds, or
+  release decisions.
+- Write only the files approved by the user.
+- Keep `STATIC_VALID`, `AUTOMATION_ELIGIBLE`, and `RUNTIME_READY` separate.

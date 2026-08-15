@@ -36,4 +36,4 @@ This catalog lists viewpoint families that `qc-design-viewpoints` derives from. 
 
 ## Viewpoint Anatomy
 
-Every viewpoint must state: an ID (`VP-NN`), a name describing the angle, a type (functional / non-functional / regression), a priority (P1 must, P2 should, P3 if time), the requirement refs it covers, and a one-line rationale. A viewpoint without covered refs is invalid and must be merged or dropped.
+Every viewpoint must state: a stable ID (`VP-<SCOPE-CODE>-NNN`), a name describing the angle, a type (functional / non-functional / regression), a priority (P1 must, P2 should, P3 if time), the requirement refs it covers, and a one-line rationale. A viewpoint without covered refs is invalid and must be merged or dropped.

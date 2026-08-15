@@ -1,39 +1,46 @@
 # Automation Eligibility Guide
 
-Classify the automation eligibility of each test case with these rules. When in doubt between two classes, choose the more conservative one and note the reason in the TC's Notes column.
+Classify automation potential without claiming runtime readiness. Preserve one
+canonical eligibility value in every Test Case row.
 
-The eligibility value feeds the output table's **`Automatable`** and **`Auto Type`** columns; the design skill must set both columns (plus at least one `@Tag`) for every TC.
+## Canonical Values
 
-## Classification Rules
+| Eligibility | Use when |
+|---|---|
+| `UI-AUTO` | The source-backed intent is deterministic and observable through UI automation |
+| `API-AUTO` | The source-backed intent is deterministic and the complete API contract is available |
+| `BOTH` | The same intent is valid and independently observable through UI and API layers |
+| `MANUAL` | The approved test intent requires human judgment or an unsupported physical/third-party interaction |
+| `NEEDS_SPEC` | Test intent, data, Expected Result, endpoint, or another required contract is missing |
 
-| Eligibility | Criteria | Examples |
-|---|---|---|
-| `UI-AUTO` | Deterministic UI steps, stable elements, observable assertions, no subjective checks | Login, CRUD forms, list verification, state transition flows |
-| `API-AUTO` | Behavior fully verifiable through API responses; no UI dependency | Search API result rules, calculation endpoints, webhooks, bulk endpoints |
-| `BOTH` | Meets both sets of criteria | Standard CRUD with both API and UI flows documented |
-| `MANUAL` | Visual/subjective checks, third-party popups (payment gateway, SSO redirect, CAPTCHA), mobile gesture, accessibility visual review, exploratory flows | Payment page redirect, email layout, drag-and-drop polish |
+Do not use `MANUAL` to hide an incomplete specification. Use `NEEDS_SPEC` and
+link the blocking OQ.
 
-## Additional Constraints
+## Eligibility Rules
 
-1. A TC is `UI-AUTO` only if every expected result is a state or text that can be asserted programmatically. "The page looks correct" is not automatable.
-2. A TC is `API-AUTO` only if the method, endpoint, and expected response shape are defined in the requirement or API spec. Missing endpoint → keep `MANUAL` and flag `NEEDS_REVIEW`.
-3. Setup cost matters: if a TC requires a complex one-time UI setup that the API can provide, mark `API-AUTO` with a note describing the setup via API.
-4. Group TCs with the same setup into one automation story where possible; the Notes column should record shared preconditions.
+1. Require an observable, source-backed Expected Result.
+2. Mark `UI-AUTO` only when the UI behavior can be asserted programmatically.
+   Stable locators are runtime-readiness evidence, not a reason to invent UI
+   behavior.
+3. Mark `API-AUTO` only when method, endpoint, auth, payload, response shape,
+   and relevant status/error behavior are defined.
+4. Mark `BOTH` only when both paths test the same intent without losing an
+   assertion.
+5. Mark subjective visual quality, physical hardware, CAPTCHA, and exploratory
+   testing as `MANUAL` when that intent is explicitly in scope.
+6. Mark source gaps as `NEEDS_SPEC` and stop the affected downstream export.
 
-## Downstream Mapping
+Do not add derived `Automatable` or `Auto Type` columns. They repeat the same
+decision and may become inconsistent with `Automation Eligibility`.
 
-| Auto value | Export destination | Skill |
-|---|---|---|
-| `UI-AUTO`, `BOTH` | Gherkin `.feature` | `qc-export-gherkin` |
-| `API-AUTO`, `BOTH` | Postman collection | `qc-export-postman` |
-| `UI-AUTO`, `BOTH` | Playwright MCP execution | `qc-run-playwright` |
+## Downstream Routing
 
-## Output Column Mapping
+| Eligibility | Allowed next step |
+|---|---|
+| `UI-AUTO`, `BOTH` | `qc-export-gherkin`; Playwright only after Execution Gate |
+| `API-AUTO`, `BOTH` | `qc-export-postman`; execution requires a separate approved run workflow |
+| `MANUAL` | Manual execution record |
+| `NEEDS_SPEC` | Gap report and Open Question only |
 
-| Eligibility | Automatable | Auto Type |
-|---|---|---|
-| `UI-AUTO` | `Yes` | `UI` |
-| `API-AUTO` | `Yes` | `API` |
-| `BOTH` | `Yes` | `UI` (or `API` when the requirement is API-first) |
-| `MANUAL` | `No` | `N/A` |
-| Manual-only visual check inside an automatable flow | `Partial` | `UI` |
+`STATIC_VALID`, `AUTOMATION_ELIGIBLE`, and `RUNTIME_READY` are separate states.
+Eligibility alone never proves that a test can run in the current environment.

@@ -10,13 +10,16 @@
   "files": [
     "core",
     "adapters",
+    "docs",
     "scripts/install.mjs",
     "LICENSE",
     "refs-templates"
   ],
   "scripts": {
     "install:agent": "node scripts/install.mjs",
-    "pack:check": "node -e \"console.log('add package validation here')\""
+    "validate": "node scripts/validate.mjs",
+    "test:install": "node scripts/test-install.mjs",
+    "pack:check": "npm run validate && npm run test:install"
   },
   "keywords": [
     "agent-skills",

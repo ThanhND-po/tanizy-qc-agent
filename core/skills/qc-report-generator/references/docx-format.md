@@ -1,147 +1,83 @@
-# DOCX Output Format Specification
+# DOCX Test Report Specification
 
-DOCX is the **second-choice format after HTML**: use it when stakeholders want a
-Word document they can annotate, print, or circulate via email. It carries the
-same 8 content sections as every other format (see `report-content-spec.md`);
-only the presentation differs.
+Create a Word document with the `COMPACT` core and calculations defined in
+`report-content-spec.md`. Add only requested `DETAILED` appendices. Use DOCX
+when stakeholders need annotation, printing, or email circulation.
 
-## Generation Toolchain
+## Toolchain
 
-Build the `.docx` with `python-docx` (preferred) or the `pandoc` CLI. Do not
-hand-craft XML, and never generate the file by pasting Markdown into a plain
-template without checking the result opens correctly.
+Use an available document-generation tool such as `python-docx` or Pandoc.
+Generate charts as verified local PNG files or supported native shapes. Do not
+handcraft OOXML unless no supported tool exists.
 
-Recommended command (when pandoc is available):
+## Typography and Unicode
 
-```bash
-pandoc report.md -o report.docx --toc --toc-depth=2 --metadata title="Test Report"
-```
+- Use a Unicode-capable font available in the environment.
+- Set both Latin and East Asian font properties when the tool supports them.
+- Keep Vietnamese and CJK text as Unicode.
+- Strip invalid control characters and NUL bytes from raw logs.
+- Do not use Wingdings, Symbol, or other legacy symbol fonts for status.
 
-Recommended python-docx recipe (when a script is preferred):
+Use plain text labels: `PASS`, `FAIL`, `BLOCKED`, `SKIP`, `ERROR`, `NOT_RUN`,
+and `UNDETERMINED`.
 
-```python
-from docx import Document
-from docx.shared import Pt, Inches, RGBColor
-from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.enum.table import WD_TABLE_ALIGNMENT
-from docx.oxml.ns import qn
+## Status Colors
 
-doc = Document()
-style = doc.styles["Normal"]
-style.font.name = "Calibri"
-style.font.size = Pt(10.5)
-style._element.rPr.rFonts.set(qn("w:eastAsia"), "Calibri")  # CJK/Vietnamese fallback
-# ...build headings, paragraphs, tables per structure below
-doc.save(path)
-```
-
-**Before saving, run one verification:** re-open the file with `python-docx`
-(or `LibreOffice` headless: `libreoffice --headless --convert-to pdf file.docx`)
-and confirm it opens without errors. If it fails, fall back to Markdown and
-tell the user.
-
-## Unicode and Font Rules (no mojibake)
-
-1. **Use a Unicode-capable font stack.** Body: `Calibri` (or `Trebuchet MS`);
-   Vietnamese CJK-safe fallback is implicit in modern Word, but set the
-   `w:eastAsia` font on the Normal style so Vietnamese diacritics never render
-   as boxes (they are part of the Latin script and are safe; the rule exists
-   mainly for headers and embedded East-Asian tooling).
-2. **Save with UTF-8 encoding everywhere.** If generating the docx via a
-   Markdown intermediate, make sure the `.md` is UTF-8 with NO BOM, and the
-   pandoc/docx conversion does not pass through a Latin-1 pipe.
-3. **Never use the legacy Word symbol fonts** (Wingdings, Symbol) for status
-   icons — they break on non-Windows viewers. Use text markers instead:
-   `PASS / FAIL / BLOCKED / SKIP / NOT_RUN` plain text, optionally colored
-   (see Color Rules).
-4. If source data contains control characters or NUL bytes (raw logs), strip
-   them before inserting into paragraphs or table cells.
-
-## Color Rules (status visibility without icons)
-
-Shade status cells and verdict text with these exact fills/text colors so the
-docx reads like the HTML version:
-
-| Status | Fill (status cell) | Text color |
+| Label | Fill | Text |
 |---|---|---|
 | PASS | `#D6F5D6` | `#1B7A2F` |
 | FAIL | `#FADBD8` | `#B03A2E` |
 | BLOCKED | `#FDF2D5` | `#9C640C` |
+| ERROR | `#FCE4EC` | `#AD1457` |
 | SKIP | `#EBEDEF` | `#566573` |
 | NOT_RUN | `#F2F3F4` | `#7B7D7D` |
-| Verdict GO | — | `#1B7A2F` bold |
-| Verdict CONDITIONAL GO | — | `#9C640C` bold |
-| Verdict NO-GO | — | `#B03A2E` bold |
+| GO | `#D6F5D6` | `#1B7A2F` |
+| CONDITIONAL GO | `#FDF2D5` | `#9C640C` |
+| NO-GO | `#FADBD8` | `#B03A2E` |
+| UNDETERMINED | `#E8EAF6` | `#3949AB` |
 
-Apply shading via `CT_Shl` on the table cell: `xml:space="preserve"`,
-`w:val="clear"`, `w:color="auto"`, `w:fill="<hex>"`.
+Status must remain understandable when printed without color.
 
-## Document Structure (maps to content spec sections 1–8)
+## Layout
 
-1. **Title page block** — report title, scope, verdict (bold + color), run
-   date, generated-by line.
-2. **Summary metrics** — one table: Metric → Value (8 rows: Scope, Test cases,
-   PASS, FAIL, BLOCKED, SKIP/NOT_RUN, Coverage, Verdict).
-3. **What Was Tested** — scope statement + tested-items table.
-4. **Result Breakdown** — table: Viewpoint / AC → # cases → PASS/FAIL/BLOCKED.
-5. **Coverage Detail** — coverage matrix; uncovered VP/ACs highlighted
-   (fill `#FDF2D5`) and explicitly listed as risks.
-6. **Issues** — 4-group table (Blocking / Failures / Accepted /
-   Stakeholder-aware).
-7. **Confidence Statement** — 1–2 sentences.
-8. **Recommendation** — verdict + explicit conditions.
-9. **Evidence Index** — TC ID → Evidence link table (max 2 columns).
+1. Add a compact title block with scope key, Run IDs, environment, application
+   build, report date, and verdict.
+2. Render Decision Summary, Findings and Actions, then Confidence and Evidence.
+3. Use a metrics table before explanatory prose.
+4. Keep failures, blockers, limitations, and required decisions visible without
+   opening an appendix.
+5. Start any requested detailed appendix on a new page.
+6. Add a footer with generation timestamp and tool identity.
 
-## Table Rules
+## Tables
 
-1. Every table must have an explicit header row with bold text; set the header
-   row to repeat across pages (`tblHeader`) so long matrices stay readable.
-2. Use `TableStyle("Table Grid")` or a banded style — never rely on invisible
-   borders; some viewers render borderless tables as unreadable.
-3. Column widths: set explicitly with `table.columns[i].width` (inches) and
-   `allow_autofit=False`-style fixed layout (`tblLayout fixed` via XML) so
-   wide paths or long Vietnamese titles do not collapse or overflow.
-4. Status cells always carry the color fill; other cells keep the default
-   white.
-5. Links in the Evidence Index must be inserted as real hyperlinks (add
-   `HYPERLINK` rIds) so they are clickable in Word — plain URLs that wrap to
-   the next line break Word's table layout.
+- Use visible borders and a repeated bold header row.
+- Set practical column widths and prevent path columns from collapsing.
+- Keep one result or evidence item per row.
+- Insert real hyperlinks for source and evidence paths.
+- Split oversized matrices by coverage dimension rather than shrinking text
+  below a readable size.
 
-## Image and Chart Rules (no broken pictures)
+## Charts and Images
 
-1. Prefer **native Word shapes** for charts: if the environment provides
-   `python-pptx`-style chart APIs or pandoc handles SVG charts, render the
-   donut + bar chart as vector/natives. Otherwise generate charts as **PNG
-   files** (matplotlib, 150–200 DPI, UTF-8-safe labels — never let matplotlib
-   write characters the system font cannot render; test with
-   `plt.rcParams["font.family"] = "DejaVu Sans"`).
-2. Embed images with `add_picture(path, width=Inches(5.5))` — fixed width, no
-   height constraint, so aspect ratios stay correct.
-3. All image files must be **local absolute or relative paths**; never embed
-   remote URLs (they show as broken frames offline). Download evidence
-   screenshots first if they come from remote locations.
-4. Keep the total number of embedded images reasonable: the standard set is
-   donut + one bar chart in the Summary; evidence screenshots go in the
-   Evidence Index section as thumbnails (`width=Inches(3.0)`) or as links if
-   numerous.
-5. After embedding, verify the docx size did not balloon past ~10 MB with a
-   single run; if it did, switch evidence to links.
+- Use only charts that materially clarify result distribution or coverage.
+- Keep labels readable and include source values in a nearby table.
+- Embed local files only. Do not depend on remote image URLs.
+- Preserve aspect ratio and compress oversized evidence images.
+- Prefer evidence links when embedding all screenshots would make the file too
+  large.
 
-## Footer and Metadata
+Follow the canonical file naming and no-overwrite rule in `format-guide.md`.
 
-End the document with: `Generated by Tanizy QC Agent ($qc-report-generator)`
-+ document creation date in the footer. This marks the artifact as
-machine-generated so readers do not edit it as source.
+## Verification Gate
 
-## Rules
+Before delivery:
 
-- Content parity with all other formats: nothing is invented or omitted for
-  DOCX convenience.
-- Never ask the user to pick chart types — donut + one bar chart is the
-  standard, same as HTML.
-- If charts cannot be produced without breaking fonts/layout, degrade to
-  text-table summary metrics and say so in one sentence; do not ship a
-  corrupted document.
-- File naming: `test-report-<feature>-<YYYY-MM-DD>.docx` in `qc/reports/`,
-  version-suffixed (`-v2`) if it exists.
-- Vietnamese by default; technical terms in English.
+1. reopen the DOCX with the generation library;
+2. render every page with an available office or document renderer;
+3. inspect missing glyphs, clipped text, split tables, broken charts, and links;
+4. reconcile displayed metrics with the source execution rows;
+5. verify the file name and output path.
+
+If reopen or rendering fails, do not deliver the file as valid. Report the
+failure and offer an approved HTML or Markdown alternative.

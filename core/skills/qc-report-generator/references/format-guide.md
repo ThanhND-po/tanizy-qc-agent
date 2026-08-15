@@ -1,91 +1,105 @@
-# Output Format Guide
+# Test Report Format Guide
 
-When the user invokes the skill, ask which format they want. Present the
-options as a short menu (default: HTML). All formats contain the same content
-(see report-content-spec.md); only presentation differs.
+Use the format requested by the user. If none is specified, present the short
+comparison below and recommend HTML for fast stakeholder review. Treat CSV as a
+companion data export, not a standalone stakeholder report. Do not ask the user
+to choose chart types.
 
-## Format Comparison
+## Comparison
 
-| Format | Audience | Charts | Tool needed | Token cost |
-|---|---|---|---|---|
-| **HTML** (default) | SM / PO / stakeholders | Donut + bar charts (inline SVG/JS) | Browser, none | Low |
-| **DOCX** | Stakeholders who annotate / circulate in Word | Donut + bar charts (PNG or native) | Word / LibreOffice | Low |
-| PPTX | Review meetings | Charts as slide graphics | PowerPoint | Medium |
-| Markdown | Dev / QC detail reading | None (text tables) | Any editor | Lowest |
-| XLSX | PMO / tracking | Charts on a dashboard sheet | Excel | Low |
-| CSV | Data import only | None | Any | Lowest |
+| Format | Best for | Visuals | Required verification |
+|---|---|---|---|
+| HTML | Fast stakeholder review | Metric cards, result and coverage charts | Open locally, verify layout and links |
+| DOCX | Word annotation and circulation | Tables and embedded charts | Reopen and render pages |
+| PPTX | Review meeting | One insight per slide | Render all slides |
+| Markdown | Detailed engineering review | Tables only | Link and table validation |
+| XLSX | Filtering and PMO tracking | Dashboard and conditional formatting | Reopen workbook and inspect formulas/charts |
+| CSV | Companion data import/export | None | Parse and reconcile row counts |
 
-## HTML (primary, highest design effort)
+HTML, DOCX, PPTX, Markdown, and XLSX use the `COMPACT` core and calculations
+from `report-content-spec.md`. Add `DETAILED` appendices only when requested.
+CSV contains normalized result rows. When a stakeholder asks for CSV as a test
+report, pair it with one of those report formats unless the user explicitly
+confirms a data-only export.
 
-Single self-contained file (inline CSS, no external assets). Structure:
-1. Header band: title, scope, verdict badge (GO = green, CONDITIONAL = amber,
-   NO-GO = red), run date.
-2. Summary card row: 6 metric tiles (cases, pass rate, coverage, blocked,
-   new defects, verdict).
-3. Donut chart: PASS / FAIL / BLOCKED / SKIP / NOT_RUN distribution.
-4. Bar chart: coverage by viewpoint (each viewpoint → % covered).
-5. Tables per content spec sections 2–8; status cells use colored chips.
-6. Footer: generated-by and evidence-index links.
-Use CSS only; if a chart library is not available, render charts as inline
-SVG — do not depend on network-loaded scripts (stakeholders may open offline).
+## HTML
 
-## DOCX (second choice after HTML)
+Create one self-contained file with inline CSS and no network dependency.
+Include:
 
-Follow `references/docx-format.md` in full. Highlights:
+1. title, scope, selected Run IDs, environment, and verdict;
+2. summary metrics;
+3. findings and actions;
+4. confidence, evidence links, and generated-at metadata;
+5. a result or coverage visual only when it adds information beyond the tables.
 
-1. Build with `python-docx` or `pandoc`; **verify the file re-opens cleanly**
-   before saving (pandoc roundtrip or LibreOffice headless).
-2. **Unicode safe**: UTF-8 everywhere, no legacy symbol fonts for status
-   markers (plain text PASS/FAIL/BLOCKED/SKIP/NOT_RUN, colored per the
-   color table in docx-format.md); strip control characters from raw logs.
-3. **Fonts**: Calibri body with an explicit `w:eastAsia` fallback so
-   Vietnamese text never renders as boxes; never ship with missing-font
-   placeholders.
-4. **Images/charts**: charts as PNG (DejaVu Sans labels, no unreadable
-   glyphs) or native shapes; embed with fixed width; local paths only —
-   evidence screenshots are thumbnails or clickable links; never remote URLs.
-5. **Tables**: bold repeated header row, `Table Grid` style, explicit fixed
-   column widths, shaded status cells.
-6. Structure mirrors the HTML layout (title block, metrics table, breakdown,
-   coverage, 4-group issues, confidence, recommendation, evidence index).
+Prefer inline SVG or CSS for charts. Use status labels that remain readable
+without color.
 
-If the environment cannot produce a clean docx (fonts, charts, or
-verification fails), degrade gracefully and tell the user in one sentence.
+## DOCX
+
+Follow `docx-format.md`. Reopen the generated file and render it before
+delivery. If the environment cannot produce a valid document, report the
+failure and offer Markdown or HTML. Do not deliver a corrupt fallback as DOCX.
 
 ## PPTX
 
-1 slide per insight, max 8 slides:
-1. Title + verdict
-2. Summary metrics
-3. Donut: result distribution
-4. Bar: coverage by viewpoint
-5. What was tested (table)
-6. Result breakdown (table)
-7. Issues & stakeholder-aware list
-8. Recommendation + confidence
-Keep text ≤ 24 words per slide; charts as native shapes where possible.
+Use at most five content slides unless the user requests detail:
+
+1. title, scope, runs, and verdict;
+2. results and coverage metrics;
+3. failures, blockers, and actions;
+4. confidence and limitations;
+5. recommendation, required decisions, and evidence links.
+
+Render all slides and inspect text overflow, chart labels, and links.
 
 ## XLSX
 
-Sheets: `Summary` (metrics + small charts), `Coverage` (viewpoint×AC matrix
-with color scales), `Results` (raw per-case rows), `Issues` (4-group table),
-`Evidence` (index). Use conditional formatting: green/amber/red fills on
-status columns.
+Use these sheets for the compact workbook:
+
+- `Summary`
+- `Issues`
+- `Evidence`
+
+Add `Coverage` or `Results` only when the user requests the corresponding
+detailed appendix. Use formulas for summary metrics and conditional formatting
+for status. Reopen the workbook and verify formulas and charts.
 
 ## Markdown
 
-Text tables with ✅/❌/🚫/⏭/⚠/○ markers (○ = NOT_RUN), badge-style header block, coverage
-matrix as a grid table. No charts.
+Use the three compact core sections, compact tables, and text status labels. Do
+not rely only on emoji or color. Resolve and validate every project-local link
+from the proposed report file under `qc/reports/`, not from the project root.
 
 ## CSV
 
-`TC ID,Module,RiskLevel,Title,Trace,Priority,Tags,Status,TestBy,TestDate,Result,Evidence,BugID,Note` — data export only; warn the
-user it carries no visual summary.
+Use one row per execution attempt, including `BLOCKED`, `ERROR`, and `SKIP`:
 
-## Rules
+```text
+RunID,Attempt,TCID,Module,Risk,VPID,SourceRef,Priority,Tags,Result,SelectedForReport,AssessmentPolicy,TestBy,TestDate,ActualResult,Evidence,Defect,Cleanup,Note
+```
 
-- Never ask the user to pick a chart type — the generator chooses the minimum
-  set that conveys the verdict (donut + one bar chart is the standard).
-- File naming: `test-report-<feature>-<YYYY-MM-DD>.<ext>` in `qc/reports/`.
-- If an output file already exists for the same feature + date, append a
-  version suffix `-v2`, `-v3` instead of overwriting.
+Do not create synthetic attempt rows for `NOT_RUN`. Reconcile the CSV row count
+to the report's attempt-row count.
+
+CSV is a data export and does not replace the stakeholder summary. State this
+limitation before saving. If the user requests only CSV, deliver only the data
+export when explicitly confirmed and do not call it a complete test report.
+
+## File Naming
+
+Save reports as:
+
+```text
+qc/reports/<scope-key>-test-report-<YYYY-MM-DD>[-vN].<ext>
+```
+
+Append `-v2`, `-v3`, and so on when the same scope, date, and extension already
+exist. Never overwrite an existing report silently.
+
+## Verdict Labels
+
+Support `GO`, `CONDITIONAL GO`, `NO-GO`, and `UNDETERMINED`. Make
+`UNDETERMINED` visually distinct and explain which release criterion or
+authority is missing.

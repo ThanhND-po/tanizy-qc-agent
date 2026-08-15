@@ -1,76 +1,96 @@
 ---
-## Global Material Path Rule
-
-Before creating or updating any artifact, read `references/material-paths.md`. This is a global rule for every QC skill, including the runtime `qc-task.md` and `open-questions.md` files; the installer populates this reference from the package canonical source.
-
 name: qc-export-gherkin
-description: Convert defined test cases that are eligible for UI automation (UI-AUTO or BOTH) into Gherkin .feature files runnable with Playwright. Use when the user says "xuất Gherkin", "convert TC sang feature", "gherkin cho TC này", or after test cases are designed and a subset is selected.
+description: "Convert locked UI-AUTO or BOTH Test Cases into traceable Gherkin feature specifications and a manifest for a Playwright BDD workflow. Use when the user asks to export Gherkin, convert selected TC IDs to .feature files, or prepare BDD specifications. Do not claim the files are runnable until the runner and step definitions are verified."
 ---
-# Gherkin Export — Test Cases to Playwright-Runnable .feature Files
 
-## Purpose
+# Export Gherkin Specifications
 
-Transform the test cases designed by `qc-design-test-cases` into well-formed Gherkin (`.feature`) files that a Playwright BDD setup can execute. The export is **only for TCs with automation eligibility `UI-AUTO` or `BOTH`**; manual-only TCs are reported but not converted.
+Convert locked Test Cases into behavior-focused `.feature` files without
+changing test intent or inventing implementation details.
 
-## Selection Scope
+## Artifact Contract
 
-Accept a scope from the user in one of these forms: a list of TC IDs, a viewpoint ID (all TCs of that VP), a feature code (all `TC-LOG-*`), or "all eligible". If the user gives no scope, list the eligible TCs with counts and ask them to choose.
+Read `references/material-paths.md`. Save all output below
+`qc/automation/gherkin/<scope-key>/`.
 
-## Conversion Rules
+## Required Inputs
 
-| TC element | Gherkin mapping |
+- locked `qc/test-cases/<scope-key>-test-cases.md` revision;
+- selected TC IDs, Viewpoint IDs, or explicit `all eligible` scope;
+- canonical `Automation Eligibility` values;
+- matching gap report and OQ ledger.
+
+Export only `UI-AUTO` or `BOTH` cases. Exclude `MANUAL`, `API-AUTO`,
+`NEEDS_SPEC`, stale cases, and cases affected by an unresolved OQ that blocks
+from `DESIGN` or `EXPORT`. If the user did not choose a scope, list eligible IDs
+and wait for confirmation.
+
+Read eligibility only from the canonical `Automation Eligibility` column in the
+locked Test Case revision. Do not infer it from tags, titles, an obsolete
+`Automatable` field, or UI-like Steps. If the canonical column is absent or has
+an unknown value, reject the case as `BLOCKED_SCHEMA` and request a Test Case
+revision.
+
+## Mapping
+
+| Test Case field | Gherkin output |
 |---|---|
-| Precondition | `Background:` (shared) or first `Given` steps |
-| Test data | `Examples:` table under `Scenario Outline`, or inline `Given` with concrete values |
-| Numbered steps | `When`/`Then` in order; split at the first verification step |
-| Expected result | `Then` assertions (one per verifiable outcome) |
-| TC ID, title | `@TC-XXX-NNN` tag and `Scenario:` name |
-| Trace refs | `@VP-XX @US-XXX-AC1` tags |
-| OQ-flagged TC | Add `@provisional` tag and a comment line noting the OQ |
-| Notes column | Comment lines above the scenario |
+| TC ID and title | TC tag and Scenario name |
+| Preconditions | `Background` when shared, otherwise `Given` |
+| Concrete Test Data | Inline values or `Examples` table |
+| Steps | Behavior-level `Given`, `When`, and `Then` |
+| Expected Results | Observable `Then` assertions |
+| VP and source refs | Tags and source comment |
 
-Step phrasing rules: write steps as user-facing behavior (`Given the user is on the login page`, `When they submit valid credentials`), not DOM actions (`click button`). Keep one assertion per `Then` where practical. Name steps so the same wording can be reused across scenarios (step definition reuse).
+Use user-facing behavior, not DOM actions. Do not invent selectors, routes,
+error copy, or step-definition names.
 
-## Output Structure
+Use a lowercase kebab-case `module-key` from the locked Test Case module. Keep
+it unique within the scope directory. If selected cases map to more than one
+module or the module is unclear, propose the file split and obtain approval.
 
-Save into the target project under `specs/` (confirm path with the user):
+## Workflow
+
+1. Validate TC revision, approval state, source traces, and selected IDs.
+2. Reject blocked, stale, or ineligible cases with an exact reason.
+3. Draft feature files and a manifest in chat.
+4. Show the exact output directory and filenames.
+5. Obtain explicit content and path approval.
+6. Write feature files plus
+   `<scope-key>-gherkin-manifest.md`.
+7. Run the static validation gate.
+
+## Output Example
 
 ```text
-specs/
-├── login.feature          # one feature per module/code, or per viewpoint
-├── api-user-mgmt.feature
-└── README.md              # index: feature → TC IDs → viewpoint mapping
+qc/automation/gherkin/fs-login/
+├── login.feature
+└── fs-login-gherkin-manifest.md
 ```
 
-Each feature file starts with:
+The manifest records Scope Key, Scope Code, Artifact Type, Revision, State,
+locked source TC revision, exported and rejected TC IDs, Viewpoint/source
+coverage, validation state, and runtime blockers. Use the descriptive manifest
+filename defined above.
 
-```gherkin
-# Feature: [module name] — source: qc/test-cases/<feature>-test-cases.md
-@module-xxx @vp-01
-Feature: [Feature Name]
-  As a [actor]
-  I want [capability]
-  So that [value]
+## Static Validation Gate
 
-  Background:
-    Given the application is running at <env>
-    ...
+- Every exported TC ID appears exactly once.
+- Every Scenario has at least one observable `Then`.
+- Every Scenario traces to a VP and exact source ref.
+- No blocked or ineligible TC is exported.
+- Feature and manifest filenames follow the approved scope key.
+- Gherkin syntax is parseable by an available parser, when one exists.
 
-  @TC-LOG-001 @vp-01 @us-010-ac1
-  Scenario: Đăng nhập thành công
-    Given ...
-    When ...
-    Then ...
-```
-
-## Validation Gate
-
-Before delivery, check: every exported TC ID appears as a tag exactly once; every scenario has at least one `Then`; no manual-only TC was converted; the README index lists all exported features with TC ranges. Report any TC whose steps cannot be expressed behaviorally (for example pixel checks) back to the user as `NEEDS_REVIEW` rather than forcing a conversion.
+Mark the result `STATIC_VALID` when these checks pass. Mark
+`RUNTIME_READY` only after the project verifies its BDD runner, matching step
+definitions, environment, auth, fixtures, and cleanup. This skill does not
+create step definitions or run tests.
 
 ## Rules
 
-- This skill only produces specification files; it does not run them (use `qc-run-playwright`) nor write step definitions.
-- Do not invent element selectors or implementation details in Gherkin.
-- Keep scenario names and step texts in the same language as the source TCs.
-- Ask in Vietnamese by default in conversation; Gherkin keywords stay English.
-- Save outputs in the target project, not inside skill folders.
+- Keep source Test Cases and requirements unchanged.
+- Keep Gherkin keywords in English and scenario text in the source TC language.
+- Ask in Vietnamese by default.
+- Do not describe a static feature file as Playwright-runnable without runtime
+  bridge evidence.

@@ -1,77 +1,108 @@
-# Report Content Specification
+# Test Report Content Specification
 
-Every test report — regardless of format — MUST contain the sections below,
-in this order. Keep wording minimal; use tables and badges/colored labels.
-The stakeholder must be able to skim the report in under 60 seconds.
+Use `COMPACT` mode by default. A stakeholder report should expose the decision,
+risk, and evidence without copying every source matrix into the main body.
 
-## Section Order
+Use `DETAILED` mode only when the user explicitly requests an audit report,
+full trace matrix, or detailed appendix. Detailed mode keeps the compact core
+and adds only the relevant appendices.
 
-### 1. Summary Card
-Single screen overview:
-| Metric | Value |
+## COMPACT Core
+
+Keep these three sections in order.
+
+Place the Report Basis once in the title or header block: scope key, locked
+Viewpoint and Test Case revisions, selected Run IDs, environment, application
+build, Assessment Policy, and generated-at timestamp. Mark an unknown value
+explicitly. Do not repeat this metadata in later sections.
+
+### 1. Decision Summary
+
+Use one table:
+
+| Item | Required content |
 |---|---|
-| Scope | <Epic / Feature / US + links> |
-| Test cases | N designed / M executed |
-| PASS | N (x%) |
-| FAIL | N |
-| BLOCKED | N |
-| SKIP / NOT_RUN (never executed) | N |
-| Coverage | x% of viewpoints, y% of ACs |
-| Blockers | N |
-| Verdict | GO / CONDITIONAL GO / NO-GO |
+| Design | Designed TC count and design coverage by available source dimension |
+| Execution | Attempt rows, attempted TCs, assessed TCs, and execution coverage |
+| Results | Absolute `PASS`, `FAIL`, `BLOCKED`, `ERROR`, `SKIP`, and `NOT_RUN`; pass rate |
+| Verdict | `GO`, `CONDITIONAL GO`, `NO-GO`, or `UNDETERMINED`, with cited criterion or missing authority |
+| Required decision | The exact stakeholder decision, or `None` when no decision is needed |
 
-### 2. What Was Tested
-Short scope statement + table of tested items with links to their requirement
-documents. One row per Epic/Feature/US.
+Do not expand zero-value dimensions into separate rows unless they reveal a
+coverage gap.
 
-### 3. Result Breakdown
-Table: Viewpoint / AC → # cases → PASS / FAIL / BLOCKED.
-This table is the traceability spine: every viewpoint designed in
-`qc/test-viewpoints/` appears, even if no cases were run for it.
+### 2. Findings and Actions
 
-### 4. Coverage Detail
-- Coverage matrix: each Viewpoint ID → each AC → case IDs → results.
-- Call out **uncovered viewpoints/ACs** explicitly (they are risks, not zeros).
+Use one row per item that requires attention:
 
-### 5. Issues
-Subdivided into exactly these four groups:
-| Group | Who must act |
+| Type | Item and impact | Evidence | Owner or decision needed |
+|---|---|---|---|
+| Failure, blocker, coverage gap, accepted bug, or communication | | | |
+
+Include only groups that exist in the selected scope. When there are no
+failures, blockers, or coverage gaps, state that in one line instead of showing
+an empty table. An accepted bug requires the explicit decision, authority,
+date, and conditions.
+
+End this section with one short recommendation. Cite release criteria for
+`GO`, `CONDITIONAL GO`, or `NO-GO`. Otherwise keep the verdict
+`UNDETERMINED` and state the decision required.
+
+### 3. Confidence and Evidence
+
+State in a short paragraph:
+
+- what the selected runs prove;
+- what remains untested or runtime-unverified;
+- how those limits affect confidence.
+
+Then link the locked requirement/Viewpoint/Test Case revisions, selected
+execution log sections, and evidence for failures or blockers. One aggregate
+execution-log link is enough for passing cases in `COMPACT` mode when the full
+TC -> VP -> source trace remains resolvable there.
+
+## DETAILED Appendices
+
+Add an appendix only when it answers the user's request:
+
+| Appendix | Include when |
 |---|---|
-| **Blocking** | Release is blocked until fixed |
-| **Failures (new defects)** | Dev triage; each row cites bug ID or new issue to file |
-| **Accepted bugs (shippable)** | Documented decision: why safe to release |
-| **Stakeholder-aware needed** | Known issues that move to "known issue" only AFTER
-  stakeholder has been informed — list what must be communicated |
+| Coverage matrix | The user requests AC, BR, NFR, Viewpoint, or regression-level traceability |
+| Result details | The user requests per-TC results or retry history |
+| Full evidence index | The user requests one evidence row per TC and Run ID |
+| Decision record | Accepted risks, accepted bugs, or release conditions need audit history |
 
-### 6. Confidence Statement
-1–2 sentences: how much of the scope the results cover, what was NOT tested,
-and how reliable the verdict is (e.g. "Coverage is sufficient for GO on the
-transfer flow; the refund flow was not executed").
+Do not add a detailed appendix merely because data exists. Keep unexecuted and
+blocked source items visible in any included coverage matrix.
 
-### 7. Recommendation
-GO / CONDITIONAL GO / NO-GO with the explicit conditions
-(e.g. "CONDITIONAL GO — ship after BUG-101 fix is verified").
+## Calculation Rules
 
-### 8. Evidence Index
-Links to screenshots, logs, run artifacts — table format, max 2 columns
-(Test Case ID → Evidence link).
+- Apply the stated Assessment Policy to select one report status per TC while
+  preserving every attempt row in the execution log.
+- Place every locked TC in exactly one mutually exclusive report bucket:
+  `PASS`, `FAIL`, `BLOCKED`, `ERROR`, `SKIP`, or `NOT_RUN`. The bucket counts
+  must sum to the designed TC count.
+- `Attempted TCs` = distinct locked TCs with at least one execution row in the
+  selected runs.
+- `Assessed TCs` = distinct locked TCs whose selected result is `PASS` or
+  `FAIL`.
+- Pass rate = `PASS / (PASS + FAIL)`. Show `N/A` when the denominator is zero.
+- Design coverage = source items with at least one approved TC divided by total
+  source items in scope.
+- Execution coverage = source items with at least one assessed execution
+  (`PASS` or `FAIL`) divided by total source items in scope.
+- When an authoritative source denominator is unavailable, show coverage as
+  `N/A` and state the missing inventory. Do not invent `0/0` or a percentage.
+- Report absolute `BLOCKED`, `ERROR`, `SKIP`, and `NOT_RUN` counts next to rates.
+- Derive `NOT_RUN` as locked Test Cases with no execution row in the selected
+  runs. A TC with only `BLOCKED`, `ERROR`, or `SKIP` attempts is not also
+  `NOT_RUN`.
+- State the Assessment Policy in the report.
 
 ## Formatting Rules
 
-- Numbers first, prose second. Every section leads with a table or metric.
-- No paragraphs longer than 3 lines.
-- Status values rendered with visual weight per format:
-  - HTML: colored badge chips (PASS green, FAIL red, BLOCKED amber).
-  - PPTX: colored cells + chart slide.
-  - Markdown: `✅ PASS` / `❌ FAIL` / `🚫 BLOCKED` / `⏭ SKIP` / `⚠ ERROR` / `○ NOT_RUN` markers.
-- Dates and IDs are machine-readable (YYYY-MM-DD, TC-NNN, VP-NN, AC-N.N).
-
-## Coverage Math
-
-- Viewpoint coverage = executed viewpoints ÷ total viewpoints.
-- AC coverage = ACs with ≥1 executed case ÷ total ACs in scope.
-- Pass rate = PASS ÷ executed (excluding SKIP/BLOCKED/ERROR/NOT_RUN). Report both
-  pass rate and the absolute FAIL count — pass rate alone hides blockers.
-- `NOT_RUN` test cases (never executed) are counted as "designed, not run" and
-  must never inflate the executed denominator; when reading from TC status
-  fields (see executions-log rule 5), the same exclusion applies.
+- Lead with metrics, then short explanations.
+- Keep dates and IDs machine-readable.
+- Use exact links and identifiers.
+- Avoid paragraphs longer than three lines where a table is clearer.
+- Omit empty sections, duplicate summaries, and charts that repeat a table.

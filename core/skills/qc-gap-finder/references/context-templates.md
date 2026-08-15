@@ -1,33 +1,28 @@
-# Context Templates — System Context and Bug Base
+# Verified Context Schemas
 
-These are the recommended formats for the two context files that make gap finding significantly more precise. Create them once per project and update when the system or bug base changes.
+Use these schemas only for verified current-state facts and known defects.
+Keep hypotheses in the gap report or Open Questions ledger.
 
-## `qc/refs/system-context.md`
+## System Context
 
-```markdown
-# System Context: [Project]
-## 1. Product Overview
-(one paragraph: what the system does, main modules)
-## 2. Existing Modules and Current Behavior
-| Module | Current behavior | Notes |
-|---|---|---|
-## 3. Key Technical Constraints
-(auth mechanism, hosting, browser support, integrations, rate limits)
-## 4. Known Fragile Areas
-(modules with frequent defects, flaky flows, areas under active refactoring)
-## 5. Data Environment Notes
-(seed data available, test account roles, data retention quirks)
-## 6. Last Updated
-(date, who)
-```
-
-## `qc/refs/bug-base.md`
+Location: `qc/refs/system-context.md`
 
 ```markdown
-# Bug Base: [Project]
-| Bug Ref | Area | Description | Current State | Regression Implication |
-|---|---|---|---|---|
-| BUG-101 | Login | ... | Fixed in v1.2, workaround in v1.1 | Re-test login after auth changes |
+| Context ID | Module | Verified Current Behavior or Constraint | Source | Verified At | Verified By | Status |
+|---|---|---|---|---|---|---|
 ```
 
-Guidance for the Regression Implication column: state which future features should add regression cases for this bug, and whether a workaround still exists that tests must not accidentally verify as correct behavior.
+An empty table means current behavior is unknown. It does not mean the feature
+is greenfield.
+
+## Bug Base
+
+Location: `qc/refs/bug-base.md`
+
+```markdown
+| Bug ID | Module | Summary | Status | Environment | Evidence | Observed At | Regression Implication |
+|---|---|---|---|---|---|---|---|
+```
+
+Add a row only for a verified existing bug or an observed execution failure
+classified as a product defect. Do not add `TBD` bugs from risk hypotheses.

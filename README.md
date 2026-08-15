@@ -1,150 +1,207 @@
 # Tanizy QC Agent
 
-Tanizy QC Agent is a portable Quality Control workflow package for AI coding agents. It picks up where a PO agent (such as [Tanizy PO Agent](https://github.com/ThanhND-po/tanizy-po-agent)) finishes — but only when you say so. The QC Agent is a **standalone Coordinator Actor**: it never runs automatically, never hooks into the PO workflow, and the PO agent never invokes it. You invoke the QC Actor explicitly, confirm the task scope, and the actor dispatches the concrete QC skills.
+Tanizy QC Agent is a portable, explicitly invoked Quality Control workflow for
+Codex, Gemini CLI, Claude Code, and Antigravity. It helps a Product Owner, QA
+lead, or tester review approved requirements, manage specification gaps, design
+traceable Test Viewpoints and Test Cases, prepare automation artifacts, execute
+approved UI tests, and report evidence.
 
-The Tanizy PO Agent remains a fully independent, public workflow. Users who install it will never be routed to QC, because this package contains no reference to the PO agent and the PO package contains no reference to this one; the only interface between them is the requirement files in the project, which the QC Agent reads but never modifies.
+QC never starts automatically and never modifies requirement documents.
 
-## Supported Tools
+## Core Behavior
 
-- Gemini CLI, Codex, Claude Code, and Antigravity. The installer selects the target adapter with `--target` and keeps the core QC skills portable across all four environments.
+- Apply a spec-first gate before design. Missing actor, state, action, Test Data,
+  or Expected Result blocks the affected scope.
+- Use `READY`, `PARTIAL`, or `STOP` to separate source-backed work from blocked
+  work.
+- Treat silence as no decision. Record explicit decisions and their source in
+  `qc/open-questions.md`.
+- Draft content and exact paths first. Write only after user approval.
+- Keep static validity, automation eligibility, and runtime readiness separate.
+- Require a dedicated Execution Gate before browser or API actions.
+- Preserve full traceability from requirement source to report evidence.
 
-## What It Supports
+## Skills
 
-- A Coordinator Actor entry point (`qc-orchestrator`) that reads approved requirement documents, proposes a task list, waits for your confirmation, and dispatches the downstream skills phase by phase.
-- Gap finding in requirement documents against testing knowledge, the current system state, and the bug base, with Open Questions managed by status (OPEN / ANSWERED / RESOLVED / WAIVED) so unanswered questions never block materials creation.
-- Test Viewpoint design with a mandatory joint review checkpoint: viewpoints are locked only after you confirm or adjust them.
-- Test case design where every case traces to a Viewpoint and an Acceptance Criterion, delivered with a traceability matrix.
-- Automation eligibility per test case (UI-AUTO / API-AUTO / BOTH / MANUAL) decided by explicit rules, surfaced in the TC table as `Automatable` (Yes/No/Partial) + `Auto Type` (UI/API/Unit/N/A) + `@Tags`.
-- Execution status per test case (`NOT_RUN` → `PASS`/`FAIL`/`BLOCKED`/`SKIP`/`ERROR`) with `Test By` and `Test Date`, so the report generator always has results to aggregate.
-- Gherkin export (`.feature` files) for UI-automation-eligible test cases.
-- Test execution through the Playwright MCP with auto-heal, verified locators, and per-TC reporting (only on request).
-- Postman collection v2.1 export for API-automation-eligible test cases.
-- **Stakeholder-facing test report generation** (`qc-report-generator`): aggregates execution results into HTML (primary, with charts), DOCX, PPTX, Markdown, XLSX, or CSV reports — covering scope, results, coverage by viewpoint/AC, blocking/accepted/stakeholder-aware issues, confidence statement, and GO/NO-GO recommendation — saved to `qc/reports/`.
+| Skill | Responsibility |
+|---|---|
+| `qc-orchestrator` | Coordinate an approved multi-phase QC workflow |
+| `qc-gap-finder` | Find gaps, Open Questions, and the design gate |
+| `qc-design-viewpoints` | Design and lock source-backed Test Viewpoints |
+| `qc-design-test-cases` | Design concrete, traceable Test Cases and coverage |
+| `qc-export-gherkin` | Export eligible UI Test Cases as Gherkin specifications |
+| `qc-export-postman` | Export eligible API Test Cases as Postman Collection v2.1 |
+| `qc-run-playwright` | Execute locked runtime-ready UI Test Cases |
+| `qc-report-generator` | Build evidence-backed stakeholder test reports |
 
-## Repository Structure
+## Source Structure
 
 ```text
 tanizy-qc-agent/
-├── core/skills/              # Canonical skill source of truth
-│   ├── qc-orchestrator/      # Coordinator Actor entry point (human-invoked)
-│   ├── qc-gap-finder/        # Gap analysis + Open Question management
-│   ├── qc-design-viewpoints/ # Viewpoint design + user checkpoint
-│   ├── qc-design-test-cases/ # Traceable test case design
-│   ├── qc-export-gherkin/    # Gherkin export for Playwright
-│   ├── qc-run-playwright/    # Execution via Playwright MCP (on request)
-│   ├── qc-export-postman/    # Postman collection export
-│   └── qc-report-generator/  # Stakeholder-facing test reports (HTML/PPTX/MD/XLSX/CSV)
-├── core/references/material-paths.md # Single canonical global material-paths rule
-├── refs-templates/           # Seeded runtime refs: system-context, bug-base, OQ ledger
-├── adapters/                 # gemini-cli, codex, claude-code, antigravity entrypoints
-├── scripts/install.mjs       # No-dependency installer
-├── docs/                     # Install and demo guides
+├── core/
+│   ├── skills/                       # canonical skill source
+│   └── references/                   # canonical shared contract and checklist
+├── refs-templates/                   # project-owned runtime seeds
+├── adapters/                         # managed routing blocks per target
+├── scripts/
+│   ├── install.mjs
+│   ├── validate.mjs
+│   └── test-install.mjs
+├── docs/
 ├── package.json
 └── LICENSE
 ```
 
-Do not edit copied skill files inside target projects as the source of truth. Update `core/skills/` in this repository, then reinstall into the target project.
+Update `core/` in this repository. Installed skill folders are generated copies,
+not sources of truth.
 
-## Install via npm (Recommended)
+## Target Project Layout
 
-```bash
-npx @thanhndpo/tanizy-qc-agent --target codex --project /path/to/project
+Package-managed skills use each agent's native project-root location. Runtime
+QC artifacts use `qc/` only.
+
+```text
+project/
+├── AGENTS.md, CLAUDE.md, or GEMINI.md  # existing content plus managed QC block
+├── .agents/skills/qc-*/                # Codex and Antigravity
+├── .claude/skills/qc-*/                # Claude Code
+├── skills/qc-*/                        # Gemini CLI
+└── qc/
+    ├── config/
+    │   ├── material-paths.md
+    │   └── field-validation-checklist.md  # conditional for Test Case design
+    ├── refs/
+    ├── open-questions.md
+    ├── tasks/
+    ├── gap-reports/
+    ├── test-viewpoints/
+    ├── test-cases/
+    ├── automation/
+    ├── executions/
+    ├── evidence/
+    └── reports/
 ```
 
-Preview the install first:
+Never install skills under `qc/.agents/skills/`. Never create
+`qc/refs/open-questions.md` or a shared `qc/qc-task.md`.
+
+Read [the artifact contract](core/references/material-paths.md) for the complete
+scope-key, naming, approval, readiness, and traceability rules.
+
+## Install
+
+Preview first:
 
 ```bash
 npx @thanhndpo/tanizy-qc-agent --target codex --project /path/to/project --dry-run
 ```
 
-The same command supports all planned adapters:
+Install all skills:
 
 ```bash
+npx @thanhndpo/tanizy-qc-agent --target codex --project /path/to/project
 npx @thanhndpo/tanizy-qc-agent --target gemini-cli --project /path/to/project
 npx @thanhndpo/tanizy-qc-agent --target claude-code --project /path/to/project
 npx @thanhndpo/tanizy-qc-agent --target antigravity --project /path/to/project
 ```
 
-
-### Install One Skill
+Install or update selected skills:
 
 ```bash
-npx @thanhndpo/tanizy-qc-agent --target codex --project /path/to/project --skill qc-gap-finder
-npx @thanhndpo/tanizy-qc-agent --target codex --project /path/to/project --skill qc-design-viewpoints
-npx @thanhndpo/tanizy-qc-agent --target codex --project /path/to/project --skill qc-design-test-cases
-npx @thanhndpo/tanizy-qc-agent --target codex --project /path/to/project --skill qc-export-gherkin
-npx @thanhndpo/tanizy-qc-agent --target codex --project /path/to/project --skill qc-run-playwright
-npx @thanhndpo/tanizy-qc-agent --target codex --project /path/to/project --skill qc-export-postman
+npx @thanhndpo/tanizy-qc-agent --target codex --project /path/to/project \
+  --skill qc-gap-finder \
+  --skill qc-design-viewpoints
 ```
 
-Repeat `--skill` to select multiple skills. Selective installation copies only the named skill folders, their `references/material-paths.md` global-rule copy, `qc/material-paths.md`, and the selected target adapter.
+Use `--force` to replace only selected package-managed skill folders, refresh
+canonical contract copies across installed QC skills, and update the QC block in
+the target adapter. Existing project-owned Open Questions, System Context, Bug
+Base, and customized field checklist are always preserved.
 
-## Update to Latest Version
+Use `--skip-refs` when runtime references are managed separately.
+
+## PO + QC Coexistence
+
+The installer does not own the whole `AGENTS.md`, `CLAUDE.md`, or `GEMINI.md`.
+It appends one marked QC block and, with `--force`, replaces only that block.
+Existing PO instructions, project rules, and other managed blocks remain
+outside QC ownership.
+
+Recommended handoff:
+
+1. PO creates or updates an approved spec.
+2. The user explicitly invokes QC and supplies the exact source locator and
+   approval state.
+3. QC reads the spec without modifying it and applies the spec-first gate.
+4. QC writes only separately approved artifacts under `qc/`.
+5. Missing business decisions return as Gap Report and Open Questions for PO or
+   stakeholder resolution.
+
+The source may be inside the project or at another readable local or canonical
+external locator. An external source is not copied into the project without
+separate content and path approval. A PO handoff does not inherit QC write,
+Lock, Execution, or Release Verdict approval.
+
+The preservation guarantee applies when this QC installer writes the adapter.
+Any other installer sharing the root adapter must use its own managed block. If
+a legacy PO full `--force` update replaces the whole adapter, run the QC
+installer again with `--force` to merge the current QC block back into the
+preserved PO file. Prefer selective PO skill updates when no adapter refresh is
+needed.
+
+## Local Install
 
 ```bash
-npx @thanhndpo/tanizy-qc-agent@latest --project /path/to/project --force
-```
-
-Update one skill without replacing others:
-
-```bash
-npx @thanhndpo/tanizy-qc-agent@latest --project /path/to/project --skill qc-gap-finder --force
-```
-
-## Install from Local Clone
-
-```bash
+node scripts/install.mjs --target codex --project /path/to/project --dry-run
 node scripts/install.mjs --target codex --project /path/to/project
-node scripts/install.mjs --target codex --project /path/to/project --skill qc-gap-finder
-node scripts/install.mjs --target codex --project /path/to/project
 ```
 
-Add `--force` to overwrite existing files for the selected items. Use `--skip-refs` only when the runtime refs seed is managed elsewhere.
+`--project` must point to the project root, not its `qc/` directory. The
+installer rejects an accidental nested runtime root.
 
-## Working Modes
+## Legacy Layout Detection
 
-### Mode 1 — Coordinator Actor (you invoke QC)
+The installer reports, but never deletes, these legacy paths:
 
-In any supported agent session, after requirement documents are approved, invoke the QC Actor explicitly:
+- `qc/.agents/skills/`
+- `qc/refs/open-questions.md`
+- `qc/qc-task.md`
+- `qc/material-paths.md`
+- `qc/field-validation-checklist.md`
+- `qc/AGENTS.md`
+
+Install and validate the new layout before manually migrating or removing any
+legacy file. Existing runtime artifacts may contain project decisions and must
+not be deleted automatically. Follow the
+[legacy migration mapping](docs/install-codex.md#legacy-layout) one scope at a
+time.
+
+## Typical Workflow
 
 ```text
-Gọi QC Actor review bộ tài liệu này:
-- docs/requirements/feature-x-user-story.md
-- docs/requirements/feature-x-api-spec.md
-System context: qc/refs/system-context.md
-Bug base: qc/refs/bug-base.md
-Task: chạy gap analysis và viewpoints trước, phần còn lại tôi sẽ xác nhận sau.
+1. Invoke $qc-orchestrator or one specific qc-* skill.
+2. Confirm approved source files, scope key, stable scope code, and requested phases.
+3. Run gap analysis and obtain READY, PARTIAL, or STOP.
+4. Review and lock source-backed Test Viewpoints.
+5. Review and lock concrete Test Cases and coverage totals.
+6. Export or execute only eligible, unblocked cases after the required gate.
+7. Generate a report from append-only Run IDs and evidence.
 ```
 
-The `qc-orchestrator` skill proposes the task list, waits for your confirmation, and dispatches the phase skills in order. The PO agent is never involved: it has no reference to QC and QC has no hook into it.
+If release criteria or decision authority are missing, the report verdict is
+`UNDETERMINED`, not an invented GO or NO-GO decision.
 
-### Mode 2 — Independent use by testers
+## Validation
 
-A tester installs only the skills they need and calls each skill directly:
-
-```text
-$qc-gap-finder            # analyze requirement files, manage open questions
-$qc-design-viewpoints     # design viewpoints, review checkpoint
-$qc-design-test-cases     # traceable test cases + matrix
-$qc-export-gherkin        # UI-eligible TCs to .feature
-$qc-run-playwright        # execute TCs via Playwright MCP (on request)
-$qc-export-postman        # API-eligible TCs to Postman collection
-$qc-report-generator      # test report for stakeholders (HTML/PPTX/MD/XLSX/CSV)
+```bash
+npm run validate
+npm run test:install
+npm run pack:check
 ```
 
-## Coexistence With Tanizy PO Agent
-
-Install with `--target codex` to place skills under `.agents/skills/`, with `--target gemini-cli` under `skills/`, with `--target claude-code` under `.claude/skills/`, or with `--target antigravity` under `.agents/skills/`. All targets create `qc/material-paths.md`, and the same canonical reference is copied into every installed skill, so `qc-task.md` and `open-questions.md` follow the same global rule as gap and report materials. Both agents read the same requirement files; the read-only intake contract is the only interface between them, and nobody installing the public PO agent is ever routed to QC.
-
-## Important Behavior
-
-- The QC Agent never runs automatically; it starts only when a user explicitly invokes it.
-- The agent asks in Vietnamese by default unless the project uses another language.
-- The agent does not save generated artifacts until the user approves the content and confirms the path.
-- Generated artifacts are saved in the target project, not inside installed skill folders.
-- The QC Agent never modifies requirement documents produced by any other agent or workflow.
-- Open questions that remain unanswered do not block materials creation; affected items are flagged with their OQ IDs.
-- Automation export and test execution only happen on explicit user request.
+Validation covers skill frontmatter, naming, local references, installer
+destinations, preservation semantics, collision preflight, packaged CLI
+execution, force refresh, symlink safeguards, and all four targets.
 
 ## License
 

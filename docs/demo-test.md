@@ -1,142 +1,158 @@
-# Demo Scenario — Test QC Agent trên máy tính
+# Demo Tanizy QC Agent
 
-Kịch bản test 15 phút bằng một feature nhỏ: **Login với rate limit**. Mục tiêu là xác nhận toàn bộ pipeline QC hoạt động từ gap finder đến export.
+Use two small scenarios to verify both the normal path and the spec-first stop
+path.
 
-## Bước 0: Cài đặt
+## 1. Install Into a Temporary Project
 
 ```bash
-mkdir -p ~/demo-project && cd ~/demo-project
-git init
-node /path/to/tanizy-qc-agent/scripts/install.mjs --target codex --project . --dry-run
-node /path/to/tanizy-qc-agent/scripts/install.mjs --target codex --project .
+node /path/to/tanizy-qc-agent/scripts/install.mjs \
+  --target codex \
+  --project /path/to/demo-project \
+  --dry-run
+
+node /path/to/tanizy-qc-agent/scripts/install.mjs \
+  --target codex \
+  --project /path/to/demo-project
 ```
 
-Kiểm tra kết quả:
+Confirm:
+
+- skills exist at `.agents/skills/qc-*`;
+- no skills exist at `qc/.agents/skills/`;
+- the shared OQ ledger is `qc/open-questions.md`;
+- no `qc/refs/open-questions.md` exists;
+- config files exist under `qc/config/`;
+- the existing `AGENTS.md` content remains outside the managed QC block.
+
+## 2. Scenario A: Source-Backed Login Scope
+
+Create an approved requirement with explicit behavior:
+
+```markdown
+# Login
+
+## AC-01
+
+An active user submits a registered email and valid password. The system opens
+the Dashboard and creates an authenticated session.
+
+## AC-02
+
+When the password is invalid, the system remains on Login and displays error
+code `AUTH-001`.
+```
+
+Invoke:
 
 ```text
-demo-project/
-├── qc/
-│   ├── AGENTS.md
-│   ├── material-paths.md
-│   ├── field-validation-checklist.md   (có thể tùy chỉnh theo project)
-│   ├── .agents/skills/qc-*/
-│   └── refs/          (tạo thủ công sau)
+$qc-orchestrator
+QC review docs/requirements/fs-login.md. Chạy gap analysis và Viewpoints trước.
 ```
 
-## Bước 1: Chuẩn bị input (5 phút)
+Expected checkpoints:
 
-Tạo một user story giả làm tài liệu requirement:
+1. Scope Gate confirms `scope-key = fs-login`, `scope-code = LOG`, and the
+   requested phases.
+2. Gap analysis returns `READY` or identifies exact non-blocking gaps.
+3. The agent drafts Viewpoints in chat.
+4. No file is written until content and paths are approved.
+5. The locked file is `qc/test-viewpoints/fs-login-viewpoints.md`.
 
-```bash
-mkdir -p docs/requirements qc/refs
+Continue with Test Case design only after the Viewpoint revision is locked.
+Expected Test Case characteristics:
+
+- concrete synthetic Test Data;
+- numbered Steps and natural-language Expected Results;
+- exact source trace to AC-01 or AC-02;
+- canonical Automation Eligibility;
+- separate design and runtime readiness;
+- coverage totals with explicit denominators.
+
+Expected path:
+
+```text
+qc/test-cases/fs-login-test-cases.md
 ```
 
-Nội dung `docs/requirements/login-user-story.md`:
+## 3. Scenario B: Missing Approval Workflow
+
+Create a source that says only:
 
 ```markdown
-# User Story: US-010 - Đăng nhập hệ thống
-As a registered user, I want to log in with email and password so that I can access my account.
-
-## Acceptance Criteria
-- AC1: User nhập đúng email/password được chuyển vào Dashboard.
-- AC2: Sai password hiển thị thông báo lỗi, tài khoản không bị lock.
-- AC3: Email bắt buộc đúng format, password tối thiểu 8 ký tự.
-- AC4: Sau khi đăng nhập, session hết hạn sau một khoảng thời gian.
-
-## Non-functional
-- Màn hình đăng nhập phải tải dưới 2 giây.
+Managers can approve timesheets.
 ```
 
-Nội dung `qc/refs/system-context.md` (giả lập trạng thái hệ thống):
+Invoke:
 
-```markdown
-# System Context
-- Hệ thống hiện dùng JWT, session hiện tại chưa có cơ chế refresh token.
-- Module login đã tồn tại, chưa có rate limit.
-- Tích hợp SSO Google đang trong kế hoạch (chưa triển khai).
+```text
+$qc-gap-finder
+Review docs/requirements/req-approve-timesheet.md và chuẩn bị cho Test Case design.
 ```
 
-Nội dung `qc/refs/bug-base.md`:
+Expected result:
 
-```markdown
-# Bug Base
-| Bug Ref | Area | Description | State | Regression Implication |
-|---|---|---|---|---|
-| BUG-101 | Login | Sai password đôi khi không hiện message E01 | Fixed v1.2 | Re-test AC2 mỗi khi đổi flow login |
+- design gate is `STOP`;
+- gap report requests actor permissions, preconditions, initial state, action,
+  expected outcome, Test Data rules, and the correct governing source;
+- unsupported coverage is `0/0`;
+- OQs with `Blocks From Phase = DESIGN` are recorded in
+  `qc/open-questions.md`;
+- no Viewpoint, Test Case, Gherkin, Postman, or execution artifact is created.
+
+## 4. Automation Export Check
+
+For approved eligible TCs:
+
+```text
+$qc-export-gherkin
+Export TC-LOG-001 after showing the exact write set.
 ```
 
-## Bước 2: Chạy pipeline trong Codex (10 phút)
+Expected path:
 
-Mở dự án bằng Codex. Kịch bản chính là **Actor mode**: bạn gọi QC Actor một lần, Actor đề xuất task, bạn xác nhận, rồi Actor điều phối. Sau đó thử thêm **standalone mode** với từng skill riêng lẻ.
-
-### Actor mode — gọi một lần, Actor điều phối
-
-1. **Gọi QC Actor và xác nhận task:**
-   ```text
-   Gọi QC Actor review bộ tài liệu docs/requirements/login-user-story.md,
-   system-context và bug-base ở qc/refs/. Task: chạy gap analysis và viewpoints trước.
-   ```
-   Kỳ vọng: Actor đọc đầu vào, trình task list, hỏi bạn xác nhận. Sau khi xác nhận, Actor dispatch gap analysis: tìm ra các gap (ví dụ AC2 mâu thuẫn với rate limit chưa định nghĩa, AC4 khoảng thời gian session chưa rõ, không có AC cho "account lockout" dù bug base ám chỉ), tạo `qc/open-questions.md` với OQ-001.. và file `qc/gap-reports/login-gap-report.md`. Câu hỏi mức High được hỏi ngay; câu trả lời được ghi vào ledger.
-
-2. **Viewpoint (Actor tiếp tục dispatch, có checkpoint):**
-   ```text
-   $qc-design-viewpoints — design viewpoint cho US-010
-   ```
-   Kỳ vọng: agent trình bảng viewpoint (VP-01 happy flow, VP-02 rejection, VP-03 boundary data, VP-04 regression từ BUG-101...), **dừng để bạn review** và điều chỉnh (thử merge 2 viewpoint hoặc đổi priority), rồi chốt phiên bản locked trong `qc/test-viewpoints/login-viewpoints.md`.
-
-3. **Test case (Actor dispatch tiếp):**
-   ```text
-   $qc-design-test-cases
-   ```
-   Kỳ vọng: `qc/test-cases/login-test-cases.md` với TC-LOG-001... có cột Trace (VP + AC), Module, Risk Level, metadata `Automatable` + `Auto Type` + `@Tags`, `Status = NOT_RUN` với `Test By`/`Test Date` trống; TC phụ thuộc OQ được gắn cờ `[OQ-xxx]`; matrix cuối file cho thấy AC1-AC4 đều có TC cover; validation TCs sinh riêng cho từng field theo `qc/field-validation-checklist.md` (file installer đã seed, bạn có thể tùy chỉnh); file `qc/executions/login-executions.md` được tạo sẵn một hàng/TC với Result `NOT_RUN`.
-
-4. **Export Gherkin (bạn yêu cầu thêm):**
-   ```text
-   $qc-export-gherkin --scope TC-LOG-001-TC-LOG-003
-   ```
-   Kỳ vọng: thư mục `specs/` chứa `.feature` có tag `@TC-LOG-001 @vp-01 @us-010-ac1` và README index.
-
-5. **Export Postman (bạn yêu cầu thêm):**
-   ```text
-   $qc-export-postman
-   ```
-   Kỳ vọng: nếu TC nào có eligibility API-AUTO/BOTH và đủ endpoint → `postman/*.postman_collection.json` import được vào Postman; nếu không đủ → báo NEEDS_REVIEW thay vì đoán.
-
-6. **Playwright MCP (tuỳ chọn, cần có app thật):**
-   ```text
-   $qc-run-playwright --scope TC-LOG-001
-   ```
-   Kỳ vọng: agent hỏi URL + credential, recon DOM qua browser MCP, chạy TC, ghi kết quả vào `qc/executions/login-executions.md`, tự append vào `qc/refs/bug-base.md` nếu có defect, báo kết quả PASS/FAIL kèm số vòng auto-heal.
-
-7. **Test report (chọn format):**
-   ```text
-   $qc-report-generator — test cases ở qc/test-cases/login-test-cases.md
-   ```
-   Kỳ vọng: workflow hỏi format (HTML/DOCX/PPTX/MD/XLSX/CSV); chọn HTML; agent tạo
-   `qc/reports/test-report-login-<date>.html` với summary card, donut + bar
-   chart, coverage theo VP/AC, 4 nhóm issues, confidence statement và
-   GO/CONDITIONAL/NO-GO. Thử thêm lần 2 chọn **DOCX**: file `test-report-login-<date>.docx`
-   mở được bằng Word/LibreOffice, font tiếng Việt không lỗi (không xuất hiện ô vuông/mojibake),
-   bảng trạng thái có màu PASS/FAIL/BLOCKED, chart PNG hiển thị đúng.
-
-### Standalone mode — tester gọi từng skill riêng
-
-Thử chỉ cài 1 skill để xác nhận chế độ standalone:
-
-```bash
-node /path/to/tanizy-qc-agent/scripts/install.mjs --target codex --project ~/demo-project2 --skill qc-export-gherkin
+```text
+qc/automation/gherkin/fs-login/
+├── login.feature
+└── fs-login-gherkin-manifest.md
 ```
 
-Mở `~/demo-project2` trong Codex, tạo một file TC mẫu rồi gọi `$qc-export-gherkin` — chỉ skill này được cài và vẫn hoạt động độc lập.
+The manifest may state `STATIC_VALID`. It must not state `RUNTIME_READY` unless
+the BDD runner, step definitions, environment, auth, fixtures, and cleanup are
+verified.
 
-## Checklist xác nhận
+## 5. Installer Preservation Check
 
-| # | Điểm kiểm tra | Kết quả kỳ vọng |
-|---|---|---|
-| 1 | Cài vào `qc/` không xung đột PO agent ở root | AGENTS.md PO vẫn nguyên |
-| 2 | Gap finder tạo OQ ledger | `qc/open-questions.md` có OQ-001+ |
-| 3 | Viewpoint dừng ở checkpoint | Agent hỏi trước khi chốt |
-| 4 | TC có trace | Mỗi TC có cột Trace tới VP và AC |
-| 4b | TC metadata + trạng thái | Mỗi TC có Automatable/Auto Type/Tags, Status = NOT_RUN, Test By/Date trống |
-| 5 | Gherkin tag đủ | Tag `@TC-XXX` trên mọi scenario |
-| 6 | OQ chưa trả lời không chặn delivery | TC vẫn sinh kèm cờ `[OQ-xxx]` |
+Customize these project-owned files:
+
+- `qc/config/field-validation-checklist.md`
+- `qc/refs/system-context.md`
+- `qc/refs/bug-base.md`
+- `qc/open-questions.md`
+
+Run a selective update with `--force`. Confirm all four files remain unchanged
+and content outside the managed adapter block is preserved. Confirm every
+updated skill still contains `references/material-paths.md`; Playwright and
+report skills must also retain `references/executions-log.md`.
+
+For a PO coexistence check, start with an `AGENTS.md` that contains a PO managed
+block and project-specific instructions. Install QC, modify only the installed
+QC block to simulate an older package version, then update with `--force`.
+Confirm the PO block and project instructions remain byte-equivalent and there
+is exactly one current QC block.
+
+## Acceptance Checklist
+
+| Check | Expected |
+|---|---|
+| Skill discovery | Target-native root only |
+| Runtime artifacts | `qc/` only |
+| Scope naming | Same exact scope key across artifacts |
+| Approval | Draft and exact paths approved before write |
+| Spec gap | `STOP` or `PARTIAL`, no assumption-based TC |
+| Test data | Concrete and source-backed |
+| Expected Results | Natural language, observable, matched to Steps |
+| Traceability | Source -> VP -> TC -> Run -> Report |
+| Readiness | Static, eligibility, and runtime states remain separate |
+| Installer update | Project-owned files preserved |
+| PO + QC coexistence | PO block preserved; only marked QC block updated |

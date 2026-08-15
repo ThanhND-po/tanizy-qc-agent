@@ -1,82 +1,88 @@
 ---
-## Global Material Path Rule
-
-Before creating or updating any artifact, read `references/material-paths.md`. This is a global rule for every QC skill, including the runtime `qc-task.md` and `open-questions.md` files; the installer populates this reference from the package canonical source.
-
 name: qc-report-generator
-description: Generate stakeholder-facing test reports (HTML/DOCX/PPTX/Markdown/XLSX/CSV) from QC execution results. Invoke via $qc-report-generator after test execution completes.
-metadata:
-  runtimes: codex
+description: "Generate a compact stakeholder-facing HTML, DOCX, PPTX, Markdown, or XLSX test report, with optional detail appendices or companion CSV, from locked Test Cases and append-only execution evidence. Use when the user asks for a QC test report, execution summary, coverage report, or release-readiness report after results exist."
 ---
 
-# QC Report Generator
+# Generate a QC Test Report
 
-Generates a test report summarizing what was tested, results, coverage, and
-release recommendation. The report is stakeholder-facing: it must be scannable
-in under 60 seconds, trace information precisely, and visualize results with
-charts where the format supports them.
+Summarize tested scope, results, coverage, evidence, and decision limits without
+fabricating executions or release criteria.
 
-## When to Use
+## Artifact Contract
 
-Invoke `$qc-report-generator` **after** test execution results exist (from
-`qc-run-playwright`, `qc-export-postman`, or manual runs). It can also be
-called by `$qc-orchestrator` as the final phase of a QC session.
+Read `references/material-paths.md`,
+`references/executions-log.md`, `references/report-content-spec.md`, and the
+selected format reference before drafting.
+
+## Required Inputs
+
+- locked `qc/test-cases/<scope-key>-test-cases.md` revision;
+- one or more run IDs from
+  `qc/executions/<scope-key>-executions.md`;
+- locked Viewpoint revision and exact requirement sources;
+- report audience and requested format;
+- assessment policy for selecting results when a TC has multiple attempts;
+- release criteria and decision authority, only when a release verdict is
+  requested.
+
+If no execution rows exist, stop and report that there are no results to
+aggregate. `NOT_RUN` is not an execution result.
+
+## Verdict Boundary
+
+Use `GO`, `CONDITIONAL GO`, or `NO-GO` only when approved release criteria and
+decision authority are available. Cite the criterion supporting the verdict.
+Otherwise use `UNDETERMINED`, present metrics and risks, and state which
+stakeholder decision is required.
+
+An accepted bug requires a documented acceptance decision and source. Do not
+classify a failure as accepted based on age, severity, or silence.
 
 ## Workflow
 
-1. **Scope input** — Ask the user for links/paths to the test case files for
-   the Epic / Feature / User Story that was tested (e.g.
-   `qc/test-cases/<name>-test-cases.md`). If multiple, ask whether to report
-   them as separate sections or separate reports.
-2. **Execution input** — Locate execution results:
-   - Preferred: `qc/executions/<feature>-executions.md` (see
-     `references/executions-log.md`).
-   - Fallback: ask the user where results live (MCP run output, manual list)
-     and build the executions log first.
-   - If nothing exists, stop and tell the user there are no results to report.
-3. **Context inputs** — Load viewpoints file (`qc/test-viewpoints/...`),
-   requirement docs (for ACs), and optionally `qc/refs/system-context.md` and
-   `qc/refs/bug-base.md` (for known/accepted issues).
-4. **Format selection** — Ask the user which format; show the menu from
-   `references/format-guide.md` (default: HTML, DOCX is the second option).
-   Never ask about chart types.
-5. **Generate** — Build the report strictly following
-   `references/report-content-spec.md` (8 sections, in order) and the chosen
-   format guide.
-6. **Self-update** — After generating, append a summary line of new findings
-   to `qc/refs/bug-base.md` (new FAIL/BLOCKED defects) if any, and announce
-   it to the user in one sentence. Do NOT ask the user to update refs
-   manually.
-7. **Save** — Write the report to
-   `qc/reports/test-report-<feature>-<YYYY-MM-DD>.<ext>`, version-suffixed
-   (`-v2`) if that file already exists.
+1. Validate source TC revision, selected Run IDs, assessment policy, and
+   execution-log integrity.
+2. Reconcile every execution row to a TC, VP, source ref, environment, and
+   evidence item.
+3. Calculate design and execution coverage separately for Viewpoints, ACs,
+   business rules, NFRs, and impact/regression items.
+4. Apply the assessment policy and count attempt rows, attempted TCs, assessed
+   TCs, and the selected result statuses separately. Show absolute `PASS`,
+   `FAIL`, `BLOCKED`, `ERROR`, `SKIP`, and derived `NOT_RUN` values. Do not show
+   pass rate without these counts.
+5. Use `COMPACT` mode unless the user explicitly requests an audit report, full
+   trace matrix, or detailed appendix. Do not ask for report depth when the
+   request is otherwise clear.
+6. Select only visuals that materially clarify a decision or comparison.
+7. Draft the compact core and any conditionally required detail in chat.
+8. Show the exact output path and version suffix, if needed.
+9. Obtain explicit content and path approval.
+10. Write
+   `qc/reports/<scope-key>-test-report-<YYYY-MM-DD>[-vN].<ext>`.
+11. Validate content, calculations, links, and format rendering.
 
 ## Hard Rules
 
-- Numbers before prose: every section leads with a table or metric.
-- Every result row traces: TC ID → Viewpoint → AC → requirement doc.
-- Report BOTH pass rate and absolute FAIL/BLOCK counts; pass rate alone hides
-  blockers.
-- Uncovered viewpoints/ACs are risks — call them out explicitly.
-- The verdict (GO / CONDITIONAL GO / NO-GO) must state its conditions.
-- Do not fabricate results: if a viewpoint has no executions, mark it
-  "not executed" — never infer PASS.
-- Do not touch anything outside `qc/`.
-
-## Dependencies
-
-| Skill | Needed when |
-|---|---|
-| qc-run-playwright / qc-export-postman | Execution results come from them |
-| qc-design-test-cases | To read TC IDs and traces |
-| qc-design-viewpoints | To read viewpoint coverage |
-| qc-gap-finder | To read ACs and gap findings |
+- Lead with numbers and decision limits.
+- Keep the complete trace available through linked source artifacts and
+  execution evidence. Do not copy the full matrix into a compact report unless
+  it helps the requested decision.
+- Render every project-local link relative to the proposed file under
+  `qc/reports/`, including in a chat draft. Do not emit a project-root-relative
+  path as though it were a report-relative Markdown link.
+- Mark unexecuted or blocked scope explicitly. Never infer `PASS`.
+- Distinguish design coverage from executed coverage.
+- Distinguish `STATIC_VALID`, `AUTOMATION_ELIGIBLE`, and `RUNTIME_READY`.
+- Do not render empty sections, redundant tables, or decorative charts.
+- Do not update Bug Base or System Context merely because a report is created.
+- Do not touch files outside the approved `qc/` write set.
 
 ## References
 
-- `references/report-content-spec.md` — mandatory report sections and math
-- `references/format-guide.md` — per-format build rules (HTML is primary)
-- `references/docx-format.md` — DOCX build rules (font/Unicode, colors,
-  tables, images, charts, verification)
-- `references/executions-log.md` — execution log schema
-- `references/material-paths.md` — where every material lives
+- `references/report-content-spec.md`: compact core, conditional detail, and calculations
+- `references/format-guide.md`: format selection and rendering rules
+- `references/docx-format.md`: DOCX generation and visual verification
+- `references/executions-log.md`: append-only execution schema
+- `references/material-paths.md`: naming, paths, gates, and traceability
+
+Ask in Vietnamese by default and retain exact technical terms and IDs.

@@ -1,126 +1,129 @@
-# Review Summary — Tanizy QC Agent (Hai đợt thay đổi)
+# Tanizy QC Agent Review Summary
 
-Tài liệu này tổng hợp toàn bộ thay đổi đang nằm trong sandbox tại `/home/ubuntu/tanizy-qc-agent`, bao gồm **đợt 1** (global `material-paths.md` + adapter đa nền tảng — bạn chưa kịp review) và **đợt 2** (test case metadata trạng thái + field validation checklist). Theo thỏa thuận, **không có commit hay push nào được thực hiện**; bạn review xong nội dung dưới đây (hoặc file `tanizy-qc-agent-rev2.diff` đính kèm), tôi mới commit và push lên GitHub để bạn `git pull` về local worktree.
+## Kết luận
 
-## Đợt 1 — Global Material Paths và Hệ Adapter Đa Nền Tảng
+Bộ skill cần một contract chung cho naming, output path, spec-first gate,
+approval và artifact lifecycle. Việc chỉ sửa từng filename riêng lẻ không giải
+quyết được duplicate file hoặc handoff sai giữa các skill.
 
-### Vấn đề `material-paths.md` duplicate
+## Vấn đề đã xác minh
 
-Trước đây, file quy tắc đường dẫn material tồn tại ở hai bản sao: `core/skills/qc-gap-finder/references/material-paths.md` và `core/skills/qc-report-generator/references/material-paths.md`. Các skill còn lại, bao gồm nhóm export/execution và các runtime artifact `qc-task.md`/`open-questions.md`, không có reference để tuân thủ — đúng như nhận định của bạn rằng đây phải là **global rule**.
+| Mức | Vấn đề | Tác động |
+|---|---|---|
+| Critical | 8/8 `SKILL.md` có Markdown nằm trong YAML frontmatter | Skill có thể không parse hoặc không trigger |
+| Critical | OQ chưa trả lời vẫn được chuyển thành assumption-based TC | Nghiệp vụ chưa xác nhận có thể thành Expected Result |
+| Critical | npm binary thiếu Node shebang | CLI đóng gói chạy như shell script và fail |
+| High | Skill có thể nằm ở cả `.agents/skills/` và `qc/.agents/skills/` | Duplicate source, khó xác định bản đang được dùng |
+| High | OQ ledger được seed tại `qc/refs/open-questions.md` nhưng skill dùng `qc/open-questions.md` | Hai ledger cùng mục đích |
+| High | `qc/qc-task.md` dùng chung cho nhiều scope | Task sau có thể ghi đè task trước |
+| High | Gap, Viewpoint và TC không giữ cùng source stem | Relative link và traceability bị lệch |
+| High | Gherkin/Postman ghi ngoài `qc/` | Output contract không thống nhất |
+| High | `--force` ghi đè adapter, checklist và runtime refs | Có thể mất project rules và QC knowledge |
+| High | Export được mô tả là runnable dù chưa có runner, auth hoặc fixture | Static validity bị hiểu nhầm thành runtime readiness |
+| High | Report bắt buộc GO/NO-GO khi chưa có release criteria | Agent có thể tự tạo quyết định release |
 
-Giải pháp: một **canonical source duy nhất** tại `core/references/material-paths.md` (đã xóa hai bản duplicate). Installer sao file này vào hai nơi:
+## Contract đã áp dụng
 
-| Phạm vi | Vị trí tại target project |
+### 1. Ownership
+
+- Package-managed: target-native `qc-*` skill folders, managed adapter block,
+  canonical contract copies.
+- Project-owned: Open Questions, System Context, Bug Base, customized field
+  checklist, tasks, designs, runs và reports.
+- `--force` chỉ thay package-managed content.
+
+### 2. Scope key
+
+- Một source: dùng exact filename stem.
+- Giữ prefix `fs-`, `epic-`, `req-`, `cr-`.
+- Nhiều source: user xác nhận parent scope key trước khi write.
+- Xác nhận một `scope-code` ổn định cho OQ, VP, TC và Finding IDs.
+- Dùng cùng key cho Gap Report, Viewpoints, Test Cases, Executions và Reports.
+
+### 3. Runtime layout
+
+```text
+qc/
+├── config/
+├── refs/
+├── open-questions.md
+├── tasks/<scope-key>-qc-task.md
+├── gap-reports/<scope-key>-gap-report.md
+├── test-viewpoints/<scope-key>-viewpoints.md
+├── test-cases/<scope-key>-test-cases.md
+├── automation/
+├── executions/<scope-key>-executions.md
+├── evidence/<scope-key>/<run-id-lowercase>/
+└── reports/<scope-key>-test-report-<date>[-vN].<ext>
+```
+
+### 4. Spec-first gate
+
+| Gate | Rule |
 |---|---|
-| Runtime QC (root `qc/`) | `qc/material-paths.md` |
-| Mỗi skill được cài | `<skill-dir>/references/material-paths.md` |
+| `READY` | Tất cả behavior trong scope có source testable |
+| `PARTIAL` | Chỉ tiếp tục phần source-backed, tách blocked coverage |
+| `STOP` | Chỉ tạo Gap Report và OQ, không tạo placeholder TC hoặc Oracle |
 
-Mọi SKILL.md có phần "Global Material Path Rule" ngay sau frontmatter, yêu cầu đọc reference trước khi tạo/cập nhật bất kỳ artifact nào — áp dụng cho cả `qc-task.md` và `open-questions.md`.
+OQ dùng `Blocks From Phase`: `DESIGN`, `EXPORT`, `EXECUTION`, `REPORT`, hoặc
+`NONE`. Thiếu actor, state, Test Data hoặc Expected Result block từ `DESIGN`;
+thiếu route, auth, fixture hoặc cleanup chỉ block từ `EXECUTION` khi test intent
+đã đủ.
 
-### Hệ adapter (4 targets theo plan của PO Agent)
+### 5. Approval sequence
 
-Installer được viết lại hoàn toàn, hỗ trợ đúng CLI contract:
+```text
+Inventory source
+-> Propose scope key and exact write set
+-> Draft in chat
+-> User approves content and paths
+-> Write
+-> Validate
+```
+
+Silence không phải approval. Skill con không tự chạy prerequisite phase ngoài
+scope đã xác nhận.
+
+### 6. Readiness and execution
+
+- `STATIC_VALID`: structure, IDs, links và traceability pass.
+- `AUTOMATION_ELIGIBLE`: test intent có thể automate mà không đổi nghĩa.
+- `RUNTIME_READY`: environment, route, auth, fixture, cleanup, runner và
+  dependencies đã được verify.
+
+Execution log là append-only theo Run ID, Attempt và TC ID. Retry không được ghi
+đè lịch sử. Auto-heal chỉ sửa execution mechanics trong budget đã được duyệt.
+
+### 7. Release report
+
+Report chỉ dùng GO, CONDITIONAL GO hoặc NO-GO khi có release criteria và decision
+authority. Nếu thiếu, verdict là `UNDETERMINED`.
+
+Report dùng `COMPACT` mặc định với ba phần: Decision Summary, Findings and
+Actions, Confidence and Evidence. Chỉ thêm detailed appendix khi user yêu cầu
+audit, full trace matrix hoặc per-TC detail.
+
+## Installer safeguards
+
+- Chặn `--project` trỏ nhầm vào runtime `qc/` của parent project.
+- Preflight toàn bộ collision trước write để tránh partial install.
+- Merge QC instructions bằng managed block, không replace toàn bộ adapter.
+- Preserve PO block và project instructions; `--force` chỉ refresh QC block.
+- Preserve runtime seeds và customized checklist kể cả khi có `--force`.
+- Seed OQ đúng tại `qc/open-questions.md`.
+- Re-materialize canonical references after replacing a skill bằng `--force`.
+- Từ chối project root, skill destination hoặc ancestor là symbolic link.
+- Cảnh báo legacy layout, không tự xóa file.
+
+## Validation
+
+Chạy trước khi bàn giao hoặc release:
 
 ```bash
-npx @thanhndpo/tanizy-qc-agent --target gemini-cli --project /path/to/project
-npx @thanhndpo/tanizy-qc-agent --target codex --project /path/to/project
-npx @thanhndpo/tanizy-qc-agent --target claude-code --project /path/to/project
-npx @thanhndpo/tanizy-qc-agent --target antigravity --project /path/to/project
+npm run validate
+npm run test:install
+npm run pack:check
 ```
 
-Kèm selective installation `--skill <name>...` (có thể lặp nhiều lần), `--dry-run`, `--force`, `--skip-refs`.
-
-| Target | Adapter entrypoint | Skill directory |
-|---|---|---|
-| `gemini-cli` | `GEMINI.md` | `skills/` |
-| `codex` | `AGENTS.md` | `.agents/skills/` |
-| `claude-code` | `CLAUDE.md` | `.claude/skills/` |
-| `antigravity` | `AGENTS.md` + `.agents/rules/tanizy-qc.md` | `.agents/skills/` |
-
-Adapter của mỗi nền tảng chỉ chứa routing rules ngắn gọn; toàn bộ rule chi tiết nằm trong SKILL.md.
-
-## Đợt 2 — Test Case Metadata Trạng Thái và Field Validation Checklist
-
-### Bảng test case mới (tham chiếu Repo Tester Kit `$rbt-manual-testing`)
-
-Template trong `qc-design-test-cases/SKILL.md` chuyển từ:
-
-```
-| TC ID | Title | Precondition | Test Data | Steps | Expected Result | Trace | Priority | Auto | Notes |
-```
-
-thành:
-
-```
-| TC ID | Module | Risk Level | Title | Precondition | Test Data | Steps | Expected Result | Trace | Priority | Automatable | Auto Type | Tags | Status | Test By | Test Date |
-```
-
-Các cột mới và quy tắc tương ứng:
-
-| Cột | Giá trị | Quy tắc |
-|---|---|---|
-| Module | theo decomposition | mỗi TC thuộc đúng module |
-| Risk Level | High / Medium / Low | đánh giá per module **trước khi** sinh TC, có nêu lý do ngắn |
-| Automatable | Yes / No / Partial | map từ eligibility: UI-AUTO/API-AUTO/BOTH → Yes; MANUAL → No |
-| Auto Type | UI / API / Unit / N/A | map: UI-AUTO → UI, API-AUTO → API, BOTH → UI (mặc định), MANUAL → N/A |
-| Tags | @Smoke, @Regression, @CriticalPath, @Security, @Boundary | ít nhất một tag mỗi TC |
-| Status | NOT_RUN → PASS/FAIL/BLOCKED/SKIP/ERROR | design skill chỉ được set `NOT_RUN` |
-| Test By | agent name / tester | chỉ do execution skill hoặc tester thủ công ghi |
-| Test Date | YYYY-MM-DD | chỉ do execution skill hoặc tester thủ công ghi |
-
-Cột **Trace** được giữ nguyên (đặc trưng traceability VP/AC của quy trình Tanizy). Logic eligibility UI-AUTO/API-AUTO/BOTH/MANUAL vẫn tồn tại và được map sang cặp `Automatable`/`Auto Type` qua bảng mapping mới trong `automation-eligibility.md`.
-
-### Ownership trạng thái (giải quyết vấn đề report-generator không có kết quả)
-
-- `qc-design-test-cases`: mỗi TC mới sinh khởi tạo `Status = NOT_RUN`, `Test By`/`Test Date` trống; bị cấm ghi hai cột sau hoặc đổi Status đã có.
-- `qc-run-playwright`: thêm bước 9 — sau khi ghi executions log, cập nhật `Status`/`Test By`/`Test Date` lên đúng dòng TC trong file test-cases nguồn. Manual tester (hoặc agent ghi hộ) cũng điền tương tự.
-- `qc-report-generator`: rule mới — executions log vẫn là nguồn ưu tiên; **khi log vắng**, đọc trực tiếp ba cột trạng thái từ bảng TC để tính metrics. `NOT_RUN` luôn bị loại khỏi mẫu số pass rate, không bao giờ "thổi phồng" kết quả.
-- `executions-log.md`: thêm `NOT_RUN` vào Result Vocabulary; pre-fill của design skill đổi từ `SKIP` thành `NOT_RUN` (ngữ nghĩa đúng hơn: tồn tại nhưng chưa thực thi).
-- `report-content-spec.md` và `format-guide.md`: đồng bộ `NOT_RUN` vào bảng metrics, markers Markdown (`○ NOT_RUN`), donut chart, và CSV export header đầy đủ cột metadata mới.
-- `qc-orchestrator`: quality gates của design skill nâng từ 5 lên **6 tiêu chí** bám Repo Tester Kit (Unique TC ID, 1-to-1 Step-Expected, Trace coverage, Concrete test data, Field validation coverage, Automation metadata ready).
-
-### Field-Level Validation Checklist — file tùy chỉnh per project (theo điều chỉnh của bạn)
-
-Thay vì gộp checklist vào SKILL.md, checklist được đặt làm **file tham chiếu riêng**:
-
-- Canonical: `core/references/field-validation-checklist.md` (nội dung bám 15 field types + scenarios chuyên sâu của Repo Tester Kit).
-- Installer seed vào target project tại `qc/field-validation-checklist.md` (ghi đè khi `--force`), mỗi project **tự do tùy chỉnh** — thêm/xóa hạng mục theo business rules riêng.
-- Skill chỉ **tham chiếu** file này (`references/material-paths.md` đã liệt kê trong layout), kèm quy tắc cứng: không gộp validation nhiều field vào 1 TC; mỗi field ≥ 1 positive + 2+ negative/boundary cases; áp dụng scenarios chuyên sâu (double submit, session/network resilience, UTF-8/emoji, A11y, HTTP status codes) từ cùng file.
-
-## Phạm vi không động tới
-
-Adapter đã làm ở đợt 1, layout `material-paths.md`, `report-content-spec` 8 sections, `refs-templates`, cơ chế installer core — các phần còn lại giữ nguyên. Các tham chiếu `UI-AUTO`... trong mô tả skill vẫn hợp lệ vì eligibility là input nội bộ.
-
-## Xác minh đã thực hiện
-
-- `node --check scripts/install.mjs`: OK
-- `git diff --check`: OK
-- Smoke install 4 targets (gemini-cli/codex/claude-code/antigravity): entrypoint adapter tồn tại, skill directory đúng mapping, `qc/material-paths.md` và `qc/field-validation-checklist.md` được tạo, bản copy reference trong mỗi skill khớp canonical (`diff` byte-identical)
-- `npm pack --dry-run`: package chứa đủ 4 adapter, canonical material reference, checklist, installer mới
-- Chọn lọc `--skill` và `--help` hiển thị đủ 4 target: OK
-
-## Việc bạn cần làm sau khi duyệt
-
-Tôi sẽ commit + push lên `main` (vì các thay đổi trước chưa được commit). Bạn về local chạy:
-
-```bash
-git pull
-# Nếu project target đã cài bản cũ, cài lại:
-npx @thanhndpo/tanizy-qc-agent --target <target> --project /path/to/project --force
-```
-
-Cờ `--force` cần thiết trên project đã cài để cập nhật các file đã thay đổi (installer báo rõ từng file trước khi ghi đè).
-
-## Bổ sung — DOCX Output Format (yêu cầu sau cùng của bạn)
-
-DOCX được thêm làm **format lựa chọn thứ 2, ngay sau HTML**. Quy ước đặt trong file tham chiếu riêng `core/skills/qc-report-generator/references/docx-format.md` và được liệt kê trong `format-guide.md` + `SKILL.md`:
-
-- **Toolchain**: `python-docx` hoặc `pandoc`; bắt buộc verify file mở lại thành công (roundtrip/LibreOffice headless) trước khi lưu.
-- **Chống lỗi font**: UTF-8 mọi nơi, font Calibri với fallback `w:eastAsia`, cấm symbol fonts legacy; status marker bằng text có màu (không dùng Wingdings/Symbol).
-- **Màu chuẩn**: bảng fill/text cho PASS/FAIL/BLOCKED/SKIP/NOT_RUN và ba verdict GO/CONDITIONAL GO/NO-GO.
-- **Ảnh/chart**: PNG (DejaVu Sans label để không mất glyph tiếng Việt) hoặc native shapes; embed width cố định; chỉ local paths (evidence screenshot là thumbnail hoặc link); cấm URL remote.
-- **Bảng**: header row bold + lặp lại across pages, style Table Grid, column width cố định, status cell đổ màu.
-- **Cấu trúc**: giống layout HTML (title block → metrics → breakdown → coverage → issues 4 nhóm → confidence → recommendation → evidence index).
-- **Degradation**: nếu môi trường không tạo docx sạch → xuống cấp graceful + báo user một câu.
-
-Đã xác minh: `npm pack --dry-run` chứa `docx-format.md`; cài lại 4 target vẫn sạch (`npm pack` OK); `node --check` OK.
+Forward-test phải dùng prompt task thực tế, không đưa sẵn diagnosis hoặc expected
+answer cho sub-agent.

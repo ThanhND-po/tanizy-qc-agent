@@ -1,35 +1,67 @@
 # Open Questions Management Guide
 
-## Ledger Format (`qc/open-questions.md`)
+Use one ledger at `qc/open-questions.md`. Never create
+`qc/refs/open-questions.md`.
+
+## Canonical Schema
 
 ```markdown
-# Open Questions Ledger: [Project]
-| ID | Requirement Ref | Question | Class | Priority | Impact On | Status | Answer | Answered Date |
-|----|-----------------|----------|-------|----------|-----------|--------|--------|---------------|
-| OQ-001 | US-010 AC2 | ... | GAP | High | VP-03, TC-LOG-002 | OPEN | | |
+| OQ ID | Scope Key | Source Path and Ref | Type | Question | Proposed Options | Priority | Blocks From Phase | Impacted Artifacts | Status | Decision | Decision Source | Answered At |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
 ```
+
+Use `GAP`, `AMB`, `CONFLICT`, or `RISK` for Type. Use `High`, `Medium`, or `Low`
+for Priority. Use `DESIGN`, `EXPORT`, `EXECUTION`, `REPORT`, or `NONE` for
+Blocks From Phase.
+
+Use `OQ-<SCOPE-CODE>-NNN`. Keep every OQ ID unique across the shared ledger and
+never reuse an ID for a different decision.
 
 ## Status Lifecycle
 
+```text
+OPEN -> ANSWERED -> RESOLVED
+OPEN -> WAIVED
+ANSWERED -> WAIVED
 ```
-OPEN → ANSWERED → RESOLVED   (requirement updated by the PO agent)
-OPEN → ANSWERED → WAIVED     (user accepts the risk; assumption recorded)
-OPEN → WAIVED                (user waives directly)
-```
 
-## Priority Rules
+- `OPEN`: no decision exists.
+- `ANSWERED`: an authorized person gave an explicit decision, but the source
+  requirement may not yet contain it.
+- `RESOLVED`: the governing source was updated and linked.
+- `WAIVED`: an authorized person explicitly accepted the documented risk.
 
-- **High:** blocks correct test design or creates real delivery risk; must be asked in conversation immediately. Examples: missing rejection behavior for a security rule, undefined state transition, contradictory business rules.
-- **Medium:** affects test completeness but a safe assumption exists; ask when convenient, otherwise log. Examples: unspecified error message wording, default sort order.
-- **Low:** cosmetic or covered by a broad existing case; log only. Examples: tooltip wording, exact placeholder text.
+Silence, inactivity, or delivery pressure never changes status.
 
-## Question Crafting Rules
+## Blocking Rules
 
-1. One question per OQ; do not bundle.
-2. Propose 2-3 concrete options whenever the decision space is clear; open-ended only when it cannot be constrained.
-3. State the testing impact of each option ("Nếu chọn A, tôi sẽ thiết kế 3 TC cho VP boundary; nếu chọn B thì 1 TC").
-4. Never answer a GAP or AMB yourself; mark your assumption and let the user confirm it.
+Use `DESIGN` when the answer is required to define Test Data, Expected Result,
+actor, precondition, state, action, permission, or an API contract used as test
+intent. Use `EXECUTION` when design is complete but route, auth, fixture,
+cleanup, environment, or runtime tools are unverified. Use the earliest affected
+phase and list impacted artifacts. If a `DESIGN` blocker invalidates the entire
+workflow, set the design gate to `STOP`.
+
+Priority and blocking are different. A Medium OQ may block correct design, and
+a High operational risk may block execution without blocking a source-backed
+functional case.
+
+## Question Rules
+
+1. Keep one decision per OQ.
+2. Cite the exact source path and section or ID.
+3. Offer two or three options only when they are proposals, not inferred rules.
+4. State the downstream impact of each option.
+5. Record the answer exactly enough to preserve the decision.
+6. Record who or what supplied the decision and when.
 
 ## Impact Propagation
 
-When an OQ is answered, the answer must flow back into materials: viewpoints that reference the OQ are adjusted and re-versioned, and affected TCs are updated with the new behavior. The ledger's `Impact On` column tells the agent which files to touch. TCs that remain dependent on unanswered OQs keep the `[OQ-XXX]` flag in their title.
+When an answer changes behavior:
+
+1. update the ledger;
+2. identify all affected artifacts;
+3. mark downstream revisions `STALE` until reviewed;
+4. obtain approval before rewriting those artifacts;
+5. remove the blocked state only after the new source or explicit decision is
+   traceable.

@@ -1,3 +1,7 @@
-# Tanizy QC Agent Global Rule
+# Tanizy QC Agent Rule
 
-For every QC task, including `qc-task.md` and `open-questions.md`, first read `qc/material-paths.md`. Store all QC artifacts under `qc/` and follow its directory, naming, and traceability rules. Route explicit QC requests to the matching installed `qc-*` skill. Never start QC automatically or modify requirement documents.
+Use installed `qc-*` skills only after an explicit QC request. Read
+`qc/config/material-paths.md`, keep project-owned outputs under `qc/`, apply the
+spec-first and approval gates, and never modify requirement documents or infer
+missing business behavior. Treat PO handoff or approved specs inside or outside
+the project as read-only source input, not inherited QC approval.

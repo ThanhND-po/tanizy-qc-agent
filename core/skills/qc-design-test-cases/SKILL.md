@@ -1,135 +1,142 @@
 ---
-## Global Material Path Rule
-
-Before creating or updating any artifact, read `references/material-paths.md`. This is a global rule for every QC skill, including the runtime `qc-task.md` and `open-questions.md` files; the installer populates this reference from the package canonical source.
-
 name: qc-design-test-cases
-description: Design test cases from locked viewpoints and requirement ACs with mandatory traceability (each TC cites its Viewpoint and AC IDs), and produce the traceability matrix. Use when the user says "thiết kế test case", "sinh TC", "QC test cases", or after viewpoints are locked.
+description: "Design source-backed Test Cases from a locked Test Viewpoint revision, with concrete Test Data, natural-language Expected Results, automation eligibility, and reproducible traceability and coverage totals. Use when the user asks to design, generate, review, or complete QC Test Cases after Viewpoints are locked."
 ---
-# Test Case Design — Traceable Test Cases From Locked Viewpoints
 
-## Purpose
+# Design Traceable Test Cases
 
-Produce a structured test case set where **every test case traces to a locked Viewpoint (VP) and the underlying AC or requirement ref**. Traceability is built in at creation time: the TC row itself carries the trace column, and a separate traceability matrix cross-checks the set at the end. This makes the set reviewable by the user and importable into downstream tools (spreadsheets, TMS, or the automation export skills).
+Create atomic Test Cases whose Test Data and Expected Results are supported by
+approved sources or explicit recorded decisions.
 
-## Mandatory Inputs
+## Artifact Contract
 
-| Input | Source |
-|---|---|
-| Approved requirement files | Handoff or user-provided |
-| Locked viewpoints | `qc/test-viewpoints/<feature>-viewpoints.md` (locked version) |
-| Gap report + open question ledger | `qc/gap-reports/<feature>-gap-report.md`, `qc/open-questions.md` |
-| System context, bug base | `qc/refs/system-context.md`, `qc/refs/bug-base.md` |
+Read `references/material-paths.md`,
+`references/automation-eligibility.md`, and the project checklist at
+`qc/config/field-validation-checklist.md` when fields are in scope.
 
-If viewpoints are not yet locked, run `qc-design-viewpoints` first. A viewpoint that is still under review may only be used with a clear `DRAFT` note in every derived TC.
+## Required Inputs
 
-## Test Case ID Convention
+- approved requirement sources;
+- locked `qc/test-viewpoints/<scope-key>-viewpoints.md` revision;
+- matching gap report and `qc/open-questions.md`;
+- relevant System Context, Bug Base, and Test Data spec when available.
 
-`TC-XXX-NNN` where `XXX` is a stable feature/module code (for example `TC-LOG-001` for login, `TC-API-012` for API suite) and `NNN` is sequential. Keep the same code per feature so IDs remain stable across revisions. Use `TC-GEN-` for generic/shared cases.
+Stop if the Viewpoint revision is not locked. For a `PARTIAL` design gate,
+create cases only for unblocked Viewpoints. Never create a placeholder or
+provisional executable case for an OQ with `Blocks From Phase = DESIGN`.
 
-## Field-Level Validation (Customizable Checklist)
+## Test Case IDs
 
-When the viewpoint touches a form or screen with input fields, list **every input field** and generate validation test cases **per field** using the project's checklist file, which the installer seeds as `qc/field-validation-checklist.md` (see `references/material-paths.md`). Each project owns this file and may customize or extend it; the skill references it, never embeds it.
+Use `TC-<SCOPE-CODE>-NNN`. Confirm the scope code once and preserve existing IDs
+across revisions. Never renumber an existing TC to close a gap.
 
-Rules:
+## Source-Backed Design Rules
 
-1. Never merge validation for multiple fields into a single test case.
-2. Every input field receives at least **1 positive** and **2+ negative/boundary** validation cases, unless the project team agrees otherwise.
-3. Apply the **Scenarios Chuyên Sâu & Non-Functional** checklist from the same file: double submit / race condition, session & network resilience, localization & UTF-8 / emoji, keyboard accessibility, and HTTP status codes for API cases.
+1. Keep Steps atomic and numbered.
+2. Write Expected Results in natural language as observable outcomes. Number
+   them to match the relevant Steps.
+3. Use concrete synthetic Test Data. The values may be generated, but every
+   business limit, format, status, and validation outcome must trace to a source.
+4. Use the field checklist as a gap-discovery aid. A `SPEC_GAP` creates an OQ,
+   not an invented Test Case.
+5. Cover happy, negative, boundary, state, NFR, and regression angles only when
+   the expected behavior is defined.
+6. Record source-backed omissions and blocked coverage explicitly.
 
-## Coverage Requirements Per Viewpoint
+## Automation and Readiness
 
-Each viewpoint generates cases covering:
+Keep one canonical `Automation Eligibility` value in every row:
 
-1. **Happy path** — the main success flow (always).
-2. **Alternative / negative paths** — invalid inputs, rejection rules, error messages (always, unless the AC genuinely has no rejection case).
-3. **Boundary / data variation** — min/max, empty, special characters, formats, duplicates (when the AC or business rule has numeric/format constraints).
-4. **State transition cases** — every valid and invalid transition from the state matrix (when the feature has statuses/workflow).
-5. **Regression items** — from the bug base, for viewpoints flagged as regression risk (when bug base has relevant entries).
+- `UI-AUTO`
+- `API-AUTO`
+- `BOTH`
+- `MANUAL`
+- `NEEDS_SPEC`
 
-Skip a category only with an explicit note, never silently.
+Do not add parallel `Automatable` or `Auto Type` columns. They duplicate the
+canonical value and can drift. Do not collapse `BOTH` into a UI-only decision.
+Record readiness separately:
 
-## Execution Steps
+- `STATIC_VALID`
+- `AUTOMATION_ELIGIBLE`
+- `RUNTIME_READY`
 
-1. Read the locked viewpoints and the requirement files they reference.
-2. For each viewpoint, design the required case categories. For each case write: ID, title, precondition, test data, steps (numbered), expected result, trace refs, priority, automation eligibility.
-3. Mark **Automation eligibility** per TC with one of: `UI-AUTO` (automatable via Playwright), `API-AUTO` (automatable via API), `BOTH`, or `MANUAL`. Decide by these rules: deterministic UI steps with stable elements → `UI-AUTO`; CRUD/read-only flows exposed by API with verifiable payload → `API-AUTO`; UI-only interactions, visual checks, third-party popups, CAPTCHA, or heavy setup → `MANUAL`. Do not mark `UI-AUTO` when the flow contains visual or subjective checks. These eligibility values feed the `Automatable` / `Auto Type` columns in the output table.
-4. Assign a **Risk Level** per module before generating cases: `High` (core flows, payment, auth, data loss risk), `Medium` (important flows with moderate blast radius), `Low` (cosmetic / low-impact flows). State the rationale briefly in the matrix section.
-5. Flag TCs that depend on still-open OQs with `[OQ-XXX]` in the title and a note; they are delivered but visibly provisional.
-6. Generate the traceability matrix cross-checking VP/AC coverage.
-7. Save to `qc/test-cases/<feature>-test-cases.md` (traceability matrix included
-   as a section at the end of the same file; see
-   `references/material-paths.md`), present the summary, and ask the user to
-   confirm the save path.
-8. If execution results are being recorded in the same session, also create
-   `qc/executions/<feature>-executions.md` with the executions log schema
-   (`qc-report-generator`'s `references/executions-log.md`), pre-filling one
-   row per TC with Result `NOT_RUN` — so runs only need to update results.
+Design normally establishes only `STATIC_VALID`. Missing endpoint, route,
+locator, fixture, auth, cleanup, or runner evidence prevents `RUNTIME_READY`.
 
-## Test Case Status Fields (Ownership Rules)
+## Workflow
 
-Each TC row carries three execution-status fields:
+1. Inventory locked Viewpoints and exact source refs.
+2. Confirm the shared scope code and intended coverage dimensions.
+3. Draft cases with concrete Test Data, numbered Steps, numbered Expected
+   Results, trace refs, priority, and automation metadata.
+4. Build traceability matrices and coverage totals for AC, business rule, NFR,
+   impact/regression, and Viewpoints.
+5. List blocked source items with OQ IDs and no TC IDs.
+6. Run the Quality Gates below.
+7. Present the draft and exact write set in chat.
+8. Obtain explicit content, path, and Lock Gate approval.
+9. Write `qc/test-cases/<scope-key>-test-cases.md` with state `LOCKED`.
 
-| Field | Values | Who writes it |
-|---|---|---|
-| Status | `NOT_RUN` at design time; later `PASS`, `FAIL`, `BLOCKED`, `SKIP`, `ERROR` | Design skill sets `NOT_RUN` only; `$qc-run-playwright`, `$qc-export-postman`, or a manual session sets the result |
-| Test By | Agent name / tester identity | Execution skill or manual tester |
-| Test Date | `YYYY-MM-DD` of the last execution | Execution skill or manual tester |
+Do not create an execution log during Test Case design. The execution skill
+creates or appends it only after an approved Execution Gate.
 
-This skill must **never** set Test By or Test Date, and must never change a Status that is not `NOT_RUN`/empty. Results live in the executions log; the status fields on the TC table are the single-row convenience view used by `$qc-report-generator` when an executions log is absent.
-
-## Test Case Table Template
-
-```markdown
-| TC ID | Module | Risk Level | Title | Precondition | Test Data | Steps | Expected Result | Trace | Priority | Automatable | Auto Type | Tags | Status | Test By | Test Date |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| TC-LOG-001 | Login | High | Đăng nhập thành công | User exists, logged out | email: test_khachhang_01@domain.com, pass: P@ssw0rd! | 1. Open login 2. Enter creds 3. Submit | Dashboard shown, session active | VP-01, US-010 AC1 | P1 | Yes | UI | @Smoke | NOT_RUN | | |
-| TC-LOG-002 | Login | High | Đăng nhập sai password | User exists | email: test_khachhang_01@domain.com, pass: Wrong123 | ... | Error message E01 shown, not locked | VP-01, US-010 AC2 | P1 | Yes | UI | @Regression | NOT_RUN | | [OQ-003] nếu lock policy thay đổi |
-```
-
-Column mapping and rules:
-
-- **Module**: the module / sub-module from the decomposition (or viewpoints grouping).
-- **Risk Level**: `High` / `Medium` / `Low` from step 4 above.
-- **Test Data**: concrete values, never placeholders (see `references/material-paths.md` test data rules; `qc/refs/test-data-spec.md` if created).
-- **Automatable**: `Yes` / `No` / `Partial` — derive from the automation eligibility: `UI-AUTO` or `API-AUTO` → `Yes`; `BOTH` → `Yes`; `MANUAL` → `No`; cases with a manual-only visual check inside an otherwise automatable flow → `Partial`.
-- **Auto Type**: `UI` / `API` / `Unit` / `N/A` — `UI-AUTO` → `UI`; `API-AUTO` → `API`; `BOTH` → `UI` (default); `MANUAL` → `N/A`.
-- **Tags**: `@Smoke`, `@Regression`, `@CriticalPath`, `@Security`, `@Boundary`; at least one tag per TC.
-- **Status / Test By / Test Date**: see the ownership table above.
-
-## Traceability Matrix Template
+## File Structure
 
 ```markdown
-# Traceability Matrix: [Feature]
-## Requirement Ref → Test Cases
-| Ref (AC / rule / NFR) | Covering TCs | Uncovered? |
-|---|---|---|
-| US-010 AC1 | TC-LOG-001, TC-LOG-004 | No |
-## Viewpoint → Test Cases
-| VP ID | Covering TCs | Case Count |
-|---|---|---|
-| VP-01 | TC-LOG-001..006 | 6 |
-## Open Questions → Provisional TCs
-| OQ ID | Affected TCs |
-|---|---|
+# Test Cases: <Scope Key>
+
+## 1. Artifact Header
+| Scope Key | Scope Code | Artifact Type | Revision | State | Approved By | Approved At |
+
+## 2. Source Manifest
+| Source | Revision or hash | Role |
+
+## 3. Test Case Table
 ```
 
-## Quality Gates (Before Delivery)
+Use relative Markdown links for project-local sources in the Source Manifest
+and trace columns. Preserve an approved external source as its exact `external,
+non-portable` locator. The locked Viewpoint revision is an immediate parent
+artifact.
 
-1. **Unique TC ID** — no duplicate IDs and IDs follow the project convention.
-2. **1-to-1 Step-Expected matching** — numbered steps match numbered expected results.
-3. **Trace coverage** — every TC has at least one trace ref (VP and an AC/rule/NFR), and every AC in scope appears in the matrix at least once.
-4. **Concrete test data** — no placeholder or vague values in any TC.
-5. **Field validation coverage** — when forms are in scope, every input field has ≥1 positive and 2+ negative/boundary cases, per `qc/field-validation-checklist.md`.
-6. **Automation metadata ready** — 100% of TCs have `Automatable`, `Auto Type`, and at least one `@Tag` set, and Status is `NOT_RUN`.
+## Test Case Table
 
-OQ-dependent TCs are flagged, not hidden.
+```markdown
+| TC ID | Module | Risk | Title | Preconditions | Test Data | Steps | Expected Results | Source Trace | VP ID | Priority | Automation Eligibility | Tags |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| TC-LOG-001 | Login | High | Đăng nhập hợp lệ | User active, logged out | email `qc.login.01@example.test`; password from approved fixture | 1. Mở Login. 2. Nhập fixture. 3. Submit. | 1. Login hiển thị. 2. Giá trị được nhận. 3. Dashboard hiển thị và session được tạo. | [AC-01](../../requirements/login.md#ac-01) | [VP-LOG-001](../test-viewpoints/fs-login-viewpoints.md#vp-log-001) | P1 | UI-AUTO | @Smoke |
+```
+
+Keep execution status, executor, date, evidence, and defects out of the locked
+design table. Derive them from the append-only executions log without modifying
+the approved Test Case revision.
+
+## Traceability and Coverage
+
+Include:
+
+- requirement ref to TC IDs;
+- Viewpoint ID to TC IDs;
+- blocked requirement ref to OQ ID;
+- coverage totals with explicit numerator and denominator;
+- design readiness summary, distinct from runtime readiness.
+
+## Quality Gates
+
+1. TC IDs are unique and stable.
+2. Every TC traces to one locked Viewpoint and one exact source ref.
+3. Steps and Expected Results are numbered and semantically matched.
+4. Test Data is concrete and contains no unsupported business value.
+5. Every row has one canonical automation eligibility value and tags.
+6. Blocked items have no fabricated TC.
+7. Coverage totals reconcile with the source inventory and Viewpoint revision.
+8. All relative links resolve.
+9. Artifact state is `LOCKED`, with an explicit revision and approver.
 
 ## Rules
 
-- Do not redesign viewpoints in this skill; if gaps are found in the viewpoint set, send the user back to `qc-design-viewpoints`.
-- Keep steps atomic and verifiable; expected results must be observable outcomes, not "it works".
-- Test data references must be concrete or reference a generated data set (use `qc/refs/test-data-spec.md` if created).
-- Ask in Vietnamese by default; keep IDs and technical terms in English.
-- Save outputs in the target project, not inside skill folders, following
-  the layout in `references/material-paths.md`.
+- Do not redesign Viewpoints in this skill.
+- Do not claim execution readiness from static completeness.
+- Ask in Vietnamese by default and retain exact IDs and technical terms.
+- Keep requirement documents read-only.

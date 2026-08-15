@@ -1,128 +1,142 @@
 ---
-## Global Material Path Rule
-
-Before creating or updating any artifact, read `references/material-paths.md`. This is a global rule for every QC skill, including the runtime `qc-task.md` and `open-questions.md` files; the installer populates this reference from the package canonical source.
-
 name: qc-gap-finder
-description: Analyze approved requirement documents to find gaps, ambiguities, and testability issues compared with testing knowledge, the current system state, and the bug base. Ask clarifying questions, log unanswered ones as Open Questions without blocking materials creation. Use when the user says "QC gap analysis", "tìm điểm mờ", "review requirement", or after requirement files are handed off.
+description: "Analyze approved requirement sources for gaps, ambiguity, conflicts, risks, and missing testability evidence. Use when the user asks for QC gap analysis, requirement review from a QC perspective, unclear business rules, Open Questions, or a spec-first readiness decision before Viewpoint or Test Case design."
 ---
-# Gap Finder — Read Requirements, Find Gaps, Manage Open Questions
 
-## Purpose
+# QC Gap Finder
 
-Read the requirement documents produced by the PO agent (Epic, User Story, Use Case, API Spec, NFR, or any combination) and identify everything a tester would need to know but the documents do not state. Gaps are compared against three sources of knowledge: testing domain knowledge (boundary values, state transitions, concurrency, error handling, security and performance basics), the current system state (`qc/refs/system-context.md`), and the bug base (`qc/refs/bug-base.md`).
+Identify what is stated, what is missing, and what must stop downstream design.
+Do not create Test Viewpoints or Test Cases in this skill.
 
-Unanswered questions become managed **Open Questions (OQ)**, not blockers. Materials (viewpoints, test cases) can still be created while OQs remain open.
+## Artifact Contract
 
-## Mandatory Inputs
+Read `references/material-paths.md` and
+`references/open-questions-guide.md` before drafting. Use the approved scope key
+for both the report and OQ rows.
 
-| Input | File | Handling if missing |
-|---|---|---|
-| Requirement documents | User or handoff points to them | Required; ask for them |
-| System context | `qc/refs/system-context.md` | Ask user briefly; continue with stated assumptions |
-| Bug base | `qc/refs/bug-base.md` | Ask user briefly; continue and note the risk |
-| Prior open questions | `qc/open-questions.md` | Load and merge; avoid duplicate OQs |
+## Inputs
 
-## Discovery Coverage (Gap Catalog)
-
-Scan every requirement artifact against the following gap dimensions. Do not ask about all dimensions at once; cluster findings and present them in one pass.
-
-| Dimension | What to look for |
+| Input | Handling when missing |
 |---|---|
-| Ambiguity keywords | "where applicable", "as needed", "similar to", "etc.", "TBD", missing concrete values |
-| Validation rules | Missing min/max, format, required/optional, error messages |
-| Edge and exception behavior | Empty data, error states, network failure, concurrent access, timeouts |
-| State and transitions | Undefined states, missing transition rules, unclear status meanings |
-| Data concepts | Ownership, retention, uniqueness, idempotency, migration behavior |
-| Business rules | Permission gaps, limits/thresholds, calculation formulas, rounding |
-| Consistency | Conflicts between requirements, or between requirement and mockup/design |
-| Existing system | How the new feature interacts with current flows, modules, integrations listed in system context |
-| Bug base regression | Whether known bugs, workarounds, or fragile areas are affected; whether tests should cover them |
-| Non-functional | Performance, scale, security, accessibility, observability expectations missing or unstated |
+| Approved requirement sources | Stop and request exact source paths |
+| Existing OQ ledger | Load `qc/open-questions.md`; create from the installed seed only after approval |
+| System context | Mark current behavior unknown and limit regression claims |
+| Bug base | Mark known-bug coverage unavailable |
+| Mockup, API, or technical sources cited by requirements | Verify the cited files exist; otherwise create a gap |
 
-## Gap Classification
+## Finding Classes
 
-For every gap found, classify it:
+| Class | Meaning |
+|---|---|
+| `GAP` | Required behavior or evidence is absent |
+| `AMB` | Wording allows more than one behavior |
+| `CONFLICT` | Sources state incompatible behavior |
+| `RISK` | A verified dependency, known bug, or current-state fact creates test risk |
 
-| Class | Meaning | Action |
-|---|---|---|
-| **GAP (missing)** | Behavior not specified at all | Create OQ; design test cases with an explicit ASSUMPTION tag |
-| **AMB (ambiguous)** | Specified but vague or contradictory | Create OQ with proposed options; user picks one |
-| **RISK (system)** | Existing system state or bug base makes this area fragile | Create OQ flagged as regression risk; ensure viewpoint coverage |
-| **OK (assumption safe)** | Minor and safe to assume | Log as assumption in the report, no OQ needed |
+Do not classify an unstated behavior as a safe assumption.
 
-## Open Question Management
+## Blocking Decision
 
-Manage `qc/open-questions.md` as the OQ ledger. Each entry:
+Assign the earliest affected phase in `Blocks From Phase`:
+
+| Value | Use when unresolved evidence first prevents |
+|---|---|
+| `DESIGN` | A source-backed Viewpoint or Test Case |
+| `EXPORT` | A faithful Gherkin or Postman artifact |
+| `EXECUTION` | A safe, reproducible live run |
+| `REPORT` | A requested report claim or release verdict |
+| `NONE` | No approved phase is blocked |
+
+Use `DESIGN` when an unresolved finding affects any of these:
+
+- actor or permission;
+- precondition, initial state, action, or state transition;
+- observable Expected Result or error behavior;
+- Test Data rule, threshold, format, or character set;
+- API method, endpoint, request/response contract for API design;
+- conflict that makes the intended workflow indeterminate.
+
+Use `EXECUTION`, not `DESIGN`, when test intent is fully defined but route, auth,
+fixture, cleanup, environment, or runtime tools are unverified. Use the earliest
+phase and list exact impacted artifacts when more than one phase is affected.
+
+Non-blocking wording or presentation gaps may remain open, but they cannot be
+used as assertions. A user answer counts only when it is explicit and recorded
+with its decision source. Silence never resolves an OQ.
+
+## Workflow
+
+1. Inventory exact source paths, sections, identifiers, and approval states.
+   Verify the confirmed scope code is not assigned to another scope.
+2. Scan validation, boundaries, states, roles, integrations, data ownership,
+   errors, concurrency, security, accessibility, performance, audit, and known
+   regressions.
+3. Record each finding as `FND-<SCOPE-CODE>-NNN`, with source evidence,
+   `Blocks From Phase`, and affected downstream artifacts.
+4. Create or update OQ rows using the canonical schema.
+5. Assign the scope design gate:
+   - `READY` when every in-scope behavior is testable.
+   - `PARTIAL` when only a source-backed subset can proceed.
+   - `STOP` when no testable workflow exists or a critical conflict invalidates
+     the flow.
+6. Draft the gap report and proposed OQ changes in chat.
+7. Obtain approval for content and exact paths.
+8. Write `qc/gap-reports/<scope-key>-gap-report.md` and approved OQ rows.
+9. Validate relative links, scope key, OQ IDs, and coverage totals.
+
+Ask blocking questions first. Group related questions in one concise review
+when this is clearer, but keep one decision per OQ row.
+
+## Gap Report Structure
 
 ```markdown
-| ID | Requirement Ref | Question | Class | Priority | Impact On | Status | Answer |
-|----|-----------------|----------|-------|----------|-----------|--------|--------|
-| OQ-001 | US-010 AC2 | ... | GAP | High | VP-03, TC range | OPEN | |
+# Gap Report: <Scope Key>
+
+## 1. Artifact Header
+| Scope Key | Scope Code | Artifact Type | Revision | State | Approved By | Approved At |
+
+## 2. Decision Summary
+Design gate: READY | PARTIAL | STOP
+
+## 3. Source Manifest
+| Source path | Section or ID | Approval state | Revision or hash |
+
+## 4. Findings
+| Finding ID | Source Ref | Class | Finding | Priority | Blocks From Phase | OQ ID |
+
+## 5. Open Questions Added or Updated
+| OQ ID | Question | Status | Blocks From Phase | Impacted Artifacts |
+
+## 6. Source-Backed Scope Allowed to Continue
+| Requirement Ref | Evidence | Allowed Next Phase |
+
+## 7. Blocked Coverage
+| Requirement Ref | Missing Evidence | Required Answer or Source |
+
+## 8. Coverage Totals
+| Dimension | Source Items | Testable | Blocked |
 ```
 
-Rules:
+Use relative Markdown links for project-local source paths and any impacted
+artifact that already exists. For an approved external source, record the exact
+locator and `external, non-portable` status from the artifact contract. Keep
+proposed paths as code until they exist.
 
-1. **High priority OQs are asked immediately** in the conversation, one question per message, multiple-choice when the decision space is clear.
-2. Medium/Low OQs are appended to the ledger and announced once ("X câu hỏi mức Medium/Low đã lưu vào open-questions.md, trả lời sau vẫn tạo materials bình thường").
-3. When the user answers, set Status to `ANSWERED`, fill the Answer column, and note which viewpoints/test cases will be updated in the next run.
-4. A user may mark an OQ `WAIVED` to accept the risk explicitly; the assumption must then be recorded in the requirement ref file's notes or in the report.
-5. Status values: `OPEN`, `ANSWERED`, `RESOLVED` (requirement updated by PO), `WAIVED`.
+When the scope has no testable behavior, report `0/0` and do not create
+placeholder cases or automation artifacts.
 
-## Execution Steps
+## Reference Integrity
 
-1. Read all requirement files and any mockup/design references.
-2. Load `qc/refs/system-context.md`, `qc/refs/bug-base.md`, and the existing OQ ledger.
-3. Scan against the Gap Catalog; cluster findings by requirement reference.
-4. For each finding, propose a concrete question with options where possible; do not silently assume away any GAP or AMB.
-5. Ask High-priority OQs now; log the rest to the ledger.
-6. **Self-update refs**: append new knowledge discovered during analysis to the
-   runtime refs (rules below) — do NOT ask the user to update them manually.
-7. Save the gap analysis report to `qc/gap-reports/<feature>-gap-report.md`
-   (see `references/material-paths.md`) using the template structure below.
-8. Present a summary to the user and confirm the assumptions that remain
-   before viewpoints are designed.
-
-## Gap Report Template
-
-```markdown
-# Gap Report: [Feature]
-## 1. Inputs Analyzed
-(files, system context version, bug base version)
-## 2. Gaps Found
-(table: #, Ref, Class, Finding, Proposed Question, Priority)
-## 3. Open Questions Log
-(table of the OQ ledger rows created in this run)
-## 4. Assumptions Carried Into Design
-(table: assumption, where used)
-## 5. Regression Risks From Bug Base
-(table: bug/known issue, affected area, test implication)
-```
+- Keep hypotheses in the gap report or OQ ledger.
+- Add System Context only from an approved source or verified runtime evidence.
+- Add Bug Base rows only for verified known defects or observed failures with
+  evidence.
+- Do not create `Bug ID = TBD` from a risk hypothesis.
+- Obtain separate approval before changing refs not already in the write set.
 
 ## Rules
 
-- Do not create test cases in this skill; output is gaps, questions, and the report.
-- Do not modify requirement files; all QC notes live under `qc/`.
-- Never treat "simple" features as exempt from gap scanning.
-- Ask in Vietnamese by default; keep technical terms in English.
-- One question per message; prefer multiple choice.
-- Save outputs in the target project, not inside skill folders, following
-  the layout in `references/material-paths.md`.
-
-### Refs Self-Update Rules
-
-After analysis completes, the agent updates the refs itself and announces the
-change in one sentence:
-
-1. **`qc/refs/system-context.md`** — append newly discovered facts about the
-   current system (existing behavior, constraints, workarounds) as new rows,
-   with source doc and today's date. Never delete existing rows.
-2. **`qc/refs/bug-base.md`** — append newly discovered regression-prone areas
-   or fragile spots as new Pending rows, even if no bug ID exists yet
-   (mark Bug ID as `TBD`; fill it later from test runs).
-3. If the refs files do not exist, create them from the seed templates
-   (`refs-templates/` in the package) and fill the first rows — never ask the
-   user to create the files.
-4. Announce once: "Đã cập nhật system-context/bug-base với N phát hiện mới".
-   Ask the user only when a finding is sensitive (e.g. a workaround with
-   compliance impact).
+- Keep requirement documents read-only.
+- Ask in Vietnamese by default and retain exact IDs and technical terms.
+- Do not invent options as decisions. Label proposed options as proposals.
+- Do not continue blocked behavior to downstream skills.
