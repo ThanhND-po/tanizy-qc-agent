@@ -122,6 +122,8 @@ Use `--skip-refs` when runtime references are managed separately.
 
 ## PO + QC Coexistence
 
+Use [Tanizy PO Agent](https://github.com/ThanhND-po/tanizy-po-agent) as the companion package for discovery, approved requirement artifacts, diagrams, mockups, and meeting memos.
+
 The installer does not own the whole `AGENTS.md`, `CLAUDE.md`, or `GEMINI.md`.
 It appends one marked QC block and, with `--force`, replaces only that block.
 Existing PO instructions, project rules, and other managed blocks remain
@@ -142,11 +144,11 @@ external locator. An external source is not copied into the project without
 separate content and path approval. A PO handoff does not inherit QC write,
 Lock, Execution, or Release Verdict approval.
 
-The preservation guarantee applies when this QC installer writes the adapter.
-Any other installer sharing the root adapter must use its own managed block. If
-a legacy PO full `--force` update replaces the whole adapter, run the QC
-installer again with `--force` to merge the current QC block back into the
-preserved PO file. Prefer selective PO skill updates when no adapter refresh is
+The preservation guarantee applies when every package sharing the root adapter
+uses its own managed block. Current Tanizy PO installers preserve the QC block
+and project-owned instructions. If an older PO installer replaces the whole
+adapter, update PO first, then run the QC installer with `--force` to restore
+the current QC block. Prefer selective skill updates when no adapter refresh is
 needed.
 
 ## Local Install
