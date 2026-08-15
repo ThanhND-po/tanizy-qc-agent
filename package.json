@@ -1,11 +1,14 @@
 {
   "name": "@thanhndpo/tanizy-qc-agent",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Portable Quality Control agent workflows for Gemini CLI, Codex, Claude Code, and Antigravity.",
   "license": "MIT",
   "type": "module",
   "bin": {
     "tanizy-qc-install": "scripts/install.mjs"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "files": [
     "core",
