@@ -2,9 +2,7 @@
 
 ## Kết luận
 
-Bộ skill cần một contract chung cho naming, output path, spec-first gate,
-approval và artifact lifecycle. Việc chỉ sửa từng filename riêng lẻ không giải
-quyết được duplicate file hoặc handoff sai giữa các skill.
+Bộ skill cần một contract chung cho naming, output path, spec-first gate, approval và artifact lifecycle. Việc chỉ sửa từng filename riêng lẻ không giải quyết được duplicate file hoặc handoff sai giữa các skill.
 
 ## Vấn đề đã xác minh
 
@@ -26,10 +24,8 @@ quyết được duplicate file hoặc handoff sai giữa các skill.
 
 ### 1. Ownership
 
-- Package-managed: target-native `qc-*` skill folders, managed adapter block,
-  canonical contract copies.
-- Project-owned: Open Questions, System Context, Bug Base, customized field
-  checklist, tasks, designs, runs và reports.
+- Package-managed: target-native `qc-*` skill folders, managed adapter block, canonical contract copies.
+- Project-owned: Open Questions, System Context, Bug Base, customized field checklist, tasks, designs, runs và reports.
 - `--force` chỉ thay package-managed content.
 
 ### 2. Scope key
@@ -52,6 +48,7 @@ qc/
 ├── test-viewpoints/<scope-key>-viewpoints.md
 ├── test-cases/<scope-key>-test-cases.md
 ├── automation/
+├── execution-inputs/<scope-key>/<run-id-lowercase>-manual-results.<xlsx|csv|md>
 ├── executions/<scope-key>-executions.md
 ├── evidence/<scope-key>/<run-id-lowercase>/
 └── reports/<scope-key>-test-report-<date>[-vN].<ext>
@@ -69,6 +66,16 @@ OQ dùng `Blocks From Phase`: `DESIGN`, `EXPORT`, `EXECUTION`, `REPORT`, hoặc
 `NONE`. Thiếu actor, state, Test Data hoặc Expected Result block từ `DESIGN`;
 thiếu route, auth, fixture hoặc cleanup chỉ block từ `EXECUTION` khi test intent
 đã đủ.
+
+OQ tách Finding Class khỏi Question Domain và giữ riêng ownership, target date,
+decision authority, decision source, resolved source. PO Open là QC `OPEN`; PO
+Answered là QC `ANSWERED`; PO Deferred vẫn là QC `OPEN` nếu chưa có risk
+acceptance được ủy quyền; chỉ source đã cập nhật và được link chính xác mới là
+QC `RESOLVED`.
+
+System Context dùng Scope Key, Environment, Source Revision và trạng thái
+`ACTIVE`, `STALE`, `SUPERSEDED`. Bug Base dùng một lifecycle table, giữ trace từ
+Requirement, TC, Run tới evidence, thời điểm quan sát và trạng thái đóng bug.
 
 ### 5. Approval sequence
 
@@ -91,17 +98,14 @@ scope đã xác nhận.
 - `RUNTIME_READY`: environment, route, auth, fixture, cleanup, runner và
   dependencies đã được verify.
 
-Execution log là append-only theo Run ID, Attempt và TC ID. Retry không được ghi
-đè lịch sử. Auto-heal chỉ sửa execution mechanics trong budget đã được duyệt.
+Execution log là append-only theo Run ID, Attempt và TC ID. Retry không được ghi đè lịch sử. Manual result có thể được import từ XLSX, CSV, Google Sheets hoặc Markdown riêng qua `qc-record-manual-results`. Evidence là optional theo Evidence Policy của từng Run. Auto-heal chỉ sửa execution mechanics trong
+budget đã được duyệt.
 
 ### 7. Release report
 
-Report chỉ dùng GO, CONDITIONAL GO hoặc NO-GO khi có release criteria và decision
-authority. Nếu thiếu, verdict là `UNDETERMINED`.
+Report chỉ dùng GO, CONDITIONAL GO hoặc NO-GO khi có release criteria và decision authority. Nếu thiếu, verdict là `UNDETERMINED`.
 
-Report dùng `COMPACT` mặc định với ba phần: Decision Summary, Findings and
-Actions, Confidence and Evidence. Chỉ thêm detailed appendix khi user yêu cầu
-audit, full trace matrix hoặc per-TC detail.
+Report dùng `COMPACT` mặc định với ba phần: Decision Summary, Findings and Actions, Confidence and Evidence. Chỉ thêm detailed appendix khi user yêu cầu audit, full trace matrix hoặc per-TC detail.
 
 ## Installer safeguards
 

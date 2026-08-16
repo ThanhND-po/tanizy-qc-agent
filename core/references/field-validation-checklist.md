@@ -4,18 +4,14 @@ The installer seeds this project-owned file at
 `qc/config/field-validation-checklist.md`. A project may customize it. Installer
 updates must never overwrite an existing copy.
 
-Use this checklist to discover missing validation rules and source-backed test
-angles. It is not a requirement source. Do not invent a limit, error message,
-accepted character set, status code, or Expected Result because it appears in
-this checklist.
+Use this checklist to discover missing validation rules and source-backed test angles. It is not a requirement source. Do not invent a limit, error message, accepted character set, status code, or Expected Result because it appears in this checklist.
 
 For every field in scope:
 
 1. Record the field and its requirement/design source.
 2. Mark each relevant check as `DEFINED`, `NOT_APPLICABLE`, or `SPEC_GAP`.
 3. Create test cases only for `DEFINED` behavior.
-4. Convert `SPEC_GAP` behavior into an Open Question. If it affects Test Data or
-   Expected Result, set `Blocks From Phase = DESIGN` for the affected scope.
+4. Convert `SPEC_GAP` behavior into an Open Question. If it affects Test Data or Expected Result, set `Blocks From Phase = DESIGN` for the affected scope.
 
 ## Text
 
@@ -100,5 +96,4 @@ For every field in scope:
 - API status/error contract
 - Audit and observability behavior
 
-Only generate a test for these items when the source or an explicit user
-decision defines the expected outcome.
+Only generate a test for these items when the source or an explicit user decision defines the expected outcome.

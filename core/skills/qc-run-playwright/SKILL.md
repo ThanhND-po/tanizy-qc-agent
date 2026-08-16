@@ -5,13 +5,11 @@ description: "Execute locked, runtime-ready UI Test Cases with Playwright browse
 
 # Run Test Cases With Playwright
 
-Execute approved test intent against the real application. Do not redesign a TC
-or change its Expected Result during execution.
+Execute approved test intent against the real application. Do not redesign a TC or change its Expected Result during execution.
 
 ## Artifact Contract
 
-Read `references/material-paths.md`. Treat
-`qc/executions/<scope-key>-executions.md` as an append-only run history.
+Read `references/material-paths.md`. Treat `qc/executions/<scope-key>-executions.md` as an append-only run history.
 
 ## Required Inputs
 
@@ -25,67 +23,51 @@ Read `references/material-paths.md`. Treat
 | Runtime tools | Playwright browser tools available in the current session |
 | Retry policy | User-approved retry budget for this run |
 | Assessment policy | User-approved rule for selecting a result when retries exist |
-| Write set | Execution log, evidence paths, and separately approved ref updates |
+| Evidence policy | `OPTIONAL` by default, or a user-approved or release-criteria override; external locators are allowed |
+| Write set | Execution log, any approved evidence paths, and separately approved ref updates |
 
-If any required input is absent, report the preflight as `BLOCKED` in chat and
-do not open a browser or write a run section. Record a `BLOCKED` attempt only
-when the Execution Gate passed and an approved runtime prerequisite later became
-unavailable. A Gherkin file is supplementary unless the project has verified
-its BDD runner and step bindings.
+If any required input is absent, report the preflight as `BLOCKED` in chat and do not open a browser or write a run section. Record a `BLOCKED` attempt only when the Execution Gate passed and an approved runtime prerequisite later became unavailable. A Gherkin file is supplementary unless the project has verified its BDD runner and step bindings.
 
 ## Execution Gate
 
 Before the first browser action, present:
 
 - Run ID and selected TC IDs;
-- environment and application build or commit when known;
-- roles, fixtures, and Test Data sources;
-- state-changing actions and cleanup plan;
-- retry budget, assessment policy, and which repairs are permitted;
-- exact files and evidence directories to update.
+- Environment and application build or commit when known;
+- Roles, fixtures, and Test Data sources;
+- State-changing actions and cleanup plan;
+- Retry budget, assessment policy, Evidence Policy, and permitted repairs;
+- Exact files and any evidence directories to update.
 
 Start only after explicit approval.
 
 ## Workflow
 
-1. Append a new run header with Run ID, timestamp, environment, build, executor,
-   source TC revision, approved retry policy, and assessment policy.
-2. Recon each page with the real accessibility tree. Prefer role, label, and
-   visible text locators. Verify each locator before using it.
-3. Execute each selected TC step in order and capture observable evidence for
-   every Expected Result.
+1. Append a new run header with Run ID, timestamp, environment, build, executor, source TC revision, approved retry, assessment, and Evidence policies, plus the native runner as Result Source.
+2. Recon each page with the real accessibility tree. Prefer role, label, and visible text locators. Verify each locator before using it.
+3. Execute each selected TC step in order, record the observable Actual Result, and capture supporting evidence according to the approved Evidence Policy.
 4. Run the approved per-case cleanup, when applicable, and capture its result.
-5. Append one row per `<Run ID, Attempt, TC ID>` using the canonical result
-   values: `PASS`, `FAIL`, `BLOCKED`, `SKIP`, or `ERROR`.
-6. Run suite-level cleanup and append the Run Footer. Do not edit earlier rows
-   to add the footer result.
-7. Derive latest status from the log when needed. Do not modify the locked Test
-   Case revision with result, executor, date, evidence, or defect data.
-8. Report the run summary, failures, blockers, cleanup state, and evidence.
+5. Append one row per `<Run ID, Attempt, TC ID>` using the canonical result values: `PASS`, `FAIL`, `BLOCKED`, `SKIP`, or `ERROR`.
+6. Run suite-level cleanup and append the Run Footer. Do not edit earlier rows to add the footer result.
+7. Derive latest status from the log when needed. Do not modify the locked Test Case revision with result, executor, date, evidence, or defect data.
+8. Report the run summary, failures, blockers, cleanup state, and evidence availability.
 
 ## Repair Boundary
 
-Allow automatic repair only for execution mechanics already covered by the
-approved retry policy:
+Allow automatic repair only for execution mechanics already covered by the approved retry policy:
 
-- refresh a locator after a new snapshot;
-- replace a fixed sleep with a state-based wait;
-- recover an expired session through the approved login fixture.
+- Refresh a locator after a new snapshot;
+- Replace a fixed sleep with a state-based wait;
+- Recover an expired session through the approved login fixture.
 
-Stop and request a new gate before changing Test Data, Steps, Expected Results,
-environment, role, side effects, or cleanup. Never silently generate different
-business data. Do not repeat a non-idempotent TC merely to obtain two passes.
+Stop and request a new gate before changing Test Data, Steps, Expected Results, environment, role, side effects, or cleanup. Never silently generate different business data. Do not repeat a non-idempotent TC merely to obtain two passes.
 
 ## Execution Log Shape
 
-Follow this skill's `references/executions-log.md`. Each attempt must include
-Run ID, Attempt, TC ID, result, evidence, actual result, defect link when
-verified, and cleanup state.
+Follow this skill's `references/executions-log.md`. Each attempt must include Run ID, Attempt, TC ID, Result, Actual Result, Tested By, Tested At, Source Locator, and cleanup state. Evidence and a verified defect link are optional unless the approved policy requires them.
 
-Store new evidence under
-`qc/evidence/<scope-key>/<run-id-lowercase>/` using
-`<tc-id-lowercase>-attempt-<n>-<evidence-key>.<ext>`. Preserve uppercase IDs in
-the execution log. Do not overwrite evidence from an earlier attempt.
+When project-local evidence is approved, store it under `qc/evidence/<scope-key>/<run-id-lowercase>/` using
+`<tc-id-lowercase>-attempt-<n>-<evidence-key>.<ext>`. Preserve uppercase IDs in the execution log. Do not overwrite evidence from an earlier attempt. Preserve an approved external evidence locator without copying it into the project.
 
 ## Reference Updates
 
@@ -98,6 +80,4 @@ the execution log. Do not overwrite evidence from an earlier attempt.
 
 - Run only on explicit user request and only after the Execution Gate.
 - Keep requirement documents read-only.
-- Do not run state-changing Git commands.
 - Do not expose credentials or personal data in chat or artifacts.
-- Ask in Vietnamese by default and retain exact IDs and technical terms.
