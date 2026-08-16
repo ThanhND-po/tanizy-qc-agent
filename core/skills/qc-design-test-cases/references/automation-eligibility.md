@@ -19,19 +19,13 @@ link the blocking OQ.
 ## Eligibility Rules
 
 1. Require an observable, source-backed Expected Result.
-2. Mark `UI-AUTO` only when the UI behavior can be asserted programmatically.
-   Stable locators are runtime-readiness evidence, not a reason to invent UI
-   behavior.
-3. Mark `API-AUTO` only when method, endpoint, auth, payload, response shape,
-   and relevant status/error behavior are defined.
-4. Mark `BOTH` only when both paths test the same intent without losing an
-   assertion.
-5. Mark subjective visual quality, physical hardware, CAPTCHA, and exploratory
-   testing as `MANUAL` when that intent is explicitly in scope.
+2. Mark `UI-AUTO` only when the UI behavior can be asserted programmatically. Stable locators are runtime-readiness evidence, not a reason to invent UI behavior.
+3. Mark `API-AUTO` only when method, endpoint, auth, payload, response shape, and relevant status/error behavior are defined.
+4. Mark `BOTH` only when both paths test the same intent without losing an assertion.
+5. Mark subjective visual quality, physical hardware, CAPTCHA, and exploratory testing as `MANUAL` when that intent is explicitly in scope.
 6. Mark source gaps as `NEEDS_SPEC` and stop the affected downstream export.
 
-Do not add derived `Automatable` or `Auto Type` columns. They repeat the same
-decision and may become inconsistent with `Automation Eligibility`.
+Do not add derived `Automatable` or `Auto Type` columns. They repeat the same decision and may become inconsistent with `Automation Eligibility`.
 
 ## Downstream Routing
 

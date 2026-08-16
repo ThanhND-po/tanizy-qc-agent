@@ -4,7 +4,8 @@ Tanizy QC Agent is a portable, explicitly invoked Quality Control workflow for
 Codex, Gemini CLI, Claude Code, and Antigravity. It helps a Product Owner, QA
 lead, or tester review approved requirements, manage specification gaps, design
 traceable Test Viewpoints and Test Cases, prepare automation artifacts, execute
-approved UI tests, and report evidence.
+approved UI tests, record manual test results, and report outcomes with optional
+evidence.
 
 QC never starts automatically and never modifies requirement documents.
 
@@ -19,7 +20,8 @@ QC never starts automatically and never modifies requirement documents.
 - Draft content and exact paths first. Write only after user approval.
 - Keep static validity, automation eligibility, and runtime readiness separate.
 - Require a dedicated Execution Gate before browser or API actions.
-- Preserve full traceability from requirement source to report evidence.
+- Preserve full traceability from requirement source to report results and
+  available evidence.
 
 ## Skills
 
@@ -31,8 +33,9 @@ QC never starts automatically and never modifies requirement documents.
 | `qc-design-test-cases` | Design concrete, traceable Test Cases and coverage |
 | `qc-export-gherkin` | Export eligible UI Test Cases as Gherkin specifications |
 | `qc-export-postman` | Export eligible API Test Cases as Postman Collection v2.1 |
+| `qc-record-manual-results` | Prepare XLSX manual runs and import XLSX, CSV, Google Sheets, or Markdown results |
 | `qc-run-playwright` | Execute locked runtime-ready UI Test Cases |
-| `qc-report-generator` | Build evidence-backed stakeholder test reports |
+| `qc-report-generator` | Build execution-backed stakeholder reports with optional evidence |
 
 ## Source Structure
 
@@ -77,6 +80,7 @@ project/
     ├── test-viewpoints/
     ├── test-cases/
     ├── automation/
+    ├── execution-inputs/
     ├── executions/
     ├── evidence/
     └── reports/
@@ -139,10 +143,15 @@ Recommended handoff:
 5. Missing business decisions return as Gap Report and Open Questions for PO or
    stakeholder resolution.
 
+PO Open maps to QC `OPEN`. PO Answered maps to QC `ANSWERED` until the governing
+source is updated. PO Deferred remains QC `OPEN` unless an authorized person
+explicitly accepts the documented risk. QC uses `RESOLVED` only with the exact
+updated source reference. Silence never changes status.
+
 The source may be inside the project or at another readable local or canonical
 external locator. An external source is not copied into the project without
 separate content and path approval. A PO handoff does not inherit QC write,
-Lock, Execution, or Release Verdict approval.
+Lock, Manual Result, Execution, or Release Verdict approval.
 
 The preservation guarantee applies when every package sharing the root adapter
 uses its own managed block. Current Tanizy PO installers preserve the QC block
@@ -186,9 +195,18 @@ time.
 3. Run gap analysis and obtain READY, PARTIAL, or STOP.
 4. Review and lock source-backed Test Viewpoints.
 5. Review and lock concrete Test Cases and coverage totals.
-6. Export or execute only eligible, unblocked cases after the required gate.
-7. Generate a report from append-only Run IDs and evidence.
+6. Offer an optional XLSX manual run export through `qc-record-manual-results`.
+7. Import completed manual results, or execute eligible cases through an
+   approved runtime skill.
+8. Generate a report from append-only Run IDs and the approved Evidence Policy.
 ```
+
+For XLSX creation, use the target's native spreadsheet artifact capability when
+available. Codex should invoke its `Spreadsheets` skill and follow that skill's
+current create, inspect, render, and export requirements. Other targets use
+their verified native capability or fall back to CSV or a separate Markdown
+manual-run form. The portable QC core does not hardcode one runtime's workbook
+API.
 
 If release criteria or decision authority are missing, the report verdict is
 `UNDETERMINED`, not an invented GO or NO-GO decision.

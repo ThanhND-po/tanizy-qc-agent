@@ -6,13 +6,15 @@ Use one ledger at `qc/open-questions.md`. Never create
 ## Canonical Schema
 
 ```markdown
-| OQ ID | Scope Key | Source Path and Ref | Type | Question | Proposed Options | Priority | Blocks From Phase | Impacted Artifacts | Status | Decision | Decision Source | Answered At |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| OQ ID | Scope Key | Source Path and Ref | Finding Class | Question Domain | Question | Proposed Options | Priority | Blocks From Phase | Impacted Artifacts | Owner | Target Date | Status | Decision | Decision By | Decision Source | Resolved Source Ref | Answered At | Status Updated At |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 ```
 
-Use `GAP`, `AMB`, `CONFLICT`, or `RISK` for Type. Use `High`, `Medium`, or `Low`
-for Priority. Use `DESIGN`, `EXPORT`, `EXECUTION`, `REPORT`, or `NONE` for
-Blocks From Phase.
+Use `GAP`, `AMB`, `CONFLICT`, or `RISK` for Finding Class. Use Question Domain
+for the business or technical topic, for example `Business Rule`, `File
+Contract`, `NFR`, or `UI Contract`. Do not mix those two dimensions. Use
+`High`, `Medium`, or `Low` for Priority. Use `DESIGN`, `EXPORT`, `EXECUTION`,
+`REPORT`, or `NONE` for Blocks From Phase.
 
 Use `OQ-<SCOPE-CODE>-NNN`. Keep every OQ ID unique across the shared ledger and
 never reuse an ID for a different decision.
@@ -32,6 +34,20 @@ ANSWERED -> WAIVED
 - `WAIVED`: an authorized person explicitly accepted the documented risk.
 
 Silence, inactivity, or delivery pressure never changes status.
+
+## PO to QC Status Mapping
+
+| PO state or event | QC status | Required handling |
+|---|---|---|
+| Open | `OPEN` | Keep the existing blocker and impacted artifacts |
+| Answered | `ANSWERED` | Record Decision, Decision By, Decision Source, and Answered At; do not claim the governing source is updated |
+| Deferred | `OPEN` | Keep the blocker based on impact; use `WAIVED` only for explicit authorized risk acceptance |
+| Governing source updated | `RESOLVED` | Record the exact Resolved Source Ref and Status Updated At |
+
+Owner and Target Date are optional. Leave them blank or use `OPEN` when they
+have not been explicitly assigned. Do not infer ownership, dates, decision
+authority, or approval. Proposed Options remain proposals until an explicit
+decision is recorded.
 
 ## Blocking Rules
 
@@ -53,7 +69,9 @@ functional case.
 3. Offer two or three options only when they are proposals, not inferred rules.
 4. State the downstream impact of each option.
 5. Record the answer exactly enough to preserve the decision.
-6. Record who or what supplied the decision and when.
+6. Record Decision By, Decision Source, and Answered At.
+7. Set `RESOLVED` only when Resolved Source Ref points to the updated governing
+   source.
 
 ## Impact Propagation
 

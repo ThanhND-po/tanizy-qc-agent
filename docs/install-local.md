@@ -64,6 +64,9 @@ npm run validate
 npm run test:install
 ```
 
-Nếu installer báo legacy layout, không xóa ngay. Cài layout mới, kiểm tra skill
-discovery và đối chiếu project-owned artifacts trước khi cleanup thủ công. Dùng
-[legacy migration mapping](install-codex.md#legacy-layout) để xử lý từng path.
+Nếu installer báo legacy layout, không xóa ngay. Cài layout mới, kiểm tra skill discovery và đối chiếu project-owned artifacts trước khi cleanup thủ công. Dùng [legacy migration mapping](install-codex.md#legacy-layout) để xử lý từng path.
+
+Installer không tự đổi schema của `qc/open-questions.md`,
+`qc/refs/system-context.md`, hoặc `qc/refs/bug-base.md`. Khi update package, áp
+dụng [project-owned reference schema migration](install-codex.md#project-owned-reference-schema-migration)
+theo từng file và giữ nguyên mọi giá trị chưa được xác minh.

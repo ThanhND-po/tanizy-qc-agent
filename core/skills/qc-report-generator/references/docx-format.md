@@ -1,14 +1,10 @@
 # DOCX Test Report Specification
 
-Create a Word document with the `COMPACT` core and calculations defined in
-`report-content-spec.md`. Add only requested `DETAILED` appendices. Use DOCX
-when stakeholders need annotation, printing, or email circulation.
+Create a Word document with the `COMPACT` core and calculations defined in `report-content-spec.md`. Add only requested `DETAILED` appendices. Use DOCX when stakeholders need annotation, printing, or email circulation.
 
 ## Toolchain
 
-Use an available document-generation tool such as `python-docx` or Pandoc.
-Generate charts as verified local PNG files or supported native shapes. Do not
-handcraft OOXML unless no supported tool exists.
+Use an available document-generation tool such as `python-docx` or Pandoc. Generate charts as verified local PNG files or supported native shapes. Do not handcraft OOXML unless no supported tool exists.
 
 ## Typography and Unicode
 
@@ -40,12 +36,10 @@ Status must remain understandable when printed without color.
 
 ## Layout
 
-1. Add a compact title block with scope key, Run IDs, environment, application
-   build, report date, and verdict.
+1. Add a compact title block with scope key, Run IDs, environment, application build, report date, and verdict.
 2. Render Decision Summary, Findings and Actions, then Confidence and Evidence.
 3. Use a metrics table before explanatory prose.
-4. Keep failures, blockers, limitations, and required decisions visible without
-   opening an appendix.
+4. Keep failures, blockers, limitations, and required decisions visible without opening an appendix.
 5. Start any requested detailed appendix on a new page.
 6. Add a footer with generation timestamp and tool identity.
 
@@ -53,10 +47,9 @@ Status must remain understandable when printed without color.
 
 - Use visible borders and a repeated bold header row.
 - Set practical column widths and prevent path columns from collapsing.
-- Keep one result or evidence item per row.
-- Insert real hyperlinks for source and evidence paths.
-- Split oversized matrices by coverage dimension rather than shrinking text
-  below a readable size.
+- Keep one result per row and one available evidence item per evidence row.
+- Insert real hyperlinks for source and available evidence paths.
+- Split oversized matrices by coverage dimension rather than shrinking text below a readable size.
 
 ## Charts and Images
 
@@ -64,8 +57,7 @@ Status must remain understandable when printed without color.
 - Keep labels readable and include source values in a nearby table.
 - Embed local files only. Do not depend on remote image URLs.
 - Preserve aspect ratio and compress oversized evidence images.
-- Prefer evidence links when embedding all screenshots would make the file too
-  large.
+- Prefer evidence links when embedding all screenshots would make the file too large.
 
 Follow the canonical file naming and no-overwrite rule in `format-guide.md`.
 
@@ -73,11 +65,10 @@ Follow the canonical file naming and no-overwrite rule in `format-guide.md`.
 
 Before delivery:
 
-1. reopen the DOCX with the generation library;
-2. render every page with an available office or document renderer;
-3. inspect missing glyphs, clipped text, split tables, broken charts, and links;
-4. reconcile displayed metrics with the source execution rows;
-5. verify the file name and output path.
+1. Reopen the DOCX with the generation library;
+2. Render every page with an available office or document renderer;
+3. Inspect missing glyphs, clipped text, split tables, broken charts, and links;
+4. Reconcile displayed metrics with the source execution rows;
+5. Verify the file name and output path.
 
-If reopen or rendering fails, do not deliver the file as valid. Report the
-failure and offer an approved HTML or Markdown alternative.
+If reopen or rendering fails, do not deliver the file as valid. Report the failure and offer an approved HTML or Markdown alternative.

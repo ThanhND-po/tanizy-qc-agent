@@ -170,8 +170,15 @@ const canonicalTcHeader =
 if (!testCaseSkill.includes(canonicalTcHeader)) {
   fail("qc-design-test-cases: canonical Test Case table header is missing or changed");
 }
-if (/^\| TC ID \|.*(?:Automatable|Auto Type|Status|Test By|Test Date)/m.test(testCaseSkill)) {
+if (
+  /^\| TC ID \|.*(?:Automatable|Auto Type|Status|Attempt|Selected for Run|Test Result|Actual Result|Executor|Test By|Test Date|Evidence|Defect|Cleanup)/m.test(
+    testCaseSkill,
+  )
+) {
   fail("qc-design-test-cases: duplicate automation or mutable execution columns are not allowed");
+}
+if (!testCaseSkill.includes("recommend exporting the locked Test Case table")) {
+  fail("qc-design-test-cases: manual XLSX handoff recommendation is missing");
 }
 
 const oqGuide = readFileSync(
@@ -179,10 +186,88 @@ const oqGuide = readFileSync(
   "utf8",
 );
 const oqSeed = readFileSync(join(repoRoot, "refs-templates", "open-questions.md"), "utf8");
+const canonicalOqHeader =
+  "| OQ ID | Scope Key | Source Path and Ref | Finding Class | Question Domain | Question | Proposed Options | Priority | Blocks From Phase | Impacted Artifacts | Owner | Target Date | Status | Decision | Decision By | Decision Source | Resolved Source Ref | Answered At | Status Updated At |";
 const oqHeader = oqGuide.split("\n").find((line) => line.startsWith("| OQ ID |"));
 const oqSeedHeader = oqSeed.split("\n").find((line) => line.startsWith("| OQ ID |"));
-if (!oqHeader || oqHeader !== oqSeedHeader || !oqHeader.includes("Blocks From Phase")) {
+if (oqHeader !== canonicalOqHeader || oqSeedHeader !== canonicalOqHeader) {
   fail("Open Questions guide and seed must use the same canonical schema");
+}
+for (const value of ["GAP", "AMB", "CONFLICT", "RISK", "High", "Medium", "Low", "DESIGN", "EXPORT", "EXECUTION", "REPORT", "NONE"]) {
+  if (!oqGuide.includes(`\`${value}\``)) {
+    fail(`Open Questions guide: controlled value ${value} is missing`);
+  }
+}
+const poToQcStatusCases = new Map([
+  ["Open", "OPEN"],
+  ["Answered", "ANSWERED"],
+  ["Deferred", "OPEN"],
+  ["Governing source updated", "RESOLVED"],
+]);
+for (const [poState, qcStatus] of poToQcStatusCases) {
+  if (!oqGuide.includes(`| ${poState} | \`${qcStatus}\` |`)) {
+    fail(`Open Questions guide: PO ${poState} must map to QC ${qcStatus}`);
+  }
+}
+if (!oqGuide.includes("Silence, inactivity, or delivery pressure never changes status.")) {
+  fail("Open Questions guide: silence must not change OQ status");
+}
+
+const contextGuide = readFileSync(
+  join(skillsRoot, "qc-gap-finder", "references", "context-templates.md"),
+  "utf8",
+);
+const systemContextSeed = readFileSync(
+  join(repoRoot, "refs-templates", "system-context.md"),
+  "utf8",
+);
+const bugBaseSeed = readFileSync(join(repoRoot, "refs-templates", "bug-base.md"), "utf8");
+const canonicalContextHeader =
+  "| Context ID | Scope Key | Module | Environment | Verified Current Behavior or Constraint | Source | Source Revision | Verified At | Verified By | Status |";
+const canonicalConstraintHeader =
+  "| Constraint ID | Scope Key | Module | Environment | Constraint | Source | Source Revision | Verified At | Verified By | Status |";
+const canonicalBugHeader =
+  "| Bug ID | Scope Key | Module | Related Requirement | TC ID | Run ID | Summary | Status | Environment | Evidence | Observed At | Observed By | Fixed Version | Closed At | Regression Implication |";
+for (const [label, header, seed] of [
+  ["System Context", canonicalContextHeader, systemContextSeed],
+  ["Environment Constraint", canonicalConstraintHeader, systemContextSeed],
+  ["Bug Base", canonicalBugHeader, bugBaseSeed],
+]) {
+  if (!contextGuide.includes(header) || !seed.includes(header)) {
+    fail(`${label} guide and seed must use the same canonical schema`);
+  }
+}
+for (const status of ["ACTIVE", "STALE", "SUPERSEDED"]) {
+  if (!contextGuide.includes(`\`${status}\``)) {
+    fail(`System Context: controlled status ${status} is missing`);
+  }
+}
+for (const status of ["OPEN", "IN_PROGRESS", "FIXED", "VERIFIED", "CLOSED", "REOPENED"]) {
+  if (!contextGuide.includes(`\`${status}\``)) {
+    fail(`Bug Base: controlled status ${status} is missing`);
+  }
+}
+if (!contextGuide.includes("cannot override an approved PO requirement")) {
+  fail("System Context: approved PO requirements must remain authoritative");
+}
+if (!contextGuide.includes("Evidence is required for Bug Base promotion")) {
+  fail("Bug Base: evidence requirement is missing");
+}
+if (
+  !bugBaseSeed.includes("BUG-TOU-001") ||
+  !bugBaseSeed.includes("Firebase App Distribution") ||
+  !bugBaseSeed.includes("illustrative only")
+) {
+  fail("Bug Base: Android cache and ToU example is missing or unsafe");
+}
+if (
+  !systemContextSeed.includes("CON-TIME-001") ||
+  !systemContextSeed.includes("UTC+0") ||
+  !systemContextSeed.includes("`timestamptz`") ||
+  !systemContextSeed.includes("FE phải truyền timezone") ||
+  !systemContextSeed.includes("illustrative only")
+) {
+  fail("System Context: UTC and local-time conversion example is missing or unsafe");
 }
 
 const executionContract = readFileSync(
@@ -194,6 +279,32 @@ if (!executionContract.includes("Assessment Policy")) {
 }
 if (/Update Test Case `(?:Status|Test By|Test Date)`/.test(executionContract)) {
   fail("core/references/executions-log.md: locked Test Cases must remain immutable");
+}
+if (!executionContract.includes("Evidence may be blank")) {
+  fail("core/references/executions-log.md: optional Evidence Policy is missing");
+}
+if (!executionContract.includes("Source Locator")) {
+  fail("core/references/executions-log.md: manual result provenance is missing");
+}
+
+const manualResultSkill = readFileSync(
+  join(skillsRoot, "qc-record-manual-results", "SKILL.md"),
+  "utf8",
+);
+const manualResultFormat = readFileSync(
+  join(skillsRoot, "qc-record-manual-results", "references", "manual-results-format.md"),
+  "utf8",
+);
+if (!manualResultSkill.includes("## PREPARE Workflow") || !manualResultSkill.includes("## IMPORT Workflow")) {
+  fail("qc-record-manual-results: PREPARE and IMPORT workflows are required");
+}
+if (!manualResultSkill.includes("native spreadsheet artifact skill")) {
+  fail("qc-record-manual-results: target-native XLSX capability routing is missing");
+}
+for (const sheet of ["Instructions", "Run Metadata", "Test Execution", "Validation Summary"]) {
+  if (!manualResultFormat.includes(`\`${sheet}\``)) {
+    fail(`qc-record-manual-results: workbook sheet ${sheet} is missing`);
+  }
 }
 
 const reportSkill = readFileSync(

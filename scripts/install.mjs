@@ -220,7 +220,7 @@ function copyPlan(target, projectRoot, requestedSkills, skipRefs) {
   }
 
   const executionLogSkills = contractSkills.filter((skill) =>
-    ["qc-run-playwright", "qc-report-generator"].includes(skill),
+    ["qc-record-manual-results", "qc-run-playwright", "qc-report-generator"].includes(skill),
   );
   for (const skill of executionLogSkills) {
     plan.push({

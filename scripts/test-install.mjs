@@ -22,6 +22,14 @@ const installer = join(repoRoot, "scripts", "install.mjs");
 const packageConfig = JSON.parse(readFileSync(join(repoRoot, "package.json"), "utf8"));
 const managedBlockStart = "<!-- BEGIN TANIZY QC AGENT MANAGED BLOCK -->";
 const managedBlockEnd = "<!-- END TANIZY QC AGENT MANAGED BLOCK -->";
+const canonicalOqHeader =
+  "| OQ ID | Scope Key | Source Path and Ref | Finding Class | Question Domain | Question | Proposed Options | Priority | Blocks From Phase | Impacted Artifacts | Owner | Target Date | Status | Decision | Decision By | Decision Source | Resolved Source Ref | Answered At | Status Updated At |";
+const canonicalContextHeader =
+  "| Context ID | Scope Key | Module | Environment | Verified Current Behavior or Constraint | Source | Source Revision | Verified At | Verified By | Status |";
+const canonicalConstraintHeader =
+  "| Constraint ID | Scope Key | Module | Environment | Constraint | Source | Source Revision | Verified At | Verified By | Status |";
+const canonicalBugHeader =
+  "| Bug ID | Scope Key | Module | Related Requirement | TC ID | Run ID | Summary | Status | Environment | Evidence | Observed At | Observed By | Fixed Version | Closed At | Regression Implication |";
 const skillNames = readdirSync(join(repoRoot, "core", "skills"))
   .filter((name) => statSync(join(repoRoot, "core", "skills", name)).isDirectory())
   .sort();
@@ -74,7 +82,7 @@ try {
     for (const skill of skillNames) {
       assert.ok(existsSync(join(skillRoot(target, root), skill, "SKILL.md")));
       assert.ok(existsSync(join(skillRoot(target, root), skill, "references", "material-paths.md")));
-      if (["qc-run-playwright", "qc-report-generator"].includes(skill)) {
+      if (["qc-record-manual-results", "qc-run-playwright", "qc-report-generator"].includes(skill)) {
         assert.ok(existsSync(join(skillRoot(target, root), skill, "references", "executions-log.md")));
       }
     }
@@ -83,6 +91,22 @@ try {
     assert.ok(existsSync(join(root, "qc", "open-questions.md")));
     assert.ok(!existsSync(join(root, "qc", "refs", "open-questions.md")));
     assert.ok(!existsSync(join(root, "qc", ".agents", "skills")));
+    assert.ok(
+      readFileSync(join(root, "qc", "open-questions.md"), "utf8").includes(
+        canonicalOqHeader,
+      ),
+    );
+    const installedSystemContext = readFileSync(
+      join(root, "qc", "refs", "system-context.md"),
+      "utf8",
+    );
+    assert.ok(installedSystemContext.includes(canonicalContextHeader));
+    assert.ok(installedSystemContext.includes(canonicalConstraintHeader));
+    assert.ok(
+      readFileSync(join(root, "qc", "refs", "bug-base.md"), "utf8").includes(
+        canonicalBugHeader,
+      ),
+    );
     const adapter = readFileSync(adapterPath(target, root), "utf8");
     assert.match(adapter, /BEGIN TANIZY QC AGENT MANAGED BLOCK/);
     if (target === "antigravity") {
@@ -102,6 +126,32 @@ try {
   assert.deepEqual(readdirSync(join(selective, ".agents", "skills")), ["qc-gap-finder"]);
   assert.ok(!existsSync(join(selective, "qc", "config", "field-validation-checklist.md")));
   assert.doesNotMatch(readFileSync(join(selective, "AGENTS.md"), "utf8"), /qc-design-viewpoints/);
+
+  const selectiveManual = project("selective-manual-results");
+  runNode([
+    "--target",
+    "codex",
+    "--project",
+    selectiveManual,
+    "--skill",
+    "qc-record-manual-results",
+  ]);
+  assert.deepEqual(
+    readdirSync(join(selectiveManual, ".agents", "skills")),
+    ["qc-record-manual-results"],
+  );
+  assert.ok(
+    existsSync(
+      join(
+        selectiveManual,
+        ".agents",
+        "skills",
+        "qc-record-manual-results",
+        "references",
+        "executions-log.md",
+      ),
+    ),
+  );
 
   const adapterPreserve = project("adapter-preserve");
   const adapterPreservePath = join(adapterPreserve, "AGENTS.md");
@@ -267,10 +317,16 @@ try {
   const bugBase = join(preserve, "qc", "refs", "bug-base.md");
   const openQuestions = join(preserve, "qc", "open-questions.md");
   const adapter = join(preserve, "AGENTS.md");
+  const legacySystemContext =
+    "| Context ID | Module | Verified Current Behavior or Constraint | Source | Verified At | Verified By | Status |\n";
+  const legacyBugBase =
+    "| Bug ID | Module | Summary | Status | Environment | Evidence | Observed At | Regression Implication |\n";
+  const legacyOpenQuestions =
+    "| OQ ID | Scope Key | Source Path and Ref | Type | Question | Proposed Options | Priority | Blocks From Phase | Impacted Artifacts | Status | Decision | Decision Source | Answered At |\n";
   writeFileSync(checklist, "CUSTOM CHECKLIST\n", "utf8");
-  writeFileSync(systemContext, "CUSTOM SYSTEM CONTEXT\n", "utf8");
-  writeFileSync(bugBase, "CUSTOM BUG BASE\n", "utf8");
-  writeFileSync(openQuestions, "CUSTOM OPEN QUESTIONS\n", "utf8");
+  writeFileSync(systemContext, legacySystemContext, "utf8");
+  writeFileSync(bugBase, legacyBugBase, "utf8");
+  writeFileSync(openQuestions, legacyOpenQuestions, "utf8");
   writeFileSync(adapter, `# Project Rules\n\nKeep me.\n\n${readFileSync(adapter, "utf8")}`, "utf8");
   const unselectedSkill = readFileSync(
     join(preserve, ".agents", "skills", "qc-design-viewpoints", "SKILL.md"),
@@ -286,9 +342,9 @@ try {
     "--force",
   ]);
   assert.equal(readFileSync(checklist, "utf8"), "CUSTOM CHECKLIST\n");
-  assert.equal(readFileSync(systemContext, "utf8"), "CUSTOM SYSTEM CONTEXT\n");
-  assert.equal(readFileSync(bugBase, "utf8"), "CUSTOM BUG BASE\n");
-  assert.equal(readFileSync(openQuestions, "utf8"), "CUSTOM OPEN QUESTIONS\n");
+  assert.equal(readFileSync(systemContext, "utf8"), legacySystemContext);
+  assert.equal(readFileSync(bugBase, "utf8"), legacyBugBase);
+  assert.equal(readFileSync(openQuestions, "utf8"), legacyOpenQuestions);
   assert.match(readFileSync(adapter, "utf8"), /^# Project Rules\n\nKeep me\./);
   assert.equal(
     readFileSync(join(preserve, ".agents", "skills", "qc-design-viewpoints", "SKILL.md"), "utf8"),
@@ -297,6 +353,11 @@ try {
   assert.ok(
     existsSync(
       join(preserve, ".agents", "skills", "qc-gap-finder", "references", "material-paths.md"),
+    ),
+  );
+  assert.ok(
+    existsSync(
+      join(preserve, ".agents", "skills", "qc-record-manual-results", "references", "executions-log.md"),
     ),
   );
   assert.ok(
@@ -316,6 +377,11 @@ try {
   }
   assert.ok(
     existsSync(
+      join(preserve, ".agents", "skills", "qc-record-manual-results", "references", "executions-log.md"),
+    ),
+  );
+  assert.ok(
+    existsSync(
       join(preserve, ".agents", "skills", "qc-run-playwright", "references", "executions-log.md"),
     ),
   );
@@ -325,9 +391,9 @@ try {
     ),
   );
   assert.equal(readFileSync(checklist, "utf8"), "CUSTOM CHECKLIST\n");
-  assert.equal(readFileSync(systemContext, "utf8"), "CUSTOM SYSTEM CONTEXT\n");
-  assert.equal(readFileSync(bugBase, "utf8"), "CUSTOM BUG BASE\n");
-  assert.equal(readFileSync(openQuestions, "utf8"), "CUSTOM OPEN QUESTIONS\n");
+  assert.equal(readFileSync(systemContext, "utf8"), legacySystemContext);
+  assert.equal(readFileSync(bugBase, "utf8"), legacyBugBase);
+  assert.equal(readFileSync(openQuestions, "utf8"), legacyOpenQuestions);
 
   const atomic = project("atomic");
   const lateCollision = join(atomic, ".agents", "skills", "qc-report-generator");
