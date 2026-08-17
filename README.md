@@ -33,7 +33,7 @@ QC never starts automatically and never modifies requirement documents.
 | `qc-design-test-cases` | Design concrete, traceable Test Cases and coverage |
 | `qc-export-gherkin` | Export eligible UI Test Cases as Gherkin specifications |
 | `qc-export-postman` | Export eligible API Test Cases as Postman Collection v2.1 |
-| `qc-record-manual-results` | Prepare XLSX manual runs and import XLSX, CSV, Google Sheets, or Markdown results |
+| `qc-record-manual-results` | Prepare and import XLSX, CSV, or Markdown manual runs, plus connected Google Sheets results |
 | `qc-run-playwright` | Execute locked runtime-ready UI Test Cases |
 | `qc-report-generator` | Build execution-backed stakeholder reports with optional evidence |
 
@@ -201,12 +201,13 @@ time.
 8. Generate a report from append-only Run IDs and the approved Evidence Policy.
 ```
 
-For XLSX creation, use the target's native spreadsheet artifact capability when
-available. Codex should invoke its `Spreadsheets` skill and follow that skill's
-current create, inspect, render, and export requirements. Other targets use
-their verified native capability or fall back to CSV or a separate Markdown
-manual-run form. The portable QC core does not hardcode one runtime's workbook
-API.
+For XLSX, CSV, and Markdown creation and import, `qc-record-manual-results` uses
+its bundled Node.js scripts on every target. Every format places locked Test
+Title immediately after TC ID for fast scanning. This baseline does not depend
+on a model-specific spreadsheet skill, Microsoft Excel, Python, a connector, or
+a network-installed library. A target's native spreadsheet capability may
+additionally inspect, render, or enhance an XLSX workbook. CSV and Markdown are
+used only when the user explicitly selects them.
 
 If release criteria or decision authority are missing, the report verdict is
 `UNDETERMINED`, not an invented GO or NO-GO decision.

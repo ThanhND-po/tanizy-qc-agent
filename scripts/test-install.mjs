@@ -85,6 +85,19 @@ try {
       if (["qc-record-manual-results", "qc-run-playwright", "qc-report-generator"].includes(skill)) {
         assert.ok(existsSync(join(skillRoot(target, root), skill, "references", "executions-log.md")));
       }
+      if (skill === "qc-record-manual-results") {
+        assert.ok(
+          existsSync(
+            join(skillRoot(target, root), skill, "scripts", "manual-results.mjs"),
+          ),
+        );
+        assert.ok(
+          existsSync(join(skillRoot(target, root), skill, "scripts", "manual-results-xlsx.mjs")),
+        );
+        assert.ok(
+          existsSync(join(skillRoot(target, root), skill, "scripts", "xlsx-lite.mjs")),
+        );
+      }
     }
     assert.ok(existsSync(join(root, "qc", "config", "material-paths.md")));
     assert.ok(existsSync(join(root, "qc", "config", "field-validation-checklist.md")));
@@ -149,6 +162,18 @@ try {
         "qc-record-manual-results",
         "references",
         "executions-log.md",
+      ),
+    ),
+  );
+  assert.ok(
+    existsSync(
+      join(
+        selectiveManual,
+        ".agents",
+        "skills",
+        "qc-record-manual-results",
+        "scripts",
+        "manual-results.mjs",
       ),
     ),
   );

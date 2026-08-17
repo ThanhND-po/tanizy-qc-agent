@@ -298,8 +298,22 @@ const manualResultFormat = readFileSync(
 if (!manualResultSkill.includes("## PREPARE Workflow") || !manualResultSkill.includes("## IMPORT Workflow")) {
   fail("qc-record-manual-results: PREPARE and IMPORT workflows are required");
 }
-if (!manualResultSkill.includes("native spreadsheet artifact skill")) {
-  fail("qc-record-manual-results: target-native XLSX capability routing is missing");
+if (!manualResultSkill.includes("bundled `scripts/manual-results.mjs`")) {
+  fail("qc-record-manual-results: bundled multi-format capability routing is missing");
+}
+if (manualResultSkill.includes("offer CSV or the separate Markdown form")) {
+  fail("qc-record-manual-results: XLSX must not silently fall back to Markdown or CSV");
+}
+for (const script of ["manual-results.mjs", "manual-results-xlsx.mjs", "xlsx-lite.mjs"]) {
+  if (!existsSync(join(skillsRoot, "qc-record-manual-results", "scripts", script))) {
+    fail(`qc-record-manual-results: bundled script ${script} is missing`);
+  }
+}
+if (!manualResultFormat.includes("Attempt,TCID,TestTitle,TestResult")) {
+  fail("qc-record-manual-results: CSV TestTitle scan field is missing");
+}
+if (!manualResultFormat.includes("| Selected for Run | Attempt | TC ID | Test Title | Test Result |")) {
+  fail("qc-record-manual-results: Markdown Test Title scan field is missing");
 }
 for (const sheet of ["Instructions", "Run Metadata", "Test Execution", "Validation Summary"]) {
   if (!manualResultFormat.includes(`\`${sheet}\``)) {
