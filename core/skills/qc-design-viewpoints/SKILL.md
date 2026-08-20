@@ -9,7 +9,9 @@ Create a compact, traceable set of testing angles between requirements and Test 
 
 ## Artifact Contract
 
-Read `references/material-paths.md` and `references/viewpoint-catalog.md`. Use the same confirmed scope key as the gap report.
+Read the shared contract at `qc/config/material-paths.md` and
+`references/viewpoint-catalog.md`. Use the same confirmed scope key as the gap
+report.
 
 ## Required Inputs
 

@@ -123,7 +123,11 @@ Customize these project-owned files:
 - `qc/refs/bug-base.md`
 - `qc/open-questions.md`
 
-Run a selective update with `--force`. Confirm all four files remain unchanged and content outside the managed adapter block is preserved. Confirm every updated skill still contains `references/material-paths.md`; manual-result, Playwright, and report skills must also retain `references/executions-log.md`.
+Run a selective update with `--force`. Confirm all four files remain unchanged
+and content outside the managed adapter block is preserved. Confirm
+`qc/config/material-paths.md` exists exactly once as the shared contract and no
+installed skill contains `references/material-paths.md`. Manual-result,
+Playwright, and report skills must still retain `references/executions-log.md`.
 
 For a PO coexistence check, start with an `AGENTS.md` that contains a PO managed block and project-specific instructions. Install QC, modify only the installed QC block to simulate an older package version, then update with `--force`. Confirm the PO block and project instructions remain byte-equivalent and there is exactly one current QC block.
 

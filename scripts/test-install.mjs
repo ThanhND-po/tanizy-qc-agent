@@ -81,7 +81,9 @@ try {
 
     for (const skill of skillNames) {
       assert.ok(existsSync(join(skillRoot(target, root), skill, "SKILL.md")));
-      assert.ok(existsSync(join(skillRoot(target, root), skill, "references", "material-paths.md")));
+      assert.ok(
+        !existsSync(join(skillRoot(target, root), skill, "references", "material-paths.md")),
+      );
       if (["qc-record-manual-results", "qc-run-playwright", "qc-report-generator"].includes(skill)) {
         assert.ok(existsSync(join(skillRoot(target, root), skill, "references", "executions-log.md")));
       }
@@ -137,6 +139,12 @@ try {
     "qc-gap-finder",
   ]);
   assert.deepEqual(readdirSync(join(selective, ".agents", "skills")), ["qc-gap-finder"]);
+  assert.ok(
+    !existsSync(
+      join(selective, ".agents", "skills", "qc-gap-finder", "references", "material-paths.md"),
+    ),
+  );
+  assert.ok(existsSync(join(selective, "qc", "config", "material-paths.md")));
   assert.ok(!existsSync(join(selective, "qc", "config", "field-validation-checklist.md")));
   assert.doesNotMatch(readFileSync(join(selective, "AGENTS.md"), "utf8"), /qc-design-viewpoints/);
 
@@ -357,6 +365,15 @@ try {
     join(preserve, ".agents", "skills", "qc-design-viewpoints", "SKILL.md"),
     "utf8",
   );
+  const legacyContractContent = readFileSync(
+    join(repoRoot, "core", "references", "material-paths.md"),
+    "utf8",
+  );
+  for (const skill of skillNames) {
+    const references = join(preserve, ".agents", "skills", skill, "references");
+    mkdirSync(references, { recursive: true });
+    writeFileSync(join(references, "material-paths.md"), legacyContractContent, "utf8");
+  }
   runNode([
     "--target",
     "codex",
@@ -376,10 +393,15 @@ try {
     unselectedSkill,
   );
   assert.ok(
-    existsSync(
+    !existsSync(
       join(preserve, ".agents", "skills", "qc-gap-finder", "references", "material-paths.md"),
     ),
   );
+  for (const skill of skillNames.filter((name) => name !== "qc-gap-finder")) {
+    assert.ok(
+      existsSync(join(preserve, ".agents", "skills", skill, "references", "material-paths.md")),
+    );
+  }
   assert.ok(
     existsSync(
       join(preserve, ".agents", "skills", "qc-record-manual-results", "references", "executions-log.md"),
@@ -398,7 +420,9 @@ try {
 
   runNode(["--target", "codex", "--project", preserve, "--force"]);
   for (const skill of skillNames) {
-    assert.ok(existsSync(join(preserve, ".agents", "skills", skill, "references", "material-paths.md")));
+    assert.ok(
+      !existsSync(join(preserve, ".agents", "skills", skill, "references", "material-paths.md")),
+    );
   }
   assert.ok(
     existsSync(

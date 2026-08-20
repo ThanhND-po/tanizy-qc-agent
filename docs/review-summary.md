@@ -24,7 +24,7 @@ Bộ skill cần một contract chung cho naming, output path, spec-first gate, 
 
 ### 1. Ownership
 
-- Package-managed: target-native `qc-*` skill folders, managed adapter block, canonical contract copies.
+- Package-managed: target-native `qc-*` skill folders, managed adapter block, và một shared contract tại `qc/config/material-paths.md`.
 - Project-owned: Open Questions, System Context, Bug Base, customized field checklist, tasks, designs, runs và reports.
 - `--force` chỉ thay package-managed content.
 
@@ -115,7 +115,7 @@ Report dùng `COMPACT` mặc định với ba phần: Decision Summary, Findings
 - Preserve PO block và project instructions; `--force` chỉ refresh QC block.
 - Preserve runtime seeds và customized checklist kể cả khi có `--force`.
 - Seed OQ đúng tại `qc/open-questions.md`.
-- Re-materialize canonical references after replacing a skill bằng `--force`.
+- Refresh shared contract và retire legacy per-skill `material-paths.md` copies bằng `--force`.
 - Từ chối project root, skill destination hoặc ancestor là symbolic link.
 - Cảnh báo legacy layout, không tự xóa file.
 

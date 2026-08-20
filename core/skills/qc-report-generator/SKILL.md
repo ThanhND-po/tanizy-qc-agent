@@ -9,7 +9,8 @@ Summarize tested scope, results, coverage, evidence, and decision limits without
 
 ## Artifact Contract
 
-Read `references/material-paths.md`, `references/executions-log.md`, `references/report-content-spec.md`, and the
+Read the shared contract at `qc/config/material-paths.md`, then read
+`references/executions-log.md`, `references/report-content-spec.md`, and the
 selected format reference before drafting.
 
 ## Required Inputs
@@ -62,4 +63,4 @@ An accepted bug requires a documented acceptance decision and source. Do not cla
 - `references/format-guide.md`: format selection and rendering rules
 - `references/docx-format.md`: DOCX generation and visual verification
 - `references/executions-log.md`: append-only execution schema
-- `references/material-paths.md`: naming, paths, gates, and traceability
+- `qc/config/material-paths.md`: shared naming, paths, gates, and traceability

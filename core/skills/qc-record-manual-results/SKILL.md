@@ -9,7 +9,9 @@ Prepare manual execution input or normalize completed human test results without
 
 ## Artifact Contract
 
-Read `references/material-paths.md`, `references/executions-log.md`, and `references/manual-results-format.md` before proposing or writing an artifact.
+Read the shared contract at `qc/config/material-paths.md`, then read
+`references/executions-log.md` and `references/manual-results-format.md` before
+proposing or writing an artifact.
 
 ## Modes
 

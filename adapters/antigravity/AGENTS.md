@@ -5,8 +5,8 @@ start QC because a requirement file was created or changed.
 
 ### QC Rules
 
-- Read `qc/config/material-paths.md` and the invoked skill's local
-  `references/material-paths.md` before proposing an artifact.
+- Read the shared contract at `qc/config/material-paths.md` before proposing an
+  artifact.
 - Keep installed skills in `.agents/skills/qc-*` and project-owned artifacts
   under `qc/`. Never install skills inside `qc/`.
 - Keep requirement and PO artifacts read-only.

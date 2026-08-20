@@ -9,7 +9,7 @@ Convert locked Test Cases into behavior-focused `.feature` files without changin
 
 ## Artifact Contract
 
-Read `references/material-paths.md`. Save all output below
+Read the shared contract at `qc/config/material-paths.md`. Save all output below
 `qc/automation/gherkin/<scope-key>/`.
 
 ## Required Inputs

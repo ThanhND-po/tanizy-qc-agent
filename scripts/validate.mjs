@@ -95,8 +95,11 @@ for (const folder of skillNames) {
   if (!(data.description ?? "").includes("Use ")) {
     fail(`${folder}: description must state when to use the skill`);
   }
-  if (!content.includes("references/material-paths.md")) {
-    fail(`${folder}: artifact contract reference is missing`);
+  if (!content.includes("qc/config/material-paths.md")) {
+    fail(`${folder}: shared artifact contract reference is missing`);
+  }
+  if (content.includes("references/material-paths.md")) {
+    fail(`${folder}: legacy per-skill artifact contract reference is not allowed`);
   }
   if (content.split("\n").length > 500) fail(`${folder}: SKILL.md exceeds 500 lines`);
   if (/`(?:specs|postman)\//.test(content)) {
@@ -108,7 +111,7 @@ for (const folder of skillNames) {
 
   for (const match of content.matchAll(/`references\/([^`]+)`/g)) {
     const referenceName = match[1];
-    if (["material-paths.md", "executions-log.md"].includes(referenceName)) {
+    if (referenceName === "executions-log.md") {
       const sharedReference = join(repoRoot, "core", "references", referenceName);
       if (!existsSync(sharedReference)) {
         fail(`${folder}: missing shared reference core/references/${referenceName}`);
@@ -154,6 +157,12 @@ if (!installer.includes('join(projectRoot, "qc", "open-questions.md")')) {
 }
 if (!installer.includes('join(projectRoot, "qc", "config", "material-paths.md")')) {
   fail("scripts/install.mjs: runtime artifact contract destination is incorrect");
+}
+if (installer.includes('skill, "references", "material-paths.md"')) {
+  fail("scripts/install.mjs: per-skill artifact contract copies are not allowed");
+}
+if (!installer.includes('kind: "retire-managed-file"')) {
+  fail("scripts/install.mjs: legacy per-skill artifact contract migration is missing");
 }
 
 const packageConfig = JSON.parse(readFileSync(join(repoRoot, "package.json"), "utf8"));

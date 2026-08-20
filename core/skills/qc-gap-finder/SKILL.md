@@ -9,7 +9,9 @@ Identify what is stated, what is missing, and what must stop downstream design. 
 
 ## Artifact Contract
 
-Read `references/material-paths.md` and `references/open-questions-guide.md` before drafting. Use the approved scope key for both the report and OQ rows.
+Read the shared contract at `qc/config/material-paths.md` and
+`references/open-questions-guide.md` before drafting. Use the approved scope key
+for both the report and OQ rows.
 
 ## Inputs
 

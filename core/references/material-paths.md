@@ -1,6 +1,9 @@
 # QC Artifact Contract
 
-Read this contract before creating or updating any QC artifact. Installed skills receive the same file at `references/material-paths.md`. The target project also receives a package-managed copy at `qc/config/material-paths.md`.
+Read this contract before creating or updating any QC artifact. The installer
+publishes this canonical package source once per target project at
+`qc/config/material-paths.md`. Every installed QC skill reads that shared runtime
+file instead of carrying a duplicate copy.
 
 ## Ownership Boundary
 

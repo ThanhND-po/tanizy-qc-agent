@@ -9,7 +9,8 @@ Create an importable Postman Collection v2.1 without inventing API behavior or i
 
 ## Artifact Contract
 
-Read `references/material-paths.md`. Save output below `qc/automation/postman/<scope-key>/`.
+Read the shared contract at `qc/config/material-paths.md`. Save output below
+`qc/automation/postman/<scope-key>/`.
 
 ## Required Inputs
 

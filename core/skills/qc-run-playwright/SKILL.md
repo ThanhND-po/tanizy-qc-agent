@@ -9,7 +9,8 @@ Execute approved test intent against the real application. Do not redesign a TC 
 
 ## Artifact Contract
 
-Read `references/material-paths.md`. Treat `qc/executions/<scope-key>-executions.md` as an append-only run history.
+Read the shared contract at `qc/config/material-paths.md`. Treat
+`qc/executions/<scope-key>-executions.md` as an append-only run history.
 
 ## Required Inputs
 

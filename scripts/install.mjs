@@ -7,6 +7,7 @@ import {
   mkdirSync,
   readFileSync,
   readdirSync,
+  rmdirSync,
   rmSync,
   statSync,
   writeFileSync,
@@ -205,21 +206,28 @@ function copyPlan(target, projectRoot, requestedSkills, skipRefs) {
     });
   }
 
-  const contractSkills = [...new Set([
+  const installedOrSelectedSkills = [...new Set([
     ...selected,
     ...installedQcSkills(destinationRoot, available),
   ])].sort();
-  for (const skill of contractSkills) {
-    plan.push({
-      kind: "managed-file",
-      from: canonicalContract,
-      to: join(destinationRoot, skill, "references", "material-paths.md"),
-      managedRoot: join(destinationRoot, skill),
-      refreshAfterParentReplace: selected.includes(skill),
-    });
+
+  for (const skill of selected) {
+    const legacyContractCopy = join(
+      destinationRoot,
+      skill,
+      "references",
+      "material-paths.md",
+    );
+    if (existsSync(legacyContractCopy)) {
+      plan.push({
+        kind: "retire-managed-file",
+        to: legacyContractCopy,
+        managedRoot: join(destinationRoot, skill),
+      });
+    }
   }
 
-  const executionLogSkills = contractSkills.filter((skill) =>
+  const executionLogSkills = installedOrSelectedSkills.filter((skill) =>
     ["qc-record-manual-results", "qc-run-playwright", "qc-report-generator"].includes(skill),
   );
   for (const skill of executionLogSkills) {
@@ -332,6 +340,13 @@ function inspectOperation(item, force) {
   }
 
   assertSafeManagedPath(item.managedRoot, item.to);
+  if (item.kind === "retire-managed-file") {
+    if (!existsSync(item.to)) return "absent";
+    if (!lstatSync(item.to).isFile()) {
+      throw new Error(`Expected a legacy managed file destination: ${item.to}`);
+    }
+    return force ? "remove" : "conflict";
+  }
   if (!existsSync(item.to)) return "create";
 
   const destinationEntry = lstatSync(item.to);
@@ -364,7 +379,7 @@ function preflight(projectRoot, plan, force) {
 }
 
 function applyOperation(projectRoot, item) {
-  if (item.action === "preserve" || item.action === "unchanged") return;
+  if (["absent", "preserve", "unchanged"].includes(item.action)) return;
 
   assertSafeProjectDestination(projectRoot, item.to);
 
@@ -373,6 +388,16 @@ function applyOperation(projectRoot, item) {
     const next = renderManagedBlock(current, fileContent(item.from));
     mkdirSync(dirname(item.to), { recursive: true });
     writeFileSync(item.to, next, "utf8");
+    return;
+  }
+
+  if (item.action === "remove") {
+    assertSafeManagedPath(item.managedRoot, item.to);
+    rmSync(item.to, { force: true });
+    const parent = dirname(item.to);
+    if (existsSync(parent) && readdirSync(parent).length === 0) {
+      rmdirSync(parent);
+    }
     return;
   }
 

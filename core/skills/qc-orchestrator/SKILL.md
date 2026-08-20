@@ -9,7 +9,9 @@ Act as the standalone QC Coordinator. Coordinate approved QC phases without modi
 
 ## Artifact Contract
 
-Read `references/material-paths.md` before proposing or writing any artifact. Use one confirmed `scope-key` and the exact paths defined there.
+Read the shared contract at `qc/config/material-paths.md` before proposing or
+writing any artifact. Use one confirmed `scope-key` and the exact paths defined
+there.
 
 ## Mandatory Intake
 
@@ -77,7 +79,7 @@ Automation export, manual result capture, live execution, and report generation 
 
 ## Spec-First Routing
 
-Use the design gate from `references/material-paths.md`:
+Use the design gate from `qc/config/material-paths.md`:
 
 - `READY`: continue through approved phases.
 - `PARTIAL`: continue only for source-backed items and carry blocked coverage.

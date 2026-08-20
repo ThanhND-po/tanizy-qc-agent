@@ -60,7 +60,9 @@ npx @thanhndpo/tanizy-qc-agent \
   --skill qc-design-test-cases
 ```
 
-The canonical artifact contract is refreshed across installed QC skills during an approved `--force` update so local copies do not diverge.
+Every installed QC skill reads the single package-managed artifact contract at
+`qc/config/material-paths.md`. The installer does not create a local
+`references/material-paths.md` copy in each skill.
 
 ## Update
 
@@ -71,7 +73,10 @@ npx @thanhndpo/tanizy-qc-agent@latest \
   --force
 ```
 
-`--force` replaces selected package-managed skill folders, canonical contract copies, and the managed adapter block. It does not overwrite:
+`--force` replaces selected package-managed skill folders, refreshes the shared
+contract, retires legacy per-skill contract copies from earlier package versions
+in the selected skills, and updates the managed adapter block. Run a full update
+to retire every old copy. It does not overwrite:
 
 - `qc/open-questions.md`
 - `qc/refs/system-context.md`
@@ -113,6 +118,7 @@ Use this mapping during migration:
 | `qc/refs/open-questions.md` | Merge unique decisions into `qc/open-questions.md`; do not overwrite either ledger blindly |
 | `qc/qc-task.md` | Split by scope into `qc/tasks/<scope-key>-qc-task.md` |
 | `qc/material-paths.md` | Replace with the package-managed `qc/config/material-paths.md` after comparing custom rules |
+| `<skill-root>/qc-*/references/material-paths.md` | Retired for each selected skill by `--force`; run a full update to migrate all installed QC skills to `qc/config/material-paths.md` |
 | `qc/field-validation-checklist.md` | Move project customization to `qc/config/field-validation-checklist.md` |
 | `qc/AGENTS.md` | Preserve project rules at the root adapter; do not keep a nested adapter |
 | Artifact filename missing the source prefix | Rename to the exact source-derived scope key and update every relative link |

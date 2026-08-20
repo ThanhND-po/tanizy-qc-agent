@@ -52,7 +52,7 @@ node /path/to/tanizy-qc-agent/scripts/install.mjs \
 | `--project` | Project root |
 | `--skill <name>` | Chọn skill, có thể lặp lại |
 | `--dry-run` | Validate và hiển thị write plan, không ghi file |
-| `--force` | Thay skill folders đã chọn và refresh canonical contract copies |
+| `--force` | Thay skill folders đã chọn, refresh shared contract tại `qc/config/material-paths.md`, và retire per-skill copy cũ trong các skill đã chọn |
 | `--skip-refs` | Không seed runtime refs |
 
 ## Validation trước khi dùng

@@ -9,7 +9,7 @@ Create atomic Test Cases whose Test Data and Expected Results are supported by a
 
 ## Artifact Contract
 
-Read `references/material-paths.md`,
+Read the shared contract at `qc/config/material-paths.md`,
 `references/automation-eligibility.md`, and the project checklist at
 `qc/config/field-validation-checklist.md` when fields are in scope.
 

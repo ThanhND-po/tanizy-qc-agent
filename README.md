@@ -71,7 +71,7 @@ project/
 ├── skills/qc-*/                        # Gemini CLI
 └── qc/
     ├── config/
-    │   ├── material-paths.md
+    │   ├── material-paths.md             # one shared package-managed contract
     │   └── field-validation-checklist.md  # conditional for Test Case design
     ├── refs/
     ├── open-questions.md
@@ -118,9 +118,11 @@ npx @thanhndpo/tanizy-qc-agent --target codex --project /path/to/project \
 ```
 
 Use `--force` to replace only selected package-managed skill folders, refresh
-canonical contract copies across installed QC skills, and update the QC block in
-the target adapter. Existing project-owned Open Questions, System Context, Bug
-Base, and customized field checklist are always preserved.
+the single shared contract at `qc/config/material-paths.md`, retire legacy
+per-skill copies of that contract in the selected QC skills, and update the QC
+block in the target adapter. A full update retires all old copies. Existing
+project-owned Open Questions, System Context, Bug Base, and customized field
+checklist are always preserved.
 
 Use `--skip-refs` when runtime references are managed separately.
 
