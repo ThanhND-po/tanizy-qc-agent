@@ -190,6 +190,54 @@ if (!testCaseSkill.includes("recommend exporting the locked Test Case table")) {
   fail("qc-design-test-cases: manual XLSX handoff recommendation is missing");
 }
 
+const materialPaths = readFileSync(
+  join(repoRoot, "core", "references", "material-paths.md"),
+  "utf8",
+);
+const viewpointSkill = readFileSync(
+  join(skillsRoot, "qc-design-viewpoints", "SKILL.md"),
+  "utf8",
+);
+for (const route of ["GAP_ANALYSIS", "DIRECT_SOURCE_CHECK"]) {
+  if (!materialPaths.includes(`\`${route}\``) || !viewpointSkill.includes(`\`${route}\``)) {
+    fail(`Viewpoint readiness contract: ${route} must exist in the shared contract and skill`);
+  }
+}
+if (!viewpointSkill.includes("Gap Analysis = NOT_RUN")) {
+  fail("qc-design-viewpoints: direct readiness must record Gap Analysis as NOT_RUN");
+}
+if (viewpointSkill.includes("If gap analysis is missing")) {
+  fail("qc-design-viewpoints: Gap Analysis must not remain a mandatory prerequisite");
+}
+for (const exportSkill of ["qc-export-gherkin", "qc-export-postman"]) {
+  const content = readFileSync(join(skillsRoot, exportSkill, "SKILL.md"), "utf8");
+  if (content.includes("Matching gap report and OQ ledger")) {
+    fail(`${exportSkill}: Gap Report must be conditional on the locked readiness route`);
+  }
+}
+
+const readme = readFileSync(join(repoRoot, "README.md"), "utf8");
+if ((readme.match(/DIRECT_SOURCE_CHECK/g) ?? []).length < 4) {
+  fail("README.md: direct readiness routing must be documented in English and Vietnamese");
+}
+if ((readme.match(/UNSUPPORTED_AUTOMATION_AUTHORING/g) ?? []).length < 2) {
+  fail("README.md: Playwright authoring limitation must be documented in English and Vietnamese");
+}
+
+const playwrightSkill = readFileSync(
+  join(skillsRoot, "qc-run-playwright", "SKILL.md"),
+  "utf8",
+);
+for (const boundary of [
+  "INTERACTIVE_EXECUTION_ONLY",
+  "UNSUPPORTED_AUTOMATION_AUTHORING",
+  "does not generate Playwright source code",
+]) {
+  if (!playwrightSkill.includes(boundary)) {
+    fail(`qc-run-playwright: capability boundary is missing ${boundary}`);
+  }
+}
+
 const oqGuide = readFileSync(
   join(skillsRoot, "qc-gap-finder", "references", "open-questions-guide.md"),
   "utf8",

@@ -10,6 +10,8 @@ This catalog lists viewpoint families that `qc-design-viewpoints` derives from. 
 | Alternative flow | Each alternate path defined in the use case | "Alternative path" sections |
 | Negative / rejection | Each validation rule, each error code | Validation table, error behavior ACs |
 | Data boundary | Min/max, format, empty, whitespace, special characters, duplicates | Numeric limits, format rules |
+| Input validation | Requiredness, normalization, cross-field rules, validation timing and error behavior | Form rules, field definitions, UI design |
+| UI component interaction | State, content mapping, controls, navigation and failure behavior of a named component | Screen specification, UI design, component behavior ACs |
 | State machine | Each valid transition; each invalid transition attempt | Status lists, workflow diagrams |
 | Permission | Each role x action combination; unauthorized access attempts | Actor/role tables |
 | Search / filter / sort | Each filterable column, empty results, pagination boundaries | List pages, search ACs |
@@ -36,4 +38,11 @@ This catalog lists viewpoint families that `qc-design-viewpoints` derives from. 
 
 ## Viewpoint Anatomy
 
-Every viewpoint must state: a stable ID (`VP-<SCOPE-CODE>-NNN`), a name describing the angle, a type (functional / non-functional / regression), a priority (P1 must, P2 should, P3 if time), the requirement refs it covers, and a one-line rationale. A viewpoint without covered refs is invalid and must be merged or dropped.
+Every viewpoint must state: a stable ID (`VP-<SCOPE-CODE>-NNN`), a named
+test item and item type, one coherent coverage intent, a type (functional /
+non-functional / regression), a priority (P1 must, P2 should, P3 if time), the
+requirement refs it covers, and a one-line rationale. A viewpoint without
+covered refs is invalid and must be merged or dropped.
+
+Do not use a Viewpoint as an abstract Test Case. Keep concrete Preconditions,
+Test Data, Steps, and Expected Results in `qc-design-test-cases`.

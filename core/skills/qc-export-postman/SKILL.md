@@ -7,6 +7,16 @@ description: "Convert locked API-AUTO or BOTH Test Cases with a complete API con
 
 Create an importable Postman Collection v2.1 without inventing API behavior or including secrets.
 
+## Capability Boundary
+
+This skill creates a static collection and manifest only. It does not provision
+an environment, resolve secrets, install or run Newman, execute requests, or
+configure CI. Collection generation and structural validation depend on the
+current agent's file and JSON capabilities; this package does not bundle a
+deterministic collection generator or Postman schema validator. Record fuller
+portable generation and runtime validation as deferred enhancement
+`QC-EXPORT-001`.
+
 ## Artifact Contract
 
 Read the shared contract at `qc/config/material-paths.md`. Save output below
@@ -17,7 +27,10 @@ Read the shared contract at `qc/config/material-paths.md`. Save output below
 - Locked `qc/test-cases/<scope-key>-test-cases.md` revision;
 - Selected `API-AUTO` or `BOTH` TC IDs;
 - Source-backed HTTP method, endpoint, auth scheme, headers, payload, response shape, and Expected Results;
-- Matching gap report and OQ ledger.
+- Locked parent Viewpoint and approved requirement sources referenced by the
+  Test Cases;
+- Matching Gap Report only when the locked design chain uses `GAP_ANALYSIS`;
+- OQ ledger when the locked design chain references OQs.
 
 Reject any stale case, unresolved OQ that blocks from `DESIGN` or `EXPORT`, missing API contract field, or `NEEDS_SPEC` case. Report missing evidence as `BLOCKED_SPEC`; do not convert it to `MANUAL` merely because the API contract is incomplete.
 
@@ -46,7 +59,9 @@ Leave secret variable values empty and document their names in the manifest. Nev
 6. Write `<scope-key>.postman_collection.json` and `<scope-key>-postman-manifest.md`.
 7. Validate JSON structure, traceability, and secret handling.
 
-The manifest records Scope Key, Scope Code, Artifact Type, Revision, State, locked source TC revision, exported and rejected TC IDs, source coverage, validation state, secret variable names, and runtime blockers.
+The manifest records Scope Key, Scope Code, Artifact Type, Revision, State,
+readiness route, locked source TC revision, exported and rejected TC IDs,
+source coverage, validation state, secret variable names, and runtime blockers.
 
 ## Static Validation Gate
 

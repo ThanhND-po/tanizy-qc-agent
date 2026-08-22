@@ -25,7 +25,15 @@ source read-only.
 
 A PO handoff makes sources available to QC. It does not imply QC phase scope, artifact write approval, Lock Gate approval, Execution Gate approval, or release authority. QC starts only after an explicit QC request and applies its own gates.
 
-For a source inside the project, use a relative Markdown link. For a readable source outside the project, record its exact absolute path or canonical URI and mark it `external, non-portable` in the Source Manifest. Do not fabricate a project-relative link. Read the source in place. Do not copy an external source into the project unless the user separately approves the snapshot content and path. If the source cannot be read, has no stable revision, or its approval state is unknown, classify the affected scope as `PARTIAL` or `STOP` and request the missing source evidence.
+For a source inside the project, use a relative Markdown link. For a readable
+source outside the project, record its exact absolute path or canonical URI and
+mark it `external, non-portable` in the Source Manifest. Do not fabricate a
+project-relative link. Read the source in place. Do not copy an external source
+into the project unless the user separately approves the snapshot content and
+path. If the source cannot be read, has no stable revision, or its approval
+state is unknown, request the missing source evidence. Under `GAP_ANALYSIS`,
+classify the affected scope as `PARTIAL` or `STOP`. Under
+`DIRECT_SOURCE_CHECK`, return `FAIL` and do not create an affected Viewpoint.
 
 ## Scope Key
 
@@ -66,7 +74,8 @@ Use three digits for sequence numbers. Add the two-digit Run suffix only when a 
 qc/
 ├── config/
 │   ├── material-paths.md
-│   └── field-validation-checklist.md   # when Test Case design is installed or project-provided
+│   ├── field-validation-checklist.md   # when Viewpoint or Test Case design is installed or project-provided
+│   └── ui-component-checklist.md       # when Viewpoint or Test Case design is installed or project-provided
 ├── refs/
 │   ├── system-context.md
 │   ├── bug-base.md
@@ -75,7 +84,7 @@ qc/
 ├── tasks/
 │   └── <scope-key>-qc-task.md
 ├── gap-reports/
-│   └── <scope-key>-gap-report.md
+│   └── <scope-key>-gap-report.md       # only when Gap Analysis is approved
 ├── test-viewpoints/
 │   └── <scope-key>-viewpoints.md
 ├── test-cases/
@@ -106,7 +115,7 @@ Only `open-questions.md` is shared across scopes. Keep task progress in `qc/task
 ## Naming and Versioning Rules
 
 1. Use lowercase kebab-case for generated Markdown and Gherkin filenames.
-2. Use the same scope key across gap, viewpoint, test case, manual execution input, execution, and report artifacts.
+2. Use the same scope key across every artifact that exists for the workstream. A direct-to-Viewpoint route does not require a gap artifact.
 3. Update living artifacts in place and keep a revision history in the file.
 4. Preserve execution history as separate run sections in the executions log.
 5. Reports are snapshots. If the same scope and date already exist, append `-v2`, `-v3`, and so on. Never overwrite a prior report silently.
@@ -146,27 +155,59 @@ Silence is not approval. A later phase does not inherit write approval for new p
 
 Do not convert missing behavior into an assumption, viewpoint, test case, automation artifact, or execution result.
 
+Select and record one readiness route before Viewpoint design:
+
+| Readiness Route | Use when | Evidence |
+|---|---|---|
+| `GAP_ANALYSIS` | The user explicitly requests gap analysis, requirement review, or Open Questions, or approves a handoff after a direct check fails | Approved Gap Report revision and applicable OQ rows |
+| `DIRECT_SOURCE_CHECK` | The user requests Viewpoint design without Gap Analysis and the approved sources appear complete for the selected scope | Readiness assessment embedded in the Viewpoint artifact |
+
+Gap Analysis is optional. Do not start `qc-gap-finder` merely because Viewpoint
+design was requested. Under `DIRECT_SOURCE_CHECK`, a pass means only that the
+selected scope has enough source evidence for Viewpoint design. Record Gap
+Analysis as `NOT_RUN`, never as `No gaps`, `No findings`, or an equivalent
+completeness claim.
+
 Classify the design gate per scope:
 
 | Gate | Meaning | Allowed output |
 |---|---|---|
 | `READY` | All behavior in scope has a testable source | Continue through approved phases |
-| `PARTIAL` | Some behavior is source-backed and some is blocked | Continue only for source-backed items, list blocked coverage |
-| `STOP` | No testable workflow exists, or a critical conflict invalidates the flow | Gap report and Open Questions only |
+| `PARTIAL` | Some behavior is source-backed and some is blocked | Continue only for source-backed items after approved `GAP_ANALYSIS`; list blocked coverage |
+| `STOP` | No testable workflow exists, or a critical conflict invalidates the flow | No downstream design; write a Gap Report or OQ only when that phase and path are approved |
 
-A source is testable only when it provides, directly or through an explicitly confirmed decision, the actor, precondition, initial state, action, observable expected outcome, and the data or rule needed for that outcome. For API or live execution, also require the relevant route/endpoint, auth, fixture, and cleanup
-evidence.
+A source is testable only when it provides, directly or through an explicitly
+confirmed decision, a named test item, trigger, action, event, or input, an
+observable expected outcome or test oracle, and the data or rule needed for
+that outcome. Require actor, permission, precondition, initial state, and state
+transition only when the behavior depends on them. Require the relevant API
+contract for API design. Require route or endpoint, auth, fixture, cleanup,
+environment, and runner evidence only for live execution readiness.
+
+`DIRECT_SOURCE_CHECK` has only two outcomes:
+
+- `PASS`: assign `READY` and continue Viewpoint design;
+- `FAIL`: assign `STOP` for the attempted scope and do not create an affected
+  Viewpoint. Report the exact missing or conflicting evidence and propose
+  `qc-gap-finder`. Do not start it without explicit approval.
+
+Do not assign `PARTIAL` from a direct check. Use `GAP_ANALYSIS` when the user
+wants supported and blocked subsets formally separated.
 
 If the gate is `STOP`, report coverage as `0/0` for the unsupported scope and do not create placeholder cases or empty automation assertions.
 
 ## Cross-Artifact Traceability
 
-Use relative Markdown links for artifacts stored in the project and preserve this chain:
+Use relative Markdown links for artifacts stored in the project and preserve
+the applicable readiness branch before the common downstream chain:
 
 ```text
 source requirement
-  -> gap report and OQ
-  -> locked viewpoint
+  -> GAP_ANALYSIS -> gap report and applicable OQ -> locked viewpoint
+  or
+  -> DIRECT_SOURCE_CHECK embedded in the locked viewpoint
+
+locked viewpoint
   -> test case
   -> manual result source or automation artifact, when applicable
   -> execution run

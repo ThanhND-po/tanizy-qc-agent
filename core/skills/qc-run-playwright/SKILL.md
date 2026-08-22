@@ -1,11 +1,31 @@
 ---
 name: qc-run-playwright
-description: "Execute locked, runtime-ready UI Test Cases with Playwright browser tools after an explicit Execution Gate. Use only when the user asks to run specific TC IDs through Playwright, confirms the environment and side effects, and provides or approves auth, fixtures, retry, and cleanup conditions."
+description: "Execute locked, runtime-ready UI Test Cases interactively with available Playwright browser tools after an explicit Execution Gate. Use only when the user asks to run specific TC IDs and confirms the environment, side effects, auth, fixtures, retry, and cleanup. This skill does not generate Playwright source code or build a reusable automation suite."
 ---
 
 # Run Test Cases With Playwright
 
 Execute approved test intent against the real application. Do not redesign a TC or change its Expected Result during execution.
+
+## Capability Boundary
+
+Use this skill in `INTERACTIVE_EXECUTION_ONLY` mode. It drives an available
+browser automation tool to execute locked Test Case steps and append results.
+It does not:
+
+- Install or configure `@playwright/test`;
+- Create `playwright.config.*`, `*.spec.ts`, `*.spec.js`, fixtures, Page Objects,
+  helper libraries, or BDD step definitions;
+- Convert a Gherkin feature into runnable automation;
+- Build or maintain a reusable suite, CI job, trace viewer integration, or test
+  reporting pipeline;
+- Teach a Manual QC how to maintain Playwright code.
+
+When the user asks to build, generate, scaffold, or maintain Playwright test
+code, report `UNSUPPORTED_AUTOMATION_AUTHORING` and explain this package's
+current boundary. Do not reinterpret the request as live execution and do not
+create placeholder automation files. Record the need as deferred enhancement
+`QC-AUTO-001` when project documentation is in the approved write set.
 
 ## Artifact Contract
 
@@ -21,13 +41,13 @@ Read the shared contract at `qc/config/material-paths.md`. Treat
 | Application target | Exact URL and environment classification |
 | Auth and roles | Approved account or fixture source; no hardcoded secrets |
 | Data lifecycle | Fixture setup, allowed side effects, reset, and cleanup |
-| Runtime tools | Playwright browser tools available in the current session |
+| Runtime tools | A browser automation tool with page inspection and interaction capabilities is available in the current session; record its exact identity as Result Source |
 | Retry policy | User-approved retry budget for this run |
 | Assessment policy | User-approved rule for selecting a result when retries exist |
 | Evidence policy | `OPTIONAL` by default, or a user-approved or release-criteria override; external locators are allowed |
 | Write set | Execution log, any approved evidence paths, and separately approved ref updates |
 
-If any required input is absent, report the preflight as `BLOCKED` in chat and do not open a browser or write a run section. Record a `BLOCKED` attempt only when the Execution Gate passed and an approved runtime prerequisite later became unavailable. A Gherkin file is supplementary unless the project has verified its BDD runner and step bindings.
+If any required input is absent, report the preflight as `BLOCKED` in chat and do not open a browser or write a run section. Record a `BLOCKED` attempt only when the Execution Gate passed and an approved runtime prerequisite later became unavailable. A Gherkin file is supplementary unless the project has separately verified its BDD runner and step bindings. The presence of a `.feature` file does not satisfy the runtime-tool requirement.
 
 ## Execution Gate
 
@@ -80,5 +100,6 @@ When project-local evidence is approved, store it under `qc/evidence/<scope-key>
 ## Rules
 
 - Run only on explicit user request and only after the Execution Gate.
+- Do not describe interactive browser execution as a generated or reusable Playwright Test suite.
 - Keep requirement documents read-only.
 - Do not expose credentials or personal data in chat or artifacts.

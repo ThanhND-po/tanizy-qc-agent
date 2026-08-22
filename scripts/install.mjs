@@ -247,12 +247,22 @@ function copyPlan(target, projectRoot, requestedSkills, skipRefs) {
     managedRoot: join(projectRoot, "qc", "config"),
   });
 
-  if (selected.includes("qc-design-test-cases")) {
-    plan.push({
-      kind: "seed-file",
-      from: join(repoRoot, "core", "references", "field-validation-checklist.md"),
-      to: join(projectRoot, "qc", "config", "field-validation-checklist.md"),
-    });
+  if (
+    selected.includes("qc-design-viewpoints") ||
+    selected.includes("qc-design-test-cases")
+  ) {
+    plan.push(
+      {
+        kind: "seed-file",
+        from: join(repoRoot, "core", "references", "field-validation-checklist.md"),
+        to: join(projectRoot, "qc", "config", "field-validation-checklist.md"),
+      },
+      {
+        kind: "seed-file",
+        from: join(repoRoot, "core", "references", "ui-component-checklist.md"),
+        to: join(projectRoot, "qc", "config", "ui-component-checklist.md"),
+      },
+    );
   }
 
   const adapter = adapterSpec(target, projectRoot);

@@ -1,11 +1,19 @@
 ---
 name: qc-export-gherkin
-description: "Convert locked UI-AUTO or BOTH Test Cases into traceable Gherkin feature specifications and a manifest for a Playwright BDD workflow. Use when the user asks to export Gherkin, convert selected TC IDs to .feature files, or prepare BDD specifications. Do not claim the files are runnable until the runner and step definitions are verified."
+description: "Convert locked UI-AUTO or BOTH Test Cases into traceable Gherkin feature specifications and a manifest that a separately configured BDD workflow may consume. Use when the user asks to export Gherkin, convert selected TC IDs to .feature files, or prepare BDD specifications. This skill does not create step definitions, Playwright source code, or a runnable suite."
 ---
 
 # Export Gherkin Specifications
 
 Convert locked Test Cases into behavior-focused `.feature` files without changing test intent or inventing implementation details.
+
+## Capability Boundary
+
+This is a static specification export. It does not install a BDD runner, create
+step definitions, map steps to selectors, generate Playwright source code, or
+execute tests. If the user asks for runnable automation, state that the current
+package does not implement automation authoring and reference deferred
+enhancement `QC-AUTO-001`.
 
 ## Artifact Contract
 
@@ -17,7 +25,10 @@ Read the shared contract at `qc/config/material-paths.md`. Save all output below
 - Locked `qc/test-cases/<scope-key>-test-cases.md` revision;
 - Selected TC IDs, Viewpoint IDs, or explicit `all eligible` scope;
 - Canonical `Automation Eligibility` values;
-- Matching gap report and OQ ledger.
+- Locked parent Viewpoint and approved requirement sources referenced by the
+  Test Cases;
+- Matching Gap Report only when the locked design chain uses `GAP_ANALYSIS`;
+- OQ ledger when the locked design chain references OQs.
 
 Export only `UI-AUTO` or `BOTH` cases. Exclude `MANUAL`, `API-AUTO`, `NEEDS_SPEC`, stale cases, and cases affected by an unresolved OQ that blocks from `DESIGN` or `EXPORT`. If the user did not choose a scope, list eligible IDs and wait for confirmation.
 
@@ -56,7 +67,9 @@ qc/automation/gherkin/fs-login/
 └── fs-login-gherkin-manifest.md
 ```
 
-The manifest records Scope Key, Scope Code, Artifact Type, Revision, State, locked source TC revision, exported and rejected TC IDs, Viewpoint/source coverage, validation state, and runtime blockers. Use the descriptive manifest
+The manifest records Scope Key, Scope Code, Artifact Type, Revision, State,
+readiness route, locked source TC revision, exported and rejected TC IDs,
+Viewpoint/source coverage, validation state, and runtime blockers. Use the descriptive manifest
 filename defined above.
 
 ## Static Validation Gate

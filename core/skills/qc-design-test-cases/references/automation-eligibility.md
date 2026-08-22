@@ -34,7 +34,7 @@ Do not add derived `Automatable` or `Auto Type` columns. They repeat the same de
 | `UI-AUTO`, `BOTH` | `qc-export-gherkin`; Playwright only after Execution Gate |
 | `API-AUTO`, `BOTH` | `qc-export-postman`; execution requires a separate approved run workflow |
 | `MANUAL` | Manual execution record |
-| `NEEDS_SPEC` | Gap report and Open Question only |
+| `NEEDS_SPEC` | Stop the affected design or export. Return to `qc-gap-finder` when the design route is `GAP_ANALYSIS`; otherwise propose Gap Analysis as a separate approved phase |
 
 `STATIC_VALID`, `AUTOMATION_ELIGIBLE`, and `RUNTIME_READY` are separate states.
 Eligibility alone never proves that a test can run in the current environment.

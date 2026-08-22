@@ -103,6 +103,7 @@ try {
     }
     assert.ok(existsSync(join(root, "qc", "config", "material-paths.md")));
     assert.ok(existsSync(join(root, "qc", "config", "field-validation-checklist.md")));
+    assert.ok(existsSync(join(root, "qc", "config", "ui-component-checklist.md")));
     assert.ok(existsSync(join(root, "qc", "open-questions.md")));
     assert.ok(!existsSync(join(root, "qc", "refs", "open-questions.md")));
     assert.ok(!existsSync(join(root, "qc", ".agents", "skills")));
@@ -146,7 +147,27 @@ try {
   );
   assert.ok(existsSync(join(selective, "qc", "config", "material-paths.md")));
   assert.ok(!existsSync(join(selective, "qc", "config", "field-validation-checklist.md")));
+  assert.ok(!existsSync(join(selective, "qc", "config", "ui-component-checklist.md")));
   assert.doesNotMatch(readFileSync(join(selective, "AGENTS.md"), "utf8"), /qc-design-viewpoints/);
+
+  for (const skill of ["qc-design-viewpoints", "qc-design-test-cases"]) {
+    const checklistProject = project(`selective-${skill}`);
+    runNode([
+      "--target",
+      "codex",
+      "--project",
+      checklistProject,
+      "--skill",
+      skill,
+    ]);
+    assert.deepEqual(readdirSync(join(checklistProject, ".agents", "skills")), [skill]);
+    assert.ok(
+      existsSync(join(checklistProject, "qc", "config", "field-validation-checklist.md")),
+    );
+    assert.ok(
+      existsSync(join(checklistProject, "qc", "config", "ui-component-checklist.md")),
+    );
+  }
 
   const selectiveManual = project("selective-manual-results");
   runNode([
@@ -346,6 +367,7 @@ try {
   const preserve = project("preserve");
   runNode(["--target", "codex", "--project", preserve]);
   const checklist = join(preserve, "qc", "config", "field-validation-checklist.md");
+  const uiChecklist = join(preserve, "qc", "config", "ui-component-checklist.md");
   const systemContext = join(preserve, "qc", "refs", "system-context.md");
   const bugBase = join(preserve, "qc", "refs", "bug-base.md");
   const openQuestions = join(preserve, "qc", "open-questions.md");
@@ -357,6 +379,7 @@ try {
   const legacyOpenQuestions =
     "| OQ ID | Scope Key | Source Path and Ref | Type | Question | Proposed Options | Priority | Blocks From Phase | Impacted Artifacts | Status | Decision | Decision Source | Answered At |\n";
   writeFileSync(checklist, "CUSTOM CHECKLIST\n", "utf8");
+  writeFileSync(uiChecklist, "CUSTOM UI CHECKLIST\n", "utf8");
   writeFileSync(systemContext, legacySystemContext, "utf8");
   writeFileSync(bugBase, legacyBugBase, "utf8");
   writeFileSync(openQuestions, legacyOpenQuestions, "utf8");
@@ -384,6 +407,7 @@ try {
     "--force",
   ]);
   assert.equal(readFileSync(checklist, "utf8"), "CUSTOM CHECKLIST\n");
+  assert.equal(readFileSync(uiChecklist, "utf8"), "CUSTOM UI CHECKLIST\n");
   assert.equal(readFileSync(systemContext, "utf8"), legacySystemContext);
   assert.equal(readFileSync(bugBase, "utf8"), legacyBugBase);
   assert.equal(readFileSync(openQuestions, "utf8"), legacyOpenQuestions);
@@ -440,6 +464,7 @@ try {
     ),
   );
   assert.equal(readFileSync(checklist, "utf8"), "CUSTOM CHECKLIST\n");
+  assert.equal(readFileSync(uiChecklist, "utf8"), "CUSTOM UI CHECKLIST\n");
   assert.equal(readFileSync(systemContext, "utf8"), legacySystemContext);
   assert.equal(readFileSync(bugBase, "utf8"), legacyBugBase);
   assert.equal(readFileSync(openQuestions, "utf8"), legacyOpenQuestions);

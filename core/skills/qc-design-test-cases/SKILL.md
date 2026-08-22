@@ -9,15 +9,23 @@ Create atomic Test Cases whose Test Data and Expected Results are supported by a
 
 ## Artifact Contract
 
-Read the shared contract at `qc/config/material-paths.md`,
-`references/automation-eligibility.md`, and the project checklist at
-`qc/config/field-validation-checklist.md` when fields are in scope.
+Read the shared contract at `qc/config/material-paths.md` and
+`references/automation-eligibility.md`. When UI items are in scope, also read:
+
+- `qc/config/field-validation-checklist.md` for input and data-entry controls;
+- `qc/config/ui-component-checklist.md` for display, navigation, and composite
+  components.
+
+Use these checklists to reconcile the locked Viewpoint coverage. Do not use
+them to bypass or redesign the locked parent revision.
 
 ## Required Inputs
 
 - Approved requirement sources;
-- Locked `qc/test-viewpoints/<scope-key>-viewpoints.md` revision;
-- Matching gap report and `qc/open-questions.md`;
+- Locked `qc/test-viewpoints/<scope-key>-viewpoints.md` revision with its
+  readiness route and evidence;
+- Matching Gap Report only when the Viewpoint uses `GAP_ANALYSIS`;
+- `qc/open-questions.md` when it exists or the locked Viewpoint references OQs;
 - Relevant System Context, Bug Base, and Test Data spec when available.
 
 Stop if the Viewpoint revision is not locked. For a `PARTIAL` design gate, create cases only for unblocked Viewpoints. Never create a placeholder or provisional executable case for an OQ with `Blocks From Phase = DESIGN`.
@@ -31,9 +39,17 @@ Use `TC-<SCOPE-CODE>-NNN`. Confirm the scope code once and preserve existing IDs
 1. Keep Steps atomic and numbered.
 2. Write Expected Results in natural language as observable outcomes. Number them to match the relevant Steps.
 3. Use concrete synthetic Test Data. The values may be generated, but every business limit, format, status, and validation outcome must trace to a source.
-4. Use the field checklist as a gap-discovery aid. A `SPEC_GAP` creates an OQ, not an invented Test Case.
+4. Reconcile relevant checklist checks against the locked Viewpoint revision. Derive Test Cases only from `DEFINED` checks already mapped to a locked Viewpoint.
 5. Cover happy, negative, boundary, state, NFR, and regression angles only when the expected behavior is defined.
 6. Record source-backed omissions and blocked coverage explicitly.
+
+If reconciliation finds a source-backed `DEFINED` angle without a locked
+Viewpoint, stop the affected scope and hand it back to `qc-design-viewpoints`
+for a new revision. If it finds a `SPEC_GAP`, stop the affected scope and return
+it to the readiness owner. Use `qc-gap-finder` when the route is `GAP_ANALYSIS`;
+otherwise propose Gap Analysis as a separate phase. Do not create an OQ, Gap
+Report, or invented Test Case in this skill. Do not treat `OUT_OF_SCOPE` as
+`NOT_APPLICABLE`.
 
 ## Automation and Readiness
 
@@ -58,14 +74,16 @@ Design normally establishes only `STATIC_VALID`. Missing endpoint, route, locato
 
 1. Inventory locked Viewpoints and exact source refs.
 2. Confirm the shared scope code and intended coverage dimensions.
-3. Draft cases with concrete Test Data, numbered Steps, numbered Expected Results, trace refs, priority, and automation metadata.
-4. Build traceability matrices and coverage totals for AC, business rule, NFR, impact/regression, and Viewpoints.
-5. List blocked source items with OQ IDs and no TC IDs.
-6. Run the Quality Gates below.
-7. Present the draft and exact write set in chat.
-8. Obtain explicit content, path, and Lock Gate approval.
-9. Write `qc/test-cases/<scope-key>-test-cases.md` with state `LOCKED`.
-10. After validation succeeds, recommend exporting the locked Test Case table to an XLSX manual run workbook through `qc-record-manual-results`. State that this is optional and requires separate path approval. Do not create the workbook automatically.
+3. Reconcile relevant field and UI component checklist checks against locked Viewpoints when UI items are in scope.
+4. Return any source-backed angle without a locked Viewpoint to `qc-design-viewpoints`; do not continue that affected scope.
+5. Draft cases with concrete Test Data, numbered Steps, numbered Expected Results, trace refs, priority, and automation metadata.
+6. Build traceability matrices and coverage totals for AC, business rule, NFR, impact/regression, and Viewpoints.
+7. List blocked source items with OQ IDs and no TC IDs.
+8. Run the Quality Gates below.
+9. Present the draft and exact write set in chat.
+10. Obtain explicit content, path, and Lock Gate approval.
+11. Write `qc/test-cases/<scope-key>-test-cases.md` with state `LOCKED`.
+12. After validation succeeds, recommend exporting the locked Test Case table to an XLSX manual run workbook through `qc-record-manual-results`. State that this is optional and requires separate path approval. Do not create the workbook automatically.
 
 Do not create an execution log during Test Case design.
 `qc-record-manual-results` appends it only after the Manual Result Gate, and a
@@ -77,7 +95,7 @@ runtime execution skill appends it only after an approved Execution Gate.
 # Test Cases: <Scope Key>
 
 ## 1. Artifact Header
-| Scope Key | Scope Code | Artifact Type | Revision | State | Approved By | Approved At |
+| Scope Key | Scope Code | Artifact Type | Revision | State | Parent Viewpoint Revision | Readiness Route | Blocking OQs | Approved By | Approved At |
 
 ## 2. Source Manifest
 | Source | Revision or hash | Role |
@@ -130,8 +148,9 @@ Include:
 5. Every row has one canonical automation eligibility value and tags.
 6. Blocked items have no fabricated TC.
 7. Coverage totals reconcile with the source inventory and Viewpoint revision.
-8. All relative links resolve.
-9. Artifact state is `LOCKED`, with an explicit revision and approver.
+8. The readiness route matches the locked parent Viewpoint; a Gap Report is required only for `GAP_ANALYSIS`.
+9. All relative links resolve.
+10. Artifact state is `LOCKED`, with an explicit revision and approver.
 
 ## Rules
 

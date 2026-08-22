@@ -82,6 +82,7 @@ to retire every old copy. It does not overwrite:
 - `qc/refs/system-context.md`
 - `qc/refs/bug-base.md`
 - `qc/config/field-validation-checklist.md`
+- `qc/config/ui-component-checklist.md`
 - Content outside the marked QC adapter block
 
 ## Runtime Layout
@@ -92,7 +93,7 @@ qc/
 ├── refs/
 ├── open-questions.md
 ├── tasks/
-├── gap-reports/
+├── gap-reports/                        # optional, only for approved Gap Analysis
 ├── test-viewpoints/
 ├── test-cases/
 ├── automation/

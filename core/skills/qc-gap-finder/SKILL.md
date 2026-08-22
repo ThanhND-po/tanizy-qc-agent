@@ -1,11 +1,14 @@
 ---
 name: qc-gap-finder
-description: "Analyze approved requirement sources for gaps, ambiguity, conflicts, risks, and missing testability evidence. Use when the user asks for QC gap analysis, requirement review from a QC perspective, unclear business rules, Open Questions, or a spec-first readiness decision before Viewpoint or Test Case design."
+description: "Analyze approved requirement sources for applicable gaps, ambiguity, conflicts, risks, and missing testability evidence. Use when the user explicitly asks for QC gap analysis, requirement review from a QC perspective, unclear business rules, Open Questions, or approves a handoff after a direct Viewpoint readiness check fails. This skill is optional before Viewpoint design."
 ---
 
 # QC Gap Finder
 
 Identify what is stated, what is missing, and what must stop downstream design. Do not create Test Viewpoints or Test Cases in this skill.
+
+Run this skill only when Gap Analysis is explicitly in the approved phase
+scope. Do not treat it as a mandatory prerequisite for Test Viewpoint design.
 
 ## Artifact Contract
 
@@ -21,7 +24,7 @@ for both the report and OQ rows.
 | Existing OQ ledger | Load `qc/open-questions.md`; create from the installed seed only after approval |
 | System context | Mark current behavior unknown and limit regression claims |
 | Bug base | Mark known-bug coverage unavailable |
-| Mockup, API, or technical sources cited by requirements | Verify the cited files exist; otherwise create a gap |
+| Mockup, API, or technical sources cited by requirements | Verify a cited source only when it governs behavior in the approved scope; create a gap only when the missing source is needed for testability |
 
 ## Finding Classes
 
@@ -33,6 +36,23 @@ for both the report and OQ rows.
 | `RISK` | A verified dependency, known bug, or current-state fact creates test risk |
 
 Do not classify an unstated behavior as a safe assumption.
+
+## Applicability
+
+Do not turn a generic review category into a finding automatically. Classify a
+candidate check before recording it:
+
+| Applicability | Meaning |
+|---|---|
+| `APPLICABLE` | Required by an approved source, standard, test objective, dependency, or verified risk in scope |
+| `NOT_APPLICABLE` | The item type or behavior makes the check irrelevant |
+| `OUT_OF_SCOPE` | The check could apply, but the approved scope excludes it |
+
+Only absent or unclear `APPLICABLE` evidence may become `GAP`, `AMB`, or
+`CONFLICT`. Record the basis for `OUT_OF_SCOPE`; do not relabel it as
+`NOT_APPLICABLE`. Review security, accessibility, performance, concurrency, and
+other quality characteristics only when they are applicable to the approved
+scope.
 
 ## Blocking Decision
 
@@ -46,7 +66,7 @@ Assign the earliest affected phase in `Blocks From Phase`:
 | `REPORT` | A requested report claim or release verdict |
 | `NONE` | No approved phase is blocked |
 
-Use `DESIGN` when an unresolved finding affects any of these:
+Use `DESIGN` when an applicable unresolved finding affects any of these:
 
 - Actor or permission;
 - Precondition, initial state, action, or state transition;
@@ -61,17 +81,19 @@ Non-blocking wording or presentation gaps may remain open, but they cannot be us
 
 ## Workflow
 
-1. Inventory exact source paths, sections, identifiers, and approval states. Verify the confirmed scope code is not assigned to another scope.
-2. Scan validation, boundaries, states, roles, integrations, data ownership, errors, concurrency, security, accessibility, performance, audit, and known regressions.
-3. Record each finding as `FND-<SCOPE-CODE>-NNN`, with source evidence, `Blocks From Phase`, and affected downstream artifacts.
-4. Create or update OQ rows using the canonical schema. Keep Finding Class
-   separate from Question Domain, and apply the PO to QC status mapping from
-   `references/open-questions-guide.md`.
-5. Assign the scope design gate: `READY` when every in-scope behavior is testable. `PARTIAL` when only a source-backed subset can proceed. `STOP` when no testable workflow exists or a critical conflict invalidates the flow.
-6. Draft the gap report and proposed OQ changes in chat.
-7. Obtain approval for content and exact paths.
-8. Write `qc/gap-reports/<scope-key>-gap-report.md` and approved OQ rows.
-9. Validate relative links, scope key, OQ IDs, and coverage totals.
+1. Confirm Gap Analysis is explicitly requested and record `Readiness Route = GAP_ANALYSIS`.
+2. Inventory exact source paths, sections, identifiers, approval states, and in-scope source items. Establish the coverage denominator before assigning a gate. Verify the confirmed scope code is not assigned to another scope.
+3. Scan applicable validation, boundaries, states, roles, integrations, data ownership, errors, concurrency, security, accessibility, performance, audit, and known regressions.
+4. Classify candidate checks as `APPLICABLE`, `NOT_APPLICABLE`, or `OUT_OF_SCOPE` before creating findings.
+5. Reuse an existing Finding ID when the same intent recurs. Otherwise assign the next stable `FND-<SCOPE-CODE>-NNN`; never renumber or reuse a retired ID for different intent.
+6. Record each finding with source evidence, applicability basis, `Blocks From Phase`, and affected downstream artifacts.
+7. Create or update an OQ only when a decision or governing source is required. Keep Finding Class separate from Question Domain, apply the PO to QC status mapping from `references/open-questions-guide.md`, and use `-` as OQ ID for a finding that needs no decision.
+8. Assign the scope design gate: `READY` when every in-scope behavior is testable. `PARTIAL` when only a source-backed subset can proceed. `STOP` when no testable workflow exists or a critical conflict invalidates the flow.
+9. When no findings exist, keep Findings as `None`, leave the OQ ledger unchanged, and assign `READY` only when the source inventory and coverage denominator prove every in-scope item is testable.
+10. Draft the gap report and proposed OQ changes in chat.
+11. Obtain approval for content and exact paths.
+12. Write `qc/gap-reports/<scope-key>-gap-report.md` and only the approved OQ rows.
+13. Validate relative links, scope key, stable Finding and OQ IDs, and coverage totals.
 
 Ask blocking questions first. Group related questions in one concise review when this is clearer, but keep one decision per OQ row.
 
@@ -81,7 +103,7 @@ Ask blocking questions first. Group related questions in one concise review when
 # Gap Report: <Scope Key>
 
 ## 1. Artifact Header
-| Scope Key | Scope Code | Artifact Type | Revision | State | Approved By | Approved At |
+| Scope Key | Scope Code | Artifact Type | Revision | State | Readiness Route | Approved By | Approved At |
 
 ## 2. Decision Summary
 Design gate: READY | PARTIAL | STOP
@@ -90,7 +112,7 @@ Design gate: READY | PARTIAL | STOP
 | Source path | Section or ID | Approval state | Revision or hash |
 
 ## 4. Findings
-| Finding ID | Source Ref | Class | Finding | Priority | Blocks From Phase | OQ ID |
+| Finding ID | Source Ref | Class | Finding | Applicability Basis | Priority | Blocks From Phase | OQ ID |
 
 ## 5. Open Questions Added or Updated
 | OQ ID | Finding Class | Question Domain | Question | Owner | Target Date | Status | Blocks From Phase | Impacted Artifacts |
@@ -106,6 +128,9 @@ Design gate: READY | PARTIAL | STOP
 ```
 
 Use relative Markdown links for project-local source paths and any impacted artifact that already exists. For an approved external source, record the exact locator and `external, non-portable` status from the artifact contract. Keep proposed paths as code until they exist.
+
+If there are no findings, write `None` in the Findings section. Do not create a
+placeholder Finding or OQ to prove that the analysis occurred.
 
 When the scope has no testable behavior, report `0/0` and do not create placeholder cases or automation artifacts.
 
@@ -125,3 +150,4 @@ When the scope has no testable behavior, report `0/0` and do not create placehol
 - Keep requirement documents read-only.
 - Do not invent options as decisions. Label proposed options as proposals.
 - Do not continue blocked behavior to downstream skills.
+- Do not claim Gap Analysis was performed when the readiness route was `DIRECT_SOURCE_CHECK`.

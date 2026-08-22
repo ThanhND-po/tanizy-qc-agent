@@ -1,11 +1,21 @@
 ---
 name: qc-report-generator
-description: "Generate a compact stakeholder-facing HTML, DOCX, PPTX, Markdown, or XLSX test report, with optional detail appendices or companion CSV, from locked Test Cases and append-only execution records with optional supporting evidence. Use when the user asks for a QC test report, execution summary, coverage report, or release-readiness report after results exist."
+description: "Generate a compact stakeholder-facing Markdown, CSV, or HTML test report, and DOCX, PPTX, or XLSX only when compatible generation and verification tools are available, from locked Test Cases and append-only execution records. Use when the user asks for a QC test report, execution summary, coverage report, or release-readiness report after results exist."
 ---
 
 # Generate a QC Test Report
 
 Summarize tested scope, results, coverage, evidence, and decision limits without fabricating executions or release criteria.
+
+## Capability Boundary
+
+Markdown, CSV, and self-contained HTML can be produced with ordinary text and
+file capabilities. DOCX, PPTX, and XLSX require a compatible generation tool
+and format-specific reopen or render verification in the current target. This
+package provides format rules but does not bundle portable binary report
+generators. If the required toolchain is unavailable, stop before writing an
+invalid file and offer Markdown or HTML only after user approval. Track a
+portable binary-report engine as deferred enhancement `QC-REPORT-001`.
 
 ## Artifact Contract
 

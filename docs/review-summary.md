@@ -34,7 +34,8 @@ Bộ skill cần một contract chung cho naming, output path, spec-first gate, 
 - Giữ prefix `fs-`, `epic-`, `req-`, `cr-`.
 - Nhiều source: user xác nhận parent scope key trước khi write.
 - Xác nhận một `scope-code` ổn định cho OQ, VP, TC và Finding IDs.
-- Dùng cùng key cho Gap Report, Viewpoints, Test Cases, Executions và Reports.
+- Dùng cùng key cho mọi artifact tồn tại trong workstream. Gap Report chỉ tồn
+  tại khi Gap Analysis được phê duyệt.
 
 ### 3. Runtime layout
 
@@ -44,7 +45,7 @@ qc/
 ├── refs/
 ├── open-questions.md
 ├── tasks/<scope-key>-qc-task.md
-├── gap-reports/<scope-key>-gap-report.md
+├── gap-reports/<scope-key>-gap-report.md  # tùy chọn
 ├── test-viewpoints/<scope-key>-viewpoints.md
 ├── test-cases/<scope-key>-test-cases.md
 ├── automation/
@@ -56,14 +57,27 @@ qc/
 
 ### 4. Spec-first gate
 
+Chọn một Viewpoint readiness route:
+
+- `GAP_ANALYSIS`: chạy `qc-gap-finder` khi user yêu cầu rõ ràng, hỗ trợ
+  `READY`, `PARTIAL` hoặc `STOP`.
+- `DIRECT_SOURCE_CHECK`: `qc-design-viewpoints` kiểm tra trực tiếp source trong
+  selected scope. Khi pass, ghi `READY` và `Gap Analysis = NOT_RUN`. Kết quả này
+  không có nghĩa là không tồn tại gap.
+
 | Gate | Rule |
 |---|---|
 | `READY` | Tất cả behavior trong scope có source testable |
-| `PARTIAL` | Chỉ tiếp tục phần source-backed, tách blocked coverage |
-| `STOP` | Chỉ tạo Gap Report và OQ, không tạo placeholder TC hoặc Oracle |
+| `PARTIAL` | Chỉ tiếp tục phần source-backed sau `GAP_ANALYSIS`, tách blocked coverage |
+| `STOP` | Không tạo downstream design. Chỉ tạo Gap Report hoặc OQ khi phase và write set đó được phê duyệt |
+
+`DIRECT_SOURCE_CHECK` không tạo kết quả `PARTIAL`. Nếu thiếu hoặc mâu thuẫn
+evidence ảnh hưởng từ `DESIGN`, skill dừng và đề xuất `qc-gap-finder`, không tự
+động tạo Finding, OQ hoặc Gap Report.
 
 OQ dùng `Blocks From Phase`: `DESIGN`, `EXPORT`, `EXECUTION`, `REPORT`, hoặc
-`NONE`. Thiếu actor, state, Test Data hoặc Expected Result block từ `DESIGN`;
+`NONE`. Thiếu actor hoặc state chỉ block từ `DESIGN` khi behavior phụ thuộc vào
+chúng. Thiếu Test Data rule hoặc Expected Result cần thiết sẽ block từ `DESIGN`;
 thiếu route, auth, fixture hoặc cleanup chỉ block từ `EXECUTION` khi test intent
 đã đủ.
 
@@ -118,6 +132,19 @@ Report dùng `COMPACT` mặc định với ba phần: Decision Summary, Findings
 - Refresh shared contract và retire legacy per-skill `material-paths.md` copies bằng `--force`.
 - Từ chối project root, skill destination hoặc ancestor là symbolic link.
 - Cảnh báo legacy layout, không tự xóa file.
+
+## Deferred enhancements
+
+| ID | Status | Capability cần bổ sung | Acceptance direction |
+|---|---|---|---|
+| `QC-AUTO-001` | `DEFERRED` | Playwright automation authoring cho Manual QC | Detect hoặc scaffold project, sinh `*.spec.ts`, config, fixture và locator có trace từ locked TC; chạy được bằng Playwright Test; hỗ trợ maintenance và CI mà không thay đổi test intent |
+| `QC-EXPORT-001` | `DEFERRED` | Portable deterministic validation cho Gherkin và Postman | Bundled generator hoặc validator, fixture-based tests, schema hoặc parser validation và clear runtime handoff |
+| `QC-REPORT-001` | `DEFERRED` | Portable binary report generation | Bundled hoặc verified adapters cho DOCX, PPTX và XLSX, kèm reopen, render và cross-target tests |
+
+Trong trạng thái hiện tại, `qc-run-playwright` chỉ hỗ trợ
+`INTERACTIVE_EXECUTION_ONLY`. Manual QC có thể gọi skill để thực thi locked TC
+khi đủ Execution Gate và browser automation tool, nhưng không thể dùng skill để
+build reusable Playwright automation suite.
 
 ## Validation
 
