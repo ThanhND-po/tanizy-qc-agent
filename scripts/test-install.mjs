@@ -80,7 +80,13 @@ try {
     runNode(["--target", target, "--project", root]);
 
     for (const skill of skillNames) {
-      assert.ok(existsSync(join(skillRoot(target, root), skill, "SKILL.md")));
+      const installedSkillPath = join(skillRoot(target, root), skill, "SKILL.md");
+      assert.ok(existsSync(installedSkillPath));
+      const installedSkill = readFileSync(installedSkillPath, "utf8");
+      assert.match(installedSkill, /## Input Preflight/);
+      assert.match(installedSkill, /`BLOCKED_INPUT`/);
+      assert.match(installedSkill, /explicitly approve one bounded search root/);
+      assert.match(installedSkill, /do not request broader filesystem permission/i);
       assert.ok(
         !existsSync(join(skillRoot(target, root), skill, "references", "material-paths.md")),
       );
@@ -101,9 +107,42 @@ try {
         );
       }
     }
-    assert.ok(existsSync(join(root, "qc", "config", "material-paths.md")));
-    assert.ok(existsSync(join(root, "qc", "config", "field-validation-checklist.md")));
-    assert.ok(existsSync(join(root, "qc", "config", "ui-component-checklist.md")));
+    const installedMaterialPaths = join(root, "qc", "config", "material-paths.md");
+    assert.ok(existsSync(installedMaterialPaths));
+    assert.match(readFileSync(installedMaterialPaths, "utf8"), /## Input Boundary and Source Discovery/);
+    assert.match(readFileSync(installedMaterialPaths, "utf8"), /A filesystem permission prompt is not a substitute/);
+    assert.ok(!existsSync(join(root, "qc", "config", "field-validation-checklist.md")));
+    assert.ok(!existsSync(join(root, "qc", "config", "ui-component-checklist.md")));
+    assert.ok(
+      existsSync(
+        join(
+          skillRoot(target, root),
+          "qc-design-viewpoints",
+          "references",
+          "viewpoint-discovery-guide.md",
+        ),
+      ),
+    );
+    assert.ok(
+      !existsSync(
+        join(
+          skillRoot(target, root),
+          "qc-design-test-cases",
+          "references",
+          "viewpoint-discovery-guide.md",
+        ),
+      ),
+    );
+    assert.ok(
+      existsSync(
+        join(
+          skillRoot(target, root),
+          "qc-design-test-cases",
+          "references",
+          "test-design-techniques.md",
+        ),
+      ),
+    );
     assert.ok(existsSync(join(root, "qc", "open-questions.md")));
     assert.ok(!existsSync(join(root, "qc", "refs", "open-questions.md")));
     assert.ok(!existsSync(join(root, "qc", ".agents", "skills")));
@@ -125,6 +164,9 @@ try {
     );
     const adapter = readFileSync(adapterPath(target, root), "utf8");
     assert.match(adapter, /BEGIN TANIZY QC AGENT MANAGED BLOCK/);
+    assert.match(adapter, /`BLOCKED_INPUT`/);
+    assert.match(adapter, /Do not search for missing inputs/);
+    assert.match(adapter, /Do not request broader filesystem permission/);
     if (target === "antigravity") {
       assert.ok(existsSync(join(root, ".agents", "rules", "tanizy-qc.md")));
     }
@@ -151,22 +193,35 @@ try {
   assert.doesNotMatch(readFileSync(join(selective, "AGENTS.md"), "utf8"), /qc-design-viewpoints/);
 
   for (const skill of ["qc-design-viewpoints", "qc-design-test-cases"]) {
-    const checklistProject = project(`selective-${skill}`);
+    const designProject = project(`selective-${skill}`);
     runNode([
       "--target",
       "codex",
       "--project",
-      checklistProject,
+      designProject,
       "--skill",
       skill,
     ]);
-    assert.deepEqual(readdirSync(join(checklistProject, ".agents", "skills")), [skill]);
+    assert.deepEqual(readdirSync(join(designProject, ".agents", "skills")), [skill]);
     assert.ok(
-      existsSync(join(checklistProject, "qc", "config", "field-validation-checklist.md")),
+      !existsSync(join(designProject, "qc", "config", "field-validation-checklist.md")),
     );
     assert.ok(
-      existsSync(join(checklistProject, "qc", "config", "ui-component-checklist.md")),
+      !existsSync(join(designProject, "qc", "config", "ui-component-checklist.md")),
     );
+    const installedReferences = join(designProject, ".agents", "skills", skill, "references");
+    if (skill === "qc-design-viewpoints") {
+      assert.ok(existsSync(join(installedReferences, "viewpoint-discovery-guide.md")));
+      assert.ok(!existsSync(join(installedReferences, "test-design-techniques.md")));
+      continue;
+    }
+    assert.ok(
+      existsSync(join(installedReferences, "test-design-techniques.md")),
+    );
+    assert.ok(
+      !existsSync(join(installedReferences, "viewpoint-discovery-guide.md")),
+    );
+    assert.ok(!existsSync(join(designProject, ".agents", "skills", "qc-design-viewpoints")));
   }
 
   const selectiveManual = project("selective-manual-results");
@@ -368,6 +423,12 @@ try {
   runNode(["--target", "codex", "--project", preserve]);
   const checklist = join(preserve, "qc", "config", "field-validation-checklist.md");
   const uiChecklist = join(preserve, "qc", "config", "ui-component-checklist.md");
+  const viewpointExtension = join(
+    preserve,
+    "qc",
+    "config",
+    "viewpoint-discovery-extension.md",
+  );
   const systemContext = join(preserve, "qc", "refs", "system-context.md");
   const bugBase = join(preserve, "qc", "refs", "bug-base.md");
   const openQuestions = join(preserve, "qc", "open-questions.md");
@@ -380,6 +441,7 @@ try {
     "| OQ ID | Scope Key | Source Path and Ref | Type | Question | Proposed Options | Priority | Blocks From Phase | Impacted Artifacts | Status | Decision | Decision Source | Answered At |\n";
   writeFileSync(checklist, "CUSTOM CHECKLIST\n", "utf8");
   writeFileSync(uiChecklist, "CUSTOM UI CHECKLIST\n", "utf8");
+  writeFileSync(viewpointExtension, "CUSTOM VIEWPOINT EXTENSION\n", "utf8");
   writeFileSync(systemContext, legacySystemContext, "utf8");
   writeFileSync(bugBase, legacyBugBase, "utf8");
   writeFileSync(openQuestions, legacyOpenQuestions, "utf8");
@@ -397,7 +459,7 @@ try {
     mkdirSync(references, { recursive: true });
     writeFileSync(join(references, "material-paths.md"), legacyContractContent, "utf8");
   }
-  runNode([
+  const legacyWarning = runNode([
     "--target",
     "codex",
     "--project",
@@ -406,8 +468,16 @@ try {
     "qc-gap-finder",
     "--force",
   ]);
+  assert.match(legacyWarning.stderr, /Project-owned legacy Viewpoint checklist/);
+  assert.match(legacyWarning.stderr, /qc\/config\/field-validation-checklist\.md/);
+  assert.match(legacyWarning.stderr, /qc\/config\/ui-component-checklist\.md/);
+  assert.match(legacyWarning.stderr, /qc\/config\/viewpoint-discovery-extension\.md/);
   assert.equal(readFileSync(checklist, "utf8"), "CUSTOM CHECKLIST\n");
   assert.equal(readFileSync(uiChecklist, "utf8"), "CUSTOM UI CHECKLIST\n");
+  assert.equal(
+    readFileSync(viewpointExtension, "utf8"),
+    "CUSTOM VIEWPOINT EXTENSION\n",
+  );
   assert.equal(readFileSync(systemContext, "utf8"), legacySystemContext);
   assert.equal(readFileSync(bugBase, "utf8"), legacyBugBase);
   assert.equal(readFileSync(openQuestions, "utf8"), legacyOpenQuestions);
@@ -442,7 +512,14 @@ try {
     ),
   );
 
-  runNode(["--target", "codex", "--project", preserve, "--force"]);
+  const fullLegacyWarning = runNode([
+    "--target",
+    "codex",
+    "--project",
+    preserve,
+    "--force",
+  ]);
+  assert.match(fullLegacyWarning.stderr, /Project-owned legacy Viewpoint checklist/);
   for (const skill of skillNames) {
     assert.ok(
       !existsSync(join(preserve, ".agents", "skills", skill, "references", "material-paths.md")),
@@ -465,6 +542,10 @@ try {
   );
   assert.equal(readFileSync(checklist, "utf8"), "CUSTOM CHECKLIST\n");
   assert.equal(readFileSync(uiChecklist, "utf8"), "CUSTOM UI CHECKLIST\n");
+  assert.equal(
+    readFileSync(viewpointExtension, "utf8"),
+    "CUSTOM VIEWPOINT EXTENSION\n",
+  );
   assert.equal(readFileSync(systemContext, "utf8"), legacySystemContext);
   assert.equal(readFileSync(bugBase, "utf8"), legacyBugBase);
   assert.equal(readFileSync(openQuestions, "utf8"), legacyOpenQuestions);

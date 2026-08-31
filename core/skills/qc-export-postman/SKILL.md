@@ -9,32 +9,39 @@ Create an importable Postman Collection v2.1 without inventing API behavior or i
 
 ## Capability Boundary
 
-This skill creates a static collection and manifest only. It does not provision
-an environment, resolve secrets, install or run Newman, execute requests, or
-configure CI. Collection generation and structural validation depend on the
-current agent's file and JSON capabilities; this package does not bundle a
-deterministic collection generator or Postman schema validator. Record fuller
-portable generation and runtime validation as deferred enhancement
-`QC-EXPORT-001`.
+This skill creates a static collection and manifest only.
+It does not provision an environment, resolve secrets, install or run Newman, execute requests, or configure CI.
+Collection generation and structural validation depend on the current agent's file and JSON capabilities; this package does not bundle a deterministic collection generator or Postman schema validator.
+Record fuller portable generation and runtime validation as deferred enhancement `QC-EXPORT-001`.
 
 ## Artifact Contract
 
-Read the shared contract at `qc/config/material-paths.md`. Save output below
-`qc/automation/postman/<scope-key>/`.
+Read the shared contract at `qc/config/material-paths.md`.
+Save output below `qc/automation/postman/<scope-key>/`.
+
+## Input Preflight
+
+Apply the shared `Input Boundary and Source Discovery` contract before reading phase inputs.
+If any required source or artifact locator or content is missing, stop with `BLOCKED_INPUT` in chat and ask the user to provide it or explicitly approve one bounded search root.
+Do not search the current project, parent directories, sibling projects, the broader workspace, the user home directory, or an external location to discover missing input, and do not request broader filesystem permission for that purpose.
+A feature name, module name, scope key, keyword, or prior project knowledge is context only, not a locator.
+If the user does not know the locator, ask requirement clarification questions in chat and do not infer unstated behavior.
 
 ## Required Inputs
 
 - Locked `qc/test-cases/<scope-key>-test-cases.md` revision;
 - Selected `API-AUTO` or `BOTH` TC IDs;
 - Source-backed HTTP method, endpoint, auth scheme, headers, payload, response shape, and Expected Results;
-- Locked parent Viewpoint and approved requirement sources referenced by the
-  Test Cases;
+- Locked parent Viewpoint and approved requirement sources referenced by the Test Cases;
 - Matching Gap Report only when the locked design chain uses `GAP_ANALYSIS`;
 - OQ ledger when the locked design chain references OQs.
 
-Reject any stale case, unresolved OQ that blocks from `DESIGN` or `EXPORT`, missing API contract field, or `NEEDS_SPEC` case. Report missing evidence as `BLOCKED_SPEC`; do not convert it to `MANUAL` merely because the API contract is incomplete.
+Reject any stale case, unresolved OQ that blocks from `DESIGN` or `EXPORT`, missing API contract field, or `NEEDS_SPEC` case.
+Report missing evidence as `BLOCKED_SPEC`; do not convert it to `MANUAL` merely because the API contract is incomplete.
 
-Read eligibility only from the canonical `Automation Eligibility` column. Do not infer it from tags, titles, obsolete derived fields, or HTTP-like wording. Treat a missing or unknown canonical value as `BLOCKED_SCHEMA`.
+Read eligibility only from the canonical `Automation Eligibility` column.
+Do not infer it from tags, titles, obsolete derived fields, or HTTP-like wording.
+Treat a missing or unknown canonical value as `BLOCKED_SCHEMA`.
 
 ## Mapping
 
@@ -47,7 +54,8 @@ Read eligibility only from the canonical `Automation Eligibility` column. Do not
 | Expected Results | `pm.test(...)` assertions |
 | Concrete Test Data | Non-secret values or named environment variables |
 
-Leave secret variable values empty and document their names in the manifest. Never write tokens, passwords, or production personal data into the collection.
+Leave secret variable values empty and document their names in the manifest.
+Never write tokens, passwords, or production personal data into the collection.
 
 ## Workflow
 
@@ -59,9 +67,7 @@ Leave secret variable values empty and document their names in the manifest. Nev
 6. Write `<scope-key>.postman_collection.json` and `<scope-key>-postman-manifest.md`.
 7. Validate JSON structure, traceability, and secret handling.
 
-The manifest records Scope Key, Scope Code, Artifact Type, Revision, State,
-readiness route, locked source TC revision, exported and rejected TC IDs,
-source coverage, validation state, secret variable names, and runtime blockers.
+The manifest records Scope Key, Scope Code, Artifact Type, Revision, State, readiness route, locked source TC revision, exported and rejected TC IDs, source coverage, validation state, secret variable names, and runtime blockers.
 
 ## Static Validation Gate
 
@@ -73,7 +79,8 @@ source coverage, validation state, secret variable names, and runtime blockers.
 - Rejected IDs and reasons appear in the manifest.
 - All relative source links resolve.
 
-Mark the collection `STATIC_VALID` after these checks. Mark it `RUNTIME_READY` only when environment variables, credentials, data fixtures, dependencies, and cleanup are verified.
+Mark the collection `STATIC_VALID` after these checks.
+Mark it `RUNTIME_READY` only when environment variables, credentials, data fixtures, dependencies, and cleanup are verified.
 
 ## Rules
 

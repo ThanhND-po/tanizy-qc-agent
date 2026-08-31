@@ -5,22 +5,30 @@ description: "Analyze approved requirement sources for applicable gaps, ambiguit
 
 # QC Gap Finder
 
-Identify what is stated, what is missing, and what must stop downstream design. Do not create Test Viewpoints or Test Cases in this skill.
+Identify what is stated, what is missing, and what must stop downstream design.
+Do not create Test Viewpoints or Test Cases in this skill.
 
-Run this skill only when Gap Analysis is explicitly in the approved phase
-scope. Do not treat it as a mandatory prerequisite for Test Viewpoint design.
+Run this skill only when Gap Analysis is explicitly in the approved phase scope.
+Do not treat it as a mandatory prerequisite for Test Viewpoint design.
 
 ## Artifact Contract
 
-Read the shared contract at `qc/config/material-paths.md` and
-`references/open-questions-guide.md` before drafting. Use the approved scope key
-for both the report and OQ rows.
+Read the shared contract at `qc/config/material-paths.md` and `references/open-questions-guide.md` before drafting.
+Use the approved scope key for both the report and OQ rows.
+
+## Input Preflight
+
+Apply the shared `Input Boundary and Source Discovery` contract before reading phase inputs.
+If the approved requirement source locator or content is missing, stop with `BLOCKED_INPUT` in chat and ask the user to provide it or explicitly approve one bounded search root.
+Do not search the current project, parent directories, sibling projects, the broader workspace, the user home directory, or an external location to discover missing input, and do not request broader filesystem permission for that purpose.
+A feature name, module name, scope key, keyword, or prior project knowledge is context only, not a locator.
+If the user does not know the locator, ask requirement clarification questions in chat and do not infer unstated behavior.
 
 ## Inputs
 
 | Input | Handling when missing |
 |---|---|
-| Approved requirement sources | Stop and request exact source paths |
+| Approved requirement sources | Stop with `BLOCKED_INPUT` and request an exact locator or pasted content |
 | Existing OQ ledger | Load `qc/open-questions.md`; create from the installed seed only after approval |
 | System context | Mark current behavior unknown and limit regression claims |
 | Bug base | Mark known-bug coverage unavailable |
@@ -39,8 +47,8 @@ Do not classify an unstated behavior as a safe assumption.
 
 ## Applicability
 
-Do not turn a generic review category into a finding automatically. Classify a
-candidate check before recording it:
+Do not turn a generic review category into a finding automatically.
+Classify a candidate check before recording it:
 
 | Applicability | Meaning |
 |---|---|
@@ -48,11 +56,9 @@ candidate check before recording it:
 | `NOT_APPLICABLE` | The item type or behavior makes the check irrelevant |
 | `OUT_OF_SCOPE` | The check could apply, but the approved scope excludes it |
 
-Only absent or unclear `APPLICABLE` evidence may become `GAP`, `AMB`, or
-`CONFLICT`. Record the basis for `OUT_OF_SCOPE`; do not relabel it as
-`NOT_APPLICABLE`. Review security, accessibility, performance, concurrency, and
-other quality characteristics only when they are applicable to the approved
-scope.
+Only absent or unclear `APPLICABLE` evidence may become `GAP`, `AMB`, or `CONFLICT`.
+Record the basis for `OUT_OF_SCOPE`; do not relabel it as `NOT_APPLICABLE`.
+Review security, accessibility, performance, concurrency, and other quality characteristics only when they are applicable to the approved scope.
 
 ## Blocking Decision
 
@@ -75,9 +81,12 @@ Use `DESIGN` when an applicable unresolved finding affects any of these:
 - API method, endpoint, request/response contract for API design;
 - Conflict that makes the intended workflow indeterminate.
 
-Use `EXECUTION`, not `DESIGN`, when test intent is fully defined but route, auth, fixture, cleanup, environment, or runtime tools are unverified. Use the earliest phase and list exact impacted artifacts when more than one phase is affected.
+Use `EXECUTION`, not `DESIGN`, when test intent is fully defined but route, auth, fixture, cleanup, environment, or runtime tools are unverified.
+Use the earliest phase and list exact impacted artifacts when more than one phase is affected.
 
-Non-blocking wording or presentation gaps may remain open, but they cannot be used as assertions. A user answer counts only when it is explicit and recorded with its decision source. Silence never resolves an OQ.
+Non-blocking wording or presentation gaps may remain open, but they cannot be used as assertions.
+A user answer counts only when it is explicit and recorded with its decision source.
+Silence never resolves an OQ.
 
 ## Workflow
 
@@ -95,7 +104,8 @@ Non-blocking wording or presentation gaps may remain open, but they cannot be us
 12. Write `qc/gap-reports/<scope-key>-gap-report.md` and only the approved OQ rows.
 13. Validate relative links, scope key, stable Finding and OQ IDs, and coverage totals.
 
-Ask blocking questions first. Group related questions in one concise review when this is clearer, but keep one decision per OQ row.
+Ask blocking questions first.
+Group related questions in one concise review when this is clearer, but keep one decision per OQ row.
 
 ## Gap Report Structure
 
@@ -127,10 +137,12 @@ Design gate: READY | PARTIAL | STOP
 | Dimension | Source Items | Testable | Blocked |
 ```
 
-Use relative Markdown links for project-local source paths and any impacted artifact that already exists. For an approved external source, record the exact locator and `external, non-portable` status from the artifact contract. Keep proposed paths as code until they exist.
+Use relative Markdown links for project-local source paths and any impacted artifact that already exists.
+For an approved external source, record the exact locator and `external, non-portable` status from the artifact contract.
+Keep proposed paths as code until they exist.
 
-If there are no findings, write `None` in the Findings section. Do not create a
-placeholder Finding or OQ to prove that the analysis occurred.
+If there are no findings, write `None` in the Findings section.
+Do not create a placeholder Finding or OQ to prove that the analysis occurred.
 
 When the scope has no testable behavior, report `0/0` and do not create placeholder cases or automation artifacts.
 
@@ -138,10 +150,8 @@ When the scope has no testable behavior, report `0/0` and do not create placehol
 
 - Keep hypotheses in the gap report or OQ ledger.
 - Add System Context only from an approved source or verified runtime evidence.
-- System Context cannot override an approved requirement. Route conflicts to
-  the Gap Report and OQ ledger.
-- Add Bug Base rows only for verified known defects or observed failures with
-  evidence. The evidence locator may be external.
+- System Context cannot override an approved requirement. Route conflicts to the Gap Report and OQ ledger.
+- Add Bug Base rows only for verified known defects or observed failures with evidence. The evidence locator may be external.
 - Do not create `Bug ID = TBD` from a risk hypothesis.
 - Obtain separate approval before changing refs not already in the write set.
 

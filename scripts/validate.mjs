@@ -67,11 +67,113 @@ function validateMarkdownLinks(path, content) {
   }
 }
 
+function validateMarkdownSourceFormatting(path, content) {
+  const lines = content.split("\n");
+  const protectedLines = new Set();
+  let inFrontmatter = lines[0] === "---";
+  let fenceMarker = null;
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    const trimmed = line.trim();
+
+    if (inFrontmatter) {
+      protectedLines.add(index);
+      if (index > 0 && trimmed === "---") inFrontmatter = false;
+      continue;
+    }
+
+    const fence = trimmed.match(/^(`{3,}|~{3,})/);
+    if (fenceMarker) {
+      protectedLines.add(index);
+      if (trimmed.startsWith(fenceMarker)) fenceMarker = null;
+      continue;
+    }
+    if (fence) {
+      protectedLines.add(index);
+      fenceMarker = fence[1];
+    }
+  }
+
+  const isListItem = (line) => /^ {0,3}(?:[-+*]|\d+[.)])\s+/.test(line);
+  const isStandaloneStructure = (line) => {
+    const trimmed = line.trim();
+    return (
+      !trimmed ||
+      /^#{1,6}\s/.test(trimmed) ||
+      /^\|/.test(trimmed) ||
+      /^(?:-{3,}|_{3,}|\*{3,})$/.test(trimmed) ||
+      /^<\/?[A-Za-z][^>]*>/.test(trimmed) ||
+      /^<!--|^-->/.test(trimmed) ||
+      /^\[[^\]]+\]:\s*/.test(trimmed) ||
+      /^!\[[^\]]*\]\(/.test(trimmed) ||
+      /^(?: {4}|\t)/.test(line)
+    );
+  };
+  const startsNewBlock = (line) =>
+    isStandaloneStructure(line) || isListItem(line) || /^ {0,3}>\s?/.test(line);
+  const endsSentence = (line) => {
+    if (/ {2}$/.test(line) || /<br\s*\/?>\s*$/i.test(line)) return true;
+    return /[.!?。！？](?:[`*_~"'’”)}\]]*)$/.test(line.trim());
+  };
+  const containsMultipleSentences = (line) => {
+    const withoutAbbreviations = line
+      .trim()
+      .replace(/\b(?:e\.g|i\.e)\./gi, (value) => value.replaceAll(".", "∎"));
+    return /[.!?。！？](?:[`*_~"'’”)}\]]*)\s+(?=[`*_~"'“‘(\[]*(?:\p{Lu}|\d|`))/u.test(
+      withoutAbbreviations,
+    );
+  };
+
+  for (let index = 0; index < lines.length; index += 1) {
+    if (protectedLines.has(index)) continue;
+    const line = lines[index];
+    if (isListItem(line) || isStandaloneStructure(line)) continue;
+    if (containsMultipleSentences(line)) {
+      fail(
+        `${relative(repoRoot, path)}:${index + 1}: prose contains multiple sentences on one physical line`,
+      );
+    }
+  }
+
+  for (let index = 0; index < lines.length - 1; index += 1) {
+    if (protectedLines.has(index) || protectedLines.has(index + 1)) continue;
+
+    const current = lines[index];
+    const next = lines[index + 1];
+    if (!current.trim() || !next.trim()) continue;
+
+    if (isListItem(current)) {
+      if (!startsNewBlock(next)) {
+        fail(
+          `${relative(repoRoot, path)}:${index + 1}: list item is split across physical lines; keep the item on one line`,
+        );
+      }
+      continue;
+    }
+
+    if (isStandaloneStructure(current) || startsNewBlock(next)) continue;
+    if (!endsSentence(current)) {
+      fail(
+        `${relative(repoRoot, path)}:${index + 1}: prose is hard-wrapped before the sentence boundary`,
+      );
+    }
+  }
+}
+
 const skillsRoot = join(repoRoot, "core", "skills");
 const skillNames = readdirSync(skillsRoot)
   .filter((name) => statSync(join(skillsRoot, name)).isDirectory())
   .sort();
 const seenNames = new Set();
+const skillInputBoundaryRules = [
+  "## Input Preflight",
+  "Input Boundary and Source Discovery",
+  "`BLOCKED_INPUT`",
+  "explicitly approve one bounded search root",
+  "do not request broader filesystem permission",
+  "feature name, module name, scope key, keyword, or prior project knowledge",
+];
 
 for (const folder of skillNames) {
   const skillPath = join(skillsRoot, folder, "SKILL.md");
@@ -97,6 +199,11 @@ for (const folder of skillNames) {
   }
   if (!content.includes("qc/config/material-paths.md")) {
     fail(`${folder}: shared artifact contract reference is missing`);
+  }
+  for (const rule of skillInputBoundaryRules) {
+    if (!content.toLowerCase().includes(rule.toLowerCase())) {
+      fail(`${folder}: required Input Boundary preflight rule is missing: ${rule}`);
+    }
   }
   if (content.includes("references/material-paths.md")) {
     fail(`${folder}: legacy per-skill artifact contract reference is not allowed`);
@@ -145,7 +252,91 @@ for (const root of publishedTextRoots) {
 for (const path of publishedTextFiles) {
   const content = readFileSync(path, "utf8");
   if (content.includes("—")) fail(`${relative(repoRoot, path)}: em dash is not allowed`);
+  if (path.endsWith(".md")) validateMarkdownSourceFormatting(path, content);
   validateMarkdownLinks(path, content);
+}
+
+const publicExampleDenylist = [
+  /\b(?:shinsei|zengin|paypay|earlybill|talentbank|anyjob|ikura|sbi)\b/i,
+  /\b(?:REQ-PAY|FS-PAY|TC-ZEX|VP-ZEX|OQ-ZEX|BUG-TOU)\b/i,
+  /\b(?:Break Time|timesheets?|payroll|payslips?|attendance|manual transfer|payment settlement|correction request|worker account)\b/i,
+  /Firebase App Distribution/i,
+];
+const publicRepositoryTextFiles = [
+  ...publishedTextFiles,
+  join(repoRoot, "package.json"),
+  join(repoRoot, "scripts", "install.mjs"),
+  join(repoRoot, "scripts", "test-install.mjs"),
+  join(repoRoot, "scripts", "test-manual-results.mjs"),
+];
+for (const path of new Set(publicRepositoryTextFiles)) {
+  const content = readFileSync(path, "utf8");
+  for (const pattern of publicExampleDenylist) {
+    const match = content.match(pattern);
+    if (match) {
+      fail(
+        `${relative(repoRoot, path)}: public example contains prohibited customer-specific term ${match[0]}`,
+      );
+    }
+  }
+}
+
+const markdownFormattingRules = [
+  "Do not hard-wrap prose at a fixed column width.",
+  "Keep each prose sentence on one physical line. Start a new physical line only at a sentence boundary or where Markdown structure requires it.",
+  "Keep each list item and table row on one physical line unless nested content requires multiple lines.",
+  "Preserve fenced code, explicit hard breaks, and syntax whose line breaks are meaningful.",
+];
+const adapterInputBoundaryRules = [
+  "`BLOCKED_INPUT`",
+  "explicitly approve one bounded search root",
+  "Do not search for missing inputs",
+  "Do not request broader filesystem permission",
+  "feature name, module name, scope key, keyword, or prior project knowledge",
+];
+const repositoryInstructions = join(repoRoot, "AGENTS.md");
+if (existsSync(repositoryInstructions)) {
+  validateMarkdownSourceFormatting(
+    repositoryInstructions,
+    readFileSync(repositoryInstructions, "utf8"),
+  );
+}
+const repositoryTodo = join(repoRoot, "TO-DO.md");
+if (existsSync(repositoryTodo)) {
+  validateMarkdownSourceFormatting(repositoryTodo, readFileSync(repositoryTodo, "utf8"));
+}
+for (const adapterInstruction of [
+  join(repoRoot, "adapters", "antigravity", "AGENTS.md"),
+  join(repoRoot, "adapters", "claude-code", "CLAUDE.md"),
+  join(repoRoot, "adapters", "codex", "AGENTS.md"),
+  join(repoRoot, "adapters", "gemini-cli", "GEMINI.md"),
+]) {
+  const content = readFileSync(adapterInstruction, "utf8");
+  for (const rule of markdownFormattingRules) {
+    if (!content.includes(rule)) {
+      fail(`${relative(repoRoot, adapterInstruction)}: Markdown source formatting rule is missing`);
+    }
+  }
+  for (const rule of adapterInputBoundaryRules) {
+    if (!content.toLowerCase().includes(rule.toLowerCase())) {
+      fail(`${relative(repoRoot, adapterInstruction)}: Input Boundary rule is missing: ${rule}`);
+    }
+  }
+}
+
+const antigravityRulePath = join(
+  repoRoot,
+  "adapters",
+  "antigravity",
+  ".agents",
+  "rules",
+  "tanizy-qc.md",
+);
+const antigravityRule = readFileSync(antigravityRulePath, "utf8");
+for (const rule of ["`BLOCKED_INPUT`", "not a source locator", "request broader filesystem permission"]) {
+  if (!antigravityRule.includes(rule)) {
+    fail(`${relative(repoRoot, antigravityRulePath)}: Input Boundary rule is missing: ${rule}`);
+  }
 }
 
 const installerPath = join(repoRoot, "scripts", "install.mjs");
@@ -174,6 +365,59 @@ const testCaseSkill = readFileSync(
   join(skillsRoot, "qc-design-test-cases", "SKILL.md"),
   "utf8",
 );
+for (const requiredMaterial of [
+  join(
+    skillsRoot,
+    "qc-design-viewpoints",
+    "references",
+    "viewpoint-discovery-guide.md",
+  ),
+  join(
+    skillsRoot,
+    "qc-design-test-cases",
+    "references",
+    "test-design-techniques.md",
+  ),
+]) {
+  if (!existsSync(requiredMaterial)) {
+    fail(`${relative(repoRoot, requiredMaterial)}: required phase-owned material is missing`);
+  }
+}
+for (const retiredMaterial of [
+  join(repoRoot, "core", "references", "field-validation-checklist.md"),
+  join(repoRoot, "core", "references", "ui-component-checklist.md"),
+  join(
+    skillsRoot,
+    "qc-design-viewpoints",
+    "references",
+    "viewpoint-catalog.md",
+  ),
+]) {
+  if (existsSync(retiredMaterial)) {
+    fail(`${relative(repoRoot, retiredMaterial)}: retired discovery material must not be published`);
+  }
+}
+const testDesignTechniquesReference = "references/test-design-techniques.md";
+if (!testCaseSkill.includes(`\`${testDesignTechniquesReference}\``)) {
+  fail(`qc-design-test-cases: must use the package-managed ${testDesignTechniquesReference}`);
+}
+for (const discoveryMaterial of [
+  "viewpoint-discovery-guide.md",
+  "field-validation-checklist.md",
+  "ui-component-checklist.md",
+]) {
+  if (testCaseSkill.includes(discoveryMaterial)) {
+    fail(`qc-design-test-cases: discovery material ${discoveryMaterial} belongs to Viewpoint analysis`);
+  }
+}
+const canonicalTestDesignBasisHeader =
+  "| Leaf VP ID | Coverage Item | Coverage Target | Denominator or Selection Rule | Test Design Technique | Rationale | TC IDs | Status or Blocked Reason |";
+if (
+  !testCaseSkill.includes("## 3. Test Design Basis") ||
+  !testCaseSkill.includes(canonicalTestDesignBasisHeader)
+) {
+  fail("qc-design-test-cases: canonical Test Design Basis schema is missing or changed");
+}
 const canonicalTcHeader =
   "| TC ID | Module | Risk | Title | Preconditions | Test Data | Steps | Expected Results | Source Trace | VP ID | Priority | Automation Eligibility | Tags |";
 if (!testCaseSkill.includes(canonicalTcHeader)) {
@@ -194,10 +438,49 @@ const materialPaths = readFileSync(
   join(repoRoot, "core", "references", "material-paths.md"),
   "utf8",
 );
+for (const rule of [
+  "## Input Boundary and Source Discovery",
+  "A feature name, module name, scope key, keyword, or prior project knowledge is not a source locator",
+  "stop with `BLOCKED_INPUT` in chat",
+  "Do not request broader filesystem permission",
+  "A filesystem permission prompt is not a substitute",
+  "ask requirement clarification questions in chat",
+]) {
+  if (!materialPaths.includes(rule)) {
+    fail(`core/references/material-paths.md: canonical Input Boundary rule is missing: ${rule}`);
+  }
+}
 const viewpointSkill = readFileSync(
   join(skillsRoot, "qc-design-viewpoints", "SKILL.md"),
   "utf8",
 );
+const viewpointDiscoveryReference = "references/viewpoint-discovery-guide.md";
+if (viewpointSkill.split(viewpointDiscoveryReference).length - 1 !== 1) {
+  fail(`qc-design-viewpoints: must use the package-managed ${viewpointDiscoveryReference}`);
+}
+for (const legacyChecklist of [
+  "field-validation-checklist.md",
+  "ui-component-checklist.md",
+]) {
+  if (viewpointSkill.includes(legacyChecklist)) {
+    fail(`qc-design-viewpoints: legacy discovery material ${legacyChecklist} is not allowed`);
+  }
+}
+for (const section of [
+  "## 3. Discovery Material Manifest",
+  "## 5. Test Target Map",
+  "## 7. Viewpoint Breakdown",
+  "## 8. Discovery Coverage Map",
+]) {
+  if (!viewpointSkill.includes(section)) {
+    fail(`qc-design-viewpoints: locked schema section ${section} is missing`);
+  }
+}
+const canonicalDiscoveryMaterialHeader =
+  "| Material | Locator | Package Revision or File Hash | Role |";
+if (!viewpointSkill.includes(canonicalDiscoveryMaterialHeader)) {
+  fail("qc-design-viewpoints: Discovery Material Manifest revision schema is missing or changed");
+}
 for (const route of ["GAP_ANALYSIS", "DIRECT_SOURCE_CHECK"]) {
   if (!materialPaths.includes(`\`${route}\``) || !viewpointSkill.includes(`\`${route}\``)) {
     fail(`Viewpoint readiness contract: ${route} must exist in the shared contract and skill`);
@@ -311,20 +594,19 @@ if (!contextGuide.includes("Evidence is required for Bug Base promotion")) {
   fail("Bug Base: evidence requirement is missing");
 }
 if (
-  !bugBaseSeed.includes("BUG-TOU-001") ||
-  !bugBaseSeed.includes("Firebase App Distribution") ||
+  !bugBaseSeed.includes("BUG-CART-001") ||
+  !bugBaseSeed.includes("Shopping Cart") ||
   !bugBaseSeed.includes("illustrative only")
 ) {
-  fail("Bug Base: Android cache and ToU example is missing or unsafe");
+  fail("Bug Base: neutral Shopping Cart example is missing or unsafe");
 }
 if (
-  !systemContextSeed.includes("CON-TIME-001") ||
-  !systemContextSeed.includes("UTC+0") ||
-  !systemContextSeed.includes("`timestamptz`") ||
-  !systemContextSeed.includes("FE phải truyền timezone") ||
+  !systemContextSeed.includes("CON-LOGIN-001") ||
+  !systemContextSeed.includes("synthetic test accounts") ||
+  !systemContextSeed.includes("replace-with-approved-test-configuration-ref") ||
   !systemContextSeed.includes("illustrative only")
 ) {
-  fail("System Context: UTC and local-time conversion example is missing or unsafe");
+  fail("System Context: neutral Login example is missing or unsafe");
 }
 
 const executionContract = readFileSync(

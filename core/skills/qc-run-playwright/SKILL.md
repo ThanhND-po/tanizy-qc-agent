@@ -5,32 +5,37 @@ description: "Execute locked, runtime-ready UI Test Cases interactively with ava
 
 # Run Test Cases With Playwright
 
-Execute approved test intent against the real application. Do not redesign a TC or change its Expected Result during execution.
+Execute approved test intent against the real application.
+Do not redesign a TC or change its Expected Result during execution.
 
 ## Capability Boundary
 
-Use this skill in `INTERACTIVE_EXECUTION_ONLY` mode. It drives an available
-browser automation tool to execute locked Test Case steps and append results.
+Use this skill in `INTERACTIVE_EXECUTION_ONLY` mode.
+It drives an available browser automation tool to execute locked Test Case steps and append results.
 It does not:
 
 - Install or configure `@playwright/test`;
-- Create `playwright.config.*`, `*.spec.ts`, `*.spec.js`, fixtures, Page Objects,
-  helper libraries, or BDD step definitions;
+- Create `playwright.config.*`, `*.spec.ts`, `*.spec.js`, fixtures, Page Objects, helper libraries, or BDD step definitions;
 - Convert a Gherkin feature into runnable automation;
-- Build or maintain a reusable suite, CI job, trace viewer integration, or test
-  reporting pipeline;
+- Build or maintain a reusable suite, CI job, trace viewer integration, or test reporting pipeline;
 - Teach a Manual QC how to maintain Playwright code.
 
-When the user asks to build, generate, scaffold, or maintain Playwright test
-code, report `UNSUPPORTED_AUTOMATION_AUTHORING` and explain this package's
-current boundary. Do not reinterpret the request as live execution and do not
-create placeholder automation files. Record the need as deferred enhancement
-`QC-AUTO-001` when project documentation is in the approved write set.
+When the user asks to build, generate, scaffold, or maintain Playwright test code, report `UNSUPPORTED_AUTOMATION_AUTHORING` and explain this package's current boundary.
+Do not reinterpret the request as live execution and do not create placeholder automation files.
+Record the need as deferred enhancement `QC-AUTO-001` when project documentation is in the approved write set.
 
 ## Artifact Contract
 
-Read the shared contract at `qc/config/material-paths.md`. Treat
-`qc/executions/<scope-key>-executions.md` as an append-only run history.
+Read the shared contract at `qc/config/material-paths.md`.
+Treat `qc/executions/<scope-key>-executions.md` as an append-only run history.
+
+## Input Preflight
+
+Apply the shared `Input Boundary and Source Discovery` contract before reading phase inputs.
+If any required Test Case, environment, account, fixture, policy, or artifact locator or content is missing, stop with `BLOCKED_INPUT` in chat and ask the user to provide it or explicitly approve one bounded search root.
+Do not search the current project, parent directories, sibling projects, the broader workspace, the user home directory, or an external location to discover missing input, and do not request broader filesystem permission for that purpose.
+A feature name, module name, scope key, keyword, or prior project knowledge is context only, not a locator.
+If the user does not know the locator, ask clarification questions in chat and do not infer unstated execution data.
 
 ## Required Inputs
 
@@ -47,7 +52,10 @@ Read the shared contract at `qc/config/material-paths.md`. Treat
 | Evidence policy | `OPTIONAL` by default, or a user-approved or release-criteria override; external locators are allowed |
 | Write set | Execution log, any approved evidence paths, and separately approved ref updates |
 
-If any required input is absent, report the preflight as `BLOCKED` in chat and do not open a browser or write a run section. Record a `BLOCKED` attempt only when the Execution Gate passed and an approved runtime prerequisite later became unavailable. A Gherkin file is supplementary unless the project has separately verified its BDD runner and step bindings. The presence of a `.feature` file does not satisfy the runtime-tool requirement.
+If any required input is absent, report the preflight as `BLOCKED_INPUT` in chat and do not open a browser or write a run section.
+Record a `BLOCKED` attempt only when the Execution Gate passed and an approved runtime prerequisite later became unavailable.
+A Gherkin file is supplementary unless the project has separately verified its BDD runner and step bindings.
+The presence of a `.feature` file does not satisfy the runtime-tool requirement.
 
 ## Execution Gate
 
@@ -81,14 +89,20 @@ Allow automatic repair only for execution mechanics already covered by the appro
 - Replace a fixed sleep with a state-based wait;
 - Recover an expired session through the approved login fixture.
 
-Stop and request a new gate before changing Test Data, Steps, Expected Results, environment, role, side effects, or cleanup. Never silently generate different business data. Do not repeat a non-idempotent TC merely to obtain two passes.
+Stop and request a new gate before changing Test Data, Steps, Expected Results, environment, role, side effects, or cleanup.
+Never silently generate different business data.
+Do not repeat a non-idempotent TC merely to obtain two passes.
 
 ## Execution Log Shape
 
-Follow this skill's `references/executions-log.md`. Each attempt must include Run ID, Attempt, TC ID, Result, Actual Result, Tested By, Tested At, Source Locator, and cleanup state. Evidence and a verified defect link are optional unless the approved policy requires them.
+Follow this skill's `references/executions-log.md`.
+Each attempt must include Run ID, Attempt, TC ID, Result, Actual Result, Tested By, Tested At, Source Locator, and cleanup state.
+Evidence and a verified defect link are optional unless the approved policy requires them.
 
-When project-local evidence is approved, store it under `qc/evidence/<scope-key>/<run-id-lowercase>/` using
-`<tc-id-lowercase>-attempt-<n>-<evidence-key>.<ext>`. Preserve uppercase IDs in the execution log. Do not overwrite evidence from an earlier attempt. Preserve an approved external evidence locator without copying it into the project.
+When project-local evidence is approved, store it under `qc/evidence/<scope-key>/<run-id-lowercase>/` using `<tc-id-lowercase>-attempt-<n>-<evidence-key>.<ext>`.
+Preserve uppercase IDs in the execution log.
+Do not overwrite evidence from an earlier attempt.
+Preserve an approved external evidence locator without copying it into the project.
 
 ## Reference Updates
 

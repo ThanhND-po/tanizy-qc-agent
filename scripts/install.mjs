@@ -247,24 +247,6 @@ function copyPlan(target, projectRoot, requestedSkills, skipRefs) {
     managedRoot: join(projectRoot, "qc", "config"),
   });
 
-  if (
-    selected.includes("qc-design-viewpoints") ||
-    selected.includes("qc-design-test-cases")
-  ) {
-    plan.push(
-      {
-        kind: "seed-file",
-        from: join(repoRoot, "core", "references", "field-validation-checklist.md"),
-        to: join(projectRoot, "qc", "config", "field-validation-checklist.md"),
-      },
-      {
-        kind: "seed-file",
-        from: join(repoRoot, "core", "references", "ui-component-checklist.md"),
-        to: join(projectRoot, "qc", "config", "ui-component-checklist.md"),
-      },
-    );
-  }
-
   const adapter = adapterSpec(target, projectRoot);
   plan.push({ kind: "managed-block", ...adapter });
 
@@ -426,6 +408,15 @@ function legacyFindings(projectRoot) {
     ["Shared legacy task file", join(projectRoot, "qc", "qc-task.md")],
     ["Legacy runtime contract path", join(projectRoot, "qc", "material-paths.md")],
     ["Legacy checklist path", join(projectRoot, "qc", "field-validation-checklist.md")],
+    ["Legacy checklist path", join(projectRoot, "qc", "ui-component-checklist.md")],
+    [
+      "Project-owned legacy Viewpoint checklist",
+      join(projectRoot, "qc", "config", "field-validation-checklist.md"),
+    ],
+    [
+      "Project-owned legacy Viewpoint checklist",
+      join(projectRoot, "qc", "config", "ui-component-checklist.md"),
+    ],
     ["Legacy nested adapter", join(projectRoot, "qc", "AGENTS.md")],
   ];
   return candidates.filter(([, path]) => existsSync(path));
@@ -447,7 +438,13 @@ function printPlan(projectRoot, target, selected, inspected, findings, dryRun) {
     for (const [label, path] of findings) {
       console.warn(`- ${label}: ${relative(projectRoot, path)}`);
     }
-    console.warn("Review and migrate these paths after validating the new installation.");
+    if (findings.some(([label]) => label.includes("checklist"))) {
+      console.warn(
+        "Legacy Viewpoint checklist files are project-owned and were preserved. Merge still-relevant additions into qc/config/viewpoint-discovery-extension.md after validating the new installation.",
+      );
+    } else {
+      console.warn("Review and migrate these paths after validating the new installation.");
+    }
   }
 }
 

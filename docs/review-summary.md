@@ -2,7 +2,9 @@
 
 ## Kết luận
 
-Bộ skill cần một contract chung cho naming, output path, spec-first gate, approval và artifact lifecycle. Việc chỉ sửa từng filename riêng lẻ không giải quyết được duplicate file hoặc handoff sai giữa các skill.
+Bộ skill cần một contract chung cho naming, output path, spec-first gate, approval và artifact lifecycle.
+Test Analysis và Test Case Design cũng cần material riêng theo phase.
+Việc chỉ gộp hoặc đổi tên checklist không giải quyết được nội dung trùng lặp và handoff sai giữa hai activity.
 
 ## Vấn đề đã xác minh
 
@@ -17,6 +19,7 @@ Bộ skill cần một contract chung cho naming, output path, spec-first gate, 
 | High | Gap, Viewpoint và TC không giữ cùng source stem | Relative link và traceability bị lệch |
 | High | Gherkin/Postman ghi ngoài `qc/` | Output contract không thống nhất |
 | High | `--force` ghi đè adapter, checklist và runtime refs | Có thể mất project rules và QC knowledge |
+| High | Field validation và UI component checklist trùng common lens, đồng thời được gọi lại trong Test Case Design | Khó maintain và làm Test Case phase chạy lại Viewpoint discovery |
 | High | Export được mô tả là runnable dù chưa có runner, auth hoặc fixture | Static validity bị hiểu nhầm thành runtime readiness |
 | High | Report bắt buộc GO/NO-GO khi chưa có release criteria | Agent có thể tự tạo quyết định release |
 
@@ -24,8 +27,8 @@ Bộ skill cần một contract chung cho naming, output path, spec-first gate, 
 
 ### 1. Ownership
 
-- Package-managed: target-native `qc-*` skill folders, managed adapter block, và một shared contract tại `qc/config/material-paths.md`.
-- Project-owned: Open Questions, System Context, Bug Base, customized field checklist, tasks, designs, runs và reports.
+- Package-managed: target-native `qc-*` skill folders, managed adapter block, một shared contract tại `qc/config/material-paths.md`, discovery guide riêng của `qc-design-viewpoints` và Test Design Techniques material riêng của `qc-design-test-cases`.
+- Project-owned: Open Questions, System Context, Bug Base, optional `qc/config/viewpoint-discovery-extension.md`, tasks, designs, runs và reports.
 - `--force` chỉ thay package-managed content.
 
 ### 2. Scope key
@@ -34,14 +37,15 @@ Bộ skill cần một contract chung cho naming, output path, spec-first gate, 
 - Giữ prefix `fs-`, `epic-`, `req-`, `cr-`.
 - Nhiều source: user xác nhận parent scope key trước khi write.
 - Xác nhận một `scope-code` ổn định cho OQ, VP, TC và Finding IDs.
-- Dùng cùng key cho mọi artifact tồn tại trong workstream. Gap Report chỉ tồn
-  tại khi Gap Analysis được phê duyệt.
+- Dùng cùng key cho mọi artifact tồn tại trong workstream. Gap Report chỉ tồn tại khi Gap Analysis được phê duyệt.
 
 ### 3. Runtime layout
 
 ```text
 qc/
 ├── config/
+│   ├── material-paths.md
+│   └── viewpoint-discovery-extension.md  # tùy chọn, project-owned
 ├── refs/
 ├── open-questions.md
 ├── tasks/<scope-key>-qc-task.md
@@ -59,11 +63,8 @@ qc/
 
 Chọn một Viewpoint readiness route:
 
-- `GAP_ANALYSIS`: chạy `qc-gap-finder` khi user yêu cầu rõ ràng, hỗ trợ
-  `READY`, `PARTIAL` hoặc `STOP`.
-- `DIRECT_SOURCE_CHECK`: `qc-design-viewpoints` kiểm tra trực tiếp source trong
-  selected scope. Khi pass, ghi `READY` và `Gap Analysis = NOT_RUN`. Kết quả này
-  không có nghĩa là không tồn tại gap.
+- `GAP_ANALYSIS`: chạy `qc-gap-finder` khi user yêu cầu rõ ràng, hỗ trợ `READY`, `PARTIAL` hoặc `STOP`.
+- `DIRECT_SOURCE_CHECK`: `qc-design-viewpoints` kiểm tra trực tiếp source trong selected scope. Khi pass, ghi `READY` và `Gap Analysis = NOT_RUN`. Kết quả này không có nghĩa là không tồn tại gap.
 
 | Gate | Rule |
 |---|---|
@@ -71,27 +72,55 @@ Chọn một Viewpoint readiness route:
 | `PARTIAL` | Chỉ tiếp tục phần source-backed sau `GAP_ANALYSIS`, tách blocked coverage |
 | `STOP` | Không tạo downstream design. Chỉ tạo Gap Report hoặc OQ khi phase và write set đó được phê duyệt |
 
-`DIRECT_SOURCE_CHECK` không tạo kết quả `PARTIAL`. Nếu thiếu hoặc mâu thuẫn
-evidence ảnh hưởng từ `DESIGN`, skill dừng và đề xuất `qc-gap-finder`, không tự
-động tạo Finding, OQ hoặc Gap Report.
+`DIRECT_SOURCE_CHECK` không tạo kết quả `PARTIAL`.
+Nếu thiếu hoặc mâu thuẫn evidence ảnh hưởng từ `DESIGN`, skill dừng và đề xuất `qc-gap-finder`, không tự động tạo Finding, OQ hoặc Gap Report.
 
-OQ dùng `Blocks From Phase`: `DESIGN`, `EXPORT`, `EXECUTION`, `REPORT`, hoặc
-`NONE`. Thiếu actor hoặc state chỉ block từ `DESIGN` khi behavior phụ thuộc vào
-chúng. Thiếu Test Data rule hoặc Expected Result cần thiết sẽ block từ `DESIGN`;
-thiếu route, auth, fixture hoặc cleanup chỉ block từ `EXECUTION` khi test intent
-đã đủ.
+OQ dùng `Blocks From Phase`: `DESIGN`, `EXPORT`, `EXECUTION`, `REPORT`, hoặc `NONE`.
+Thiếu actor hoặc state chỉ block từ `DESIGN` khi behavior phụ thuộc vào chúng.
+Thiếu Test Data rule hoặc Expected Result cần thiết sẽ block từ `DESIGN`; thiếu route, auth, fixture hoặc cleanup chỉ block từ `EXECUTION` khi test intent đã đủ.
 
-OQ tách Finding Class khỏi Question Domain và giữ riêng ownership, target date,
-decision authority, decision source, resolved source. PO Open là QC `OPEN`; PO
-Answered là QC `ANSWERED`; PO Deferred vẫn là QC `OPEN` nếu chưa có risk
-acceptance được ủy quyền; chỉ source đã cập nhật và được link chính xác mới là
-QC `RESOLVED`.
+OQ tách Finding Class khỏi Question Domain và giữ riêng ownership, target date, decision authority, decision source, resolved source.
+PO Open là QC `OPEN`; PO Answered là QC `ANSWERED`; PO Deferred vẫn là QC `OPEN` nếu chưa có risk acceptance được ủy quyền; chỉ source đã cập nhật và được link chính xác mới là QC `RESOLVED`.
 
-System Context dùng Scope Key, Environment, Source Revision và trạng thái
-`ACTIVE`, `STALE`, `SUPERSEDED`. Bug Base dùng một lifecycle table, giữ trace từ
-Requirement, TC, Run tới evidence, thời điểm quan sát và trạng thái đóng bug.
+System Context dùng Scope Key, Environment, Source Revision và trạng thái `ACTIVE`, `STALE`, `SUPERSEDED`.
+Bug Base dùng một lifecycle table, giữ trace từ Requirement, TC, Run tới evidence, thời điểm quan sát và trạng thái đóng bug.
 
-### 5. Approval sequence
+### 5. Test Analysis và Test Case Design
+
+```text
+Feature và business value
+-> Hiểu Test Target
+-> Tìm Viewpoint
+-> Phân rã thành leaf Viewpoint
+-> LOCK leaf Viewpoint revision
+-> Chọn coverage item và coverage target
+-> Chọn Test Design Technique
+-> Thiết kế Test Case
+```
+
+| Material | Ownership | Phase và giới hạn |
+|---|---|---|
+| `<skill-root>/qc-design-viewpoints/references/viewpoint-discovery-guide.md` | Package-managed | Chỉ dùng để hiểu Test Target, tìm common và item-specific lens, sau đó phân rã leaf Viewpoint |
+| `qc/config/viewpoint-discovery-extension.md` | Optional, project-owned | Chỉ bổ sung source-backed project hoặc domain discovery knowledge |
+| `<skill-root>/qc-design-test-cases/references/test-design-techniques.md` | Package-managed | Chỉ dùng để chọn coverage item, coverage target và technique từ locked leaf Viewpoint |
+
+Discovery guide và extension chỉ là heuristic.
+Chúng không được dùng làm source của requirement, business rule hoặc Expected Result.
+
+Test Viewpoint là source-backed test condition, không phải executable Test Case.
+Test Case chỉ trace tới leaf Viewpoint đã lock.
+Test Case Design không đọc lại discovery material để tìm Viewpoint mới.
+Khi phát hiện thiếu Viewpoint hoặc source thay đổi, dừng affected scope và quay lại `qc-design-viewpoints` để tạo, review và lock revision mới.
+
+Hai file `qc/config/field-validation-checklist.md` và `qc/config/ui-component-checklist.md` là legacy.
+Installer cảnh báo và giữ nguyên, không tự xóa, ghi đè hoặc migrate.
+User review customization, merge discovery rule còn phù hợp vào `qc/config/viewpoint-discovery-extension.md`, sau đó mới quyết định archive hoặc xóa bằng một phê duyệt riêng.
+
+Không rewrite locked Viewpoint dạng flat, Test Case hoặc execution artifact đã có.
+Test Case Design mới yêu cầu một Viewpoint revision có Test Target Map, parent và leaf breakdown, Discovery Coverage Map và material revision.
+Existing locked Test Case tiếp tục giữ `VP ID` gốc; report tách legacy flat coverage và không suy luận hierarchy ngược từ lịch sử.
+
+### 6. Approval sequence
 
 ```text
 Inventory source
@@ -102,24 +131,28 @@ Inventory source
 -> Validate
 ```
 
-Silence không phải approval. Skill con không tự chạy prerequisite phase ngoài
-scope đã xác nhận.
+Silence không phải approval.
+Skill con không tự chạy prerequisite phase ngoài scope đã xác nhận.
 
-### 6. Readiness and execution
+### 7. Readiness and execution
 
 - `STATIC_VALID`: structure, IDs, links và traceability pass.
 - `AUTOMATION_ELIGIBLE`: test intent có thể automate mà không đổi nghĩa.
-- `RUNTIME_READY`: environment, route, auth, fixture, cleanup, runner và
-  dependencies đã được verify.
+- `RUNTIME_READY`: environment, route, auth, fixture, cleanup, runner và dependencies đã được verify.
 
-Execution log là append-only theo Run ID, Attempt và TC ID. Retry không được ghi đè lịch sử. Manual result có thể được import từ XLSX, CSV, Google Sheets hoặc Markdown riêng qua `qc-record-manual-results`. Evidence là optional theo Evidence Policy của từng Run. Auto-heal chỉ sửa execution mechanics trong
-budget đã được duyệt.
+Execution log là append-only theo Run ID, Attempt và TC ID.
+Retry không được ghi đè lịch sử.
+Manual result có thể được import từ XLSX, CSV, Google Sheets hoặc Markdown riêng qua `qc-record-manual-results`.
+Evidence là optional theo Evidence Policy của từng Run.
+Auto-heal chỉ sửa execution mechanics trong budget đã được duyệt.
 
-### 7. Release report
+### 8. Release report
 
-Report chỉ dùng GO, CONDITIONAL GO hoặc NO-GO khi có release criteria và decision authority. Nếu thiếu, verdict là `UNDETERMINED`.
+Report chỉ dùng GO, CONDITIONAL GO hoặc NO-GO khi có release criteria và decision authority.
+Nếu thiếu, verdict là `UNDETERMINED`.
 
-Report dùng `COMPACT` mặc định với ba phần: Decision Summary, Findings and Actions, Confidence and Evidence. Chỉ thêm detailed appendix khi user yêu cầu audit, full trace matrix hoặc per-TC detail.
+Report dùng `COMPACT` mặc định với ba phần: Decision Summary, Findings and Actions, Confidence and Evidence.
+Chỉ thêm detailed appendix khi user yêu cầu audit, full trace matrix hoặc per-TC detail.
 
 ## Installer safeguards
 
@@ -127,7 +160,8 @@ Report dùng `COMPACT` mặc định với ba phần: Decision Summary, Findings
 - Preflight toàn bộ collision trước write để tránh partial install.
 - Merge QC instructions bằng managed block, không replace toàn bộ adapter.
 - Preserve PO block và project instructions; `--force` chỉ refresh QC block.
-- Preserve runtime seeds và customized checklist kể cả khi có `--force`.
+- Preserve runtime seeds, optional Viewpoint discovery extension và legacy field/UI checklist kể cả khi có `--force`.
+- Không seed legacy field/UI checklist cho clean install. Cảnh báo khi phát hiện và hướng dẫn merge customization vào Viewpoint discovery extension.
 - Seed OQ đúng tại `qc/open-questions.md`.
 - Refresh shared contract và retire legacy per-skill `material-paths.md` copies bằng `--force`.
 - Từ chối project root, skill destination hoặc ancestor là symbolic link.
@@ -141,10 +175,8 @@ Report dùng `COMPACT` mặc định với ba phần: Decision Summary, Findings
 | `QC-EXPORT-001` | `DEFERRED` | Portable deterministic validation cho Gherkin và Postman | Bundled generator hoặc validator, fixture-based tests, schema hoặc parser validation và clear runtime handoff |
 | `QC-REPORT-001` | `DEFERRED` | Portable binary report generation | Bundled hoặc verified adapters cho DOCX, PPTX và XLSX, kèm reopen, render và cross-target tests |
 
-Trong trạng thái hiện tại, `qc-run-playwright` chỉ hỗ trợ
-`INTERACTIVE_EXECUTION_ONLY`. Manual QC có thể gọi skill để thực thi locked TC
-khi đủ Execution Gate và browser automation tool, nhưng không thể dùng skill để
-build reusable Playwright automation suite.
+Trong trạng thái hiện tại, `qc-run-playwright` chỉ hỗ trợ `INTERACTIVE_EXECUTION_ONLY`.
+Manual QC có thể gọi skill để thực thi locked TC khi đủ Execution Gate và browser automation tool, nhưng không thể dùng skill để build reusable Playwright automation suite.
 
 ## Validation
 
@@ -156,5 +188,4 @@ npm run test:install
 npm run pack:check
 ```
 
-Forward-test phải dùng prompt task thực tế, không đưa sẵn diagnosis hoặc expected
-answer cho sub-agent.
+Forward-test phải dùng prompt task thực tế, không đưa sẵn diagnosis hoặc expected answer cho sub-agent.

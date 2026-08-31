@@ -9,9 +9,15 @@ Prepare manual execution input or normalize completed human test results without
 
 ## Artifact Contract
 
-Read the shared contract at `qc/config/material-paths.md`, then read
-`references/executions-log.md` and `references/manual-results-format.md` before
-proposing or writing an artifact.
+Read the shared contract at `qc/config/material-paths.md`, then read `references/executions-log.md` and `references/manual-results-format.md` before proposing or writing an artifact.
+
+## Input Preflight
+
+Apply the shared `Input Boundary and Source Discovery` contract before reading phase inputs.
+If any required source, result, or artifact locator or content is missing, stop with `BLOCKED_INPUT` in chat and ask the user to provide it or explicitly approve one bounded search root.
+Do not search the current project, parent directories, sibling projects, the broader workspace, the user home directory, or an external location to discover missing input, and do not request broader filesystem permission for that purpose.
+A feature name, module name, scope key, keyword, or prior project knowledge is context only, not a locator.
+If the user does not know the locator, ask clarification questions in chat and do not infer unstated execution data.
 
 ## Modes
 
@@ -20,7 +26,8 @@ proposing or writing an artifact.
 | `PREPARE` | The user wants an editable manual run artifact from locked Test Cases | XLSX by default, CSV or Markdown on request, or Google Sheets when an available connector supports the action |
 | `IMPORT` | The user supplies completed manual results | Validated preview, then an approved append-only Run section |
 
-Do not infer that a request to design Test Cases approves either mode. The Test Case skill recommends this handoff, and this skill obtains separate path and content approval.
+Do not infer that a request to design Test Cases approves either mode.
+The Test Case skill recommends this handoff, and this skill obtains separate path and content approval.
 
 ## Required Inputs
 
@@ -30,15 +37,21 @@ Do not infer that a request to design Test Cases approves either mode. The Test 
 - For `IMPORT`, the known environment, build, tester, time, retry, assessment, cleanup, and Evidence policies;
 - For `IMPORT`, one readable XLSX, CSV, Google Sheets URL, or separate manual-run Markdown source.
 
-Use `UNKNOWN` only when the value is genuinely unavailable and the execution contract permits it. Never invent a tester, date, environment, build, result, or evidence locator.
+Use `UNKNOWN` only when the value is genuinely unavailable and the execution contract permits it.
+Never invent a tester, date, environment, build, result, or evidence locator.
 
-Use `OPTIONAL` as the default Evidence Policy: a result may have blank Evidence, and an exact external locator is preserved when supplied. Override this default only when the user or approved release criteria require evidence for selected or all results.
+Use `OPTIONAL` as the default Evidence Policy: a result may have blank Evidence, and an exact external locator is preserved when supplied.
+Override this default only when the user or approved release criteria require evidence for selected or all results.
 
 ## Bundled Manual Result Capability
 
-Use the bundled `scripts/manual-results.mjs` as the baseline PREPARE and IMPORT engine for XLSX, CSV, and Markdown on every target. It uses only Node.js built-in modules and travels with this skill, so these formats do not depend on Gemini, Codex, Claude, Antigravity, Microsoft Excel, Python, a connector, or a network-installed spreadsheet library.
+Use the bundled `scripts/manual-results.mjs` as the baseline PREPARE and IMPORT engine for XLSX, CSV, and Markdown on every target.
+It uses only Node.js built-in modules and travels with this skill, so these formats do not depend on Gemini, Codex, Claude, Antigravity, Microsoft Excel, Python, a connector, or a network-installed spreadsheet library.
 
-Use `scripts/manual-results-xlsx.mjs` only as an XLSX compatibility wrapper. Use a native spreadsheet capability only as an optional enhancement for visual review or advanced edits. Native capability absence must not block artifact creation or cause an automatic format fallback. CSV and the separate Markdown form are explicit user-selected alternatives only.
+Use `scripts/manual-results-xlsx.mjs` only as an XLSX compatibility wrapper.
+Use a native spreadsheet capability only as an optional enhancement for visual review or advanced edits.
+Native capability absence must not block artifact creation or cause an automatic format fallback.
+CSV and the separate Markdown form are explicit user-selected alternatives only.
 
 Run from the installed skill directory or use the absolute script path:
 
@@ -56,11 +69,16 @@ node scripts/manual-results.mjs import \
   --output <import-preview.json>
 ```
 
-Use `.csv` or `.md` as the PREPARE output and IMPORT input extension for those formats. The utility infers the adapter from the extension; use `--format` only when an explicit format is needed.
+Use `.csv` or `.md` as the PREPARE output and IMPORT input extension for those formats.
+The utility infers the adapter from the extension; use `--format` only when an explicit format is needed.
 
-The script exits with code `2` when IMPORT writes a preview containing validation errors. Read the preview and report the exact errors instead of silently changing formats. Never create a renamed text file with an `.xlsx` extension and never install a library during the workflow.
+The script exits with code `2` when IMPORT writes a preview containing validation errors.
+Read the preview and report the exact errors instead of silently changing formats.
+Never create a renamed text file with an `.xlsx` extension and never install a library during the workflow.
 
-For a Google Sheets URL, use an available connected Sheets capability. If the connection or permission is unavailable, request an XLSX or CSV export. Do not claim that the remote sheet was read or updated without connector evidence.
+For a Google Sheets URL, use an available connected Sheets capability.
+If the connection or permission is unavailable, request an XLSX or CSV export.
+Do not claim that the remote sheet was read or updated without connector evidence.
 
 ## PREPARE Workflow
 
@@ -74,12 +92,13 @@ For a Google Sheets URL, use an available connected Sheets capability. If the co
 8. For XLSX, when a native spreadsheet capability is available, optionally inspect formulas, key ranges, and every sheet visually. State when this optional visual review was not available; do not represent it as a failed XLSX creation.
 9. Report the artifact locator and instruct the tester to return the completed file or Sheet URL for `IMPORT`.
 
-Creating a workbook does not create an execution Run. Results exist only after completed rows pass `IMPORT` and are appended to the execution log.
+Creating a workbook does not create an execution Run.
+Results exist only after completed rows pass `IMPORT` and are appended to the execution log.
 
 ## IMPORT Workflow
 
 1. Read the source without changing it. For canonical XLSX, CSV, or Markdown, run the bundled IMPORT command against the completed artifact and exact locked Test Case source.
-2. Reconcile Scope Key, source TC revision, Run ID, TC ID, Attempt, and selected run scope. Derive VP ID and source refs from the locked Test Cases instead of trusting editable input columns.
+2. Reconcile Scope Key, source TC revision, Run ID, TC ID, Attempt, and selected run scope. Derive the primary leaf VP ID from the canonical `VP ID` column and derive source refs from the locked Test Cases instead of trusting editable input columns.
 3. Validate one row per `<Run ID, Attempt, TC ID>`, Result vocabulary, required Actual Result or rationale, tester, time, and cleanup values. Apply explicit Run-level tester and time as row defaults when per-row overrides are blank.
 4. Treat blank Result as no attempt row. Never convert blank to `SKIP`, `PASS`, or another execution result. `NOT_RUN` remains report-derived.
 5. Apply the approved Evidence Policy. Evidence may be blank. Preserve an external evidence URL, path, or identifier exactly when supplied.

@@ -1,10 +1,14 @@
 # DOCX Test Report Specification
 
-Create a Word document with the `COMPACT` core and calculations defined in `report-content-spec.md`. Add only requested `DETAILED` appendices. Use DOCX when stakeholders need annotation, printing, or email circulation.
+Create a Word document with the `COMPACT` core and calculations defined in `report-content-spec.md`.
+Add only requested `DETAILED` appendices.
+Use DOCX when stakeholders need annotation, printing, or email circulation.
 
 ## Toolchain
 
-Use an available document-generation tool such as `python-docx` or Pandoc. Generate charts as verified local PNG files or supported native shapes. Do not handcraft OOXML unless no supported tool exists.
+Use an available document-generation tool such as `python-docx` or Pandoc.
+Generate charts as verified local PNG files or supported native shapes.
+Do not handcraft OOXML unless no supported tool exists.
 
 ## Typography and Unicode
 
@@ -14,8 +18,7 @@ Use an available document-generation tool such as `python-docx` or Pandoc. Gener
 - Strip invalid control characters and NUL bytes from raw logs.
 - Do not use Wingdings, Symbol, or other legacy symbol fonts for status.
 
-Use plain text labels: `PASS`, `FAIL`, `BLOCKED`, `SKIP`, `ERROR`, `NOT_RUN`,
-and `UNDETERMINED`.
+Use plain text labels: `PASS`, `FAIL`, `BLOCKED`, `SKIP`, `ERROR`, `NOT_RUN`, and `UNDETERMINED`.
 
 ## Status Colors
 
@@ -71,4 +74,5 @@ Before delivery:
 4. Reconcile displayed metrics with the source execution rows;
 5. Verify the file name and output path.
 
-If reopen or rendering fails, do not deliver the file as valid. Report the failure and offer an approved HTML or Markdown alternative.
+If reopen or rendering fails, do not deliver the file as valid.
+Report the failure and offer an approved HTML or Markdown alternative.

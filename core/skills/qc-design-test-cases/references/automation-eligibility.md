@@ -1,7 +1,7 @@
 # Automation Eligibility Guide
 
-Classify automation potential without claiming runtime readiness. Preserve one
-canonical eligibility value in every Test Case row.
+Classify automation potential without claiming runtime readiness.
+Preserve one canonical eligibility value in every Test Case row.
 
 ## Canonical Values
 
@@ -13,8 +13,8 @@ canonical eligibility value in every Test Case row.
 | `MANUAL` | The approved test intent requires human judgment or an unsupported physical/third-party interaction |
 | `NEEDS_SPEC` | Test intent, data, Expected Result, endpoint, or another required contract is missing |
 
-Do not use `MANUAL` to hide an incomplete specification. Use `NEEDS_SPEC` and
-link the blocking OQ.
+Do not use `MANUAL` to hide an incomplete specification.
+Use `NEEDS_SPEC` and link the blocking OQ.
 
 ## Eligibility Rules
 
@@ -25,7 +25,8 @@ link the blocking OQ.
 5. Mark subjective visual quality, physical hardware, CAPTCHA, and exploratory testing as `MANUAL` when that intent is explicitly in scope.
 6. Mark source gaps as `NEEDS_SPEC` and stop the affected downstream export.
 
-Do not add derived `Automatable` or `Auto Type` columns. They repeat the same decision and may become inconsistent with `Automation Eligibility`.
+Do not add derived `Automatable` or `Auto Type` columns.
+They repeat the same decision and may become inconsistent with `Automation Eligibility`.
 
 ## Downstream Routing
 

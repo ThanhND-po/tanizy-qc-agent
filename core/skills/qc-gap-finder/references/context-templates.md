@@ -12,9 +12,10 @@ Location: `qc/refs/system-context.md`
 |---|---|---|---|---|---|---|---|---|---|
 ```
 
-An empty table means current behavior is unknown. It does not mean the feature
-is greenfield. Use `CTX-<SCOPE-CODE>-NNN`. Status is `ACTIVE`, `STALE`, or
-`SUPERSEDED`.
+An empty table means current behavior is unknown.
+It does not mean the feature is greenfield.
+Use `CTX-<SCOPE-CODE>-NNN`.
+Status is `ACTIVE`, `STALE`, or `SUPERSEDED`.
 
 Known environment constraints use this schema in the same file:
 
@@ -23,9 +24,9 @@ Known environment constraints use this schema in the same file:
 |---|---|---|---|---|---|---|---|---|---|
 ```
 
-Use `CON-<SCOPE-CODE>-NNN`. System Context records verified current state, but
-cannot override an approved PO requirement. Route a conflict to the Gap Report
-and Open Questions ledger.
+Use `CON-<SCOPE-CODE>-NNN`.
+System Context records verified current state, but cannot override an approved PO requirement.
+Route a conflict to the Gap Report and Open Questions ledger.
 
 ## Bug Base
 
@@ -36,10 +37,8 @@ Location: `qc/refs/bug-base.md`
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 ```
 
-Add a row only for a verified existing bug or an observed execution failure
-classified as a product defect. Evidence is required for Bug Base promotion,
-but may be an exact external path, URL, or evidence ID. Do not add `TBD` bugs
-from risk hypotheses or invent a customer tracker ID. Use `OPEN`,
-`IN_PROGRESS`, `FIXED`, `VERIFIED`, `CLOSED`, or `REOPENED` for Status. Preserve
-closed rows in the same lifecycle table so requirement, TC, Run, evidence, and
-regression trace remain available.
+Add a row only for a verified existing bug or an observed execution failure classified as a product defect.
+Evidence is required for Bug Base promotion, but may be an exact external path, URL, or evidence ID.
+Do not add `TBD` bugs from risk hypotheses or invent a customer tracker ID.
+Use `OPEN`, `IN_PROGRESS`, `FIXED`, `VERIFIED`, `CLOSED`, or `REOPENED` for Status.
+Preserve closed rows in the same lifecycle table so requirement, TC, Run, evidence, and regression trace remain available.
