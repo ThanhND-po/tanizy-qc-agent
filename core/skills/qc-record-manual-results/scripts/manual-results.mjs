@@ -79,6 +79,30 @@ const csvHeaders = [
   "Defect",
   "Cleanup",
   "Note",
+  "Module",
+  "Risk",
+  "Priority",
+  "Preconditions",
+  "TestData",
+  "Steps",
+  "ExpectedResults",
+  "VPID",
+  "SourceTrace",
+  "AutomationEligibility",
+  "Tags",
+];
+const csvDesignFieldMap = [
+  ["Module", "Module"],
+  ["Risk", "Risk"],
+  ["Priority", "Priority"],
+  ["Preconditions", "Preconditions"],
+  ["TestData", "Test Data"],
+  ["Steps", "Steps"],
+  ["ExpectedResults", "Expected Results"],
+  ["VPID", "VP ID"],
+  ["SourceTrace", "Source Trace"],
+  ["AutomationEligibility", "Automation Eligibility"],
+  ["Tags", "Tags"],
 ];
 
 function fail(message, exitCode = 1) {
@@ -471,7 +495,7 @@ function parseCsv(text) {
 }
 
 function csvRowFromModel(model, row) {
-  return {
+  const values = {
     ScopeKey: model.metadata["Scope Key"],
     ScopeCode: model.metadata["Scope Code"],
     RunID: model.metadata["Run ID"],
@@ -501,6 +525,8 @@ function csvRowFromModel(model, row) {
     Cleanup: row.Cleanup,
     Note: row.Note,
   };
+  for (const [csvField, designField] of csvDesignFieldMap) values[csvField] = row[designField];
+  return values;
 }
 
 function buildCsv(source, args) {
@@ -529,7 +555,7 @@ function markdownTable(headers, rows) {
 
 function buildMarkdown(source, args) {
   const model = buildRunModel(source, args);
-  const headers = executionHeaders;
+  const headers = workbookHeaders;
   const metadataRows = model.metadataPairs.map(([field, value]) => ({ Field: field, Value: value }));
   const content = `# Manual QC Results: ${source.scopeKey}
 
@@ -539,7 +565,7 @@ ${markdownTable(["Field", "Value"], metadataRows)}
 
 ## Test Execution
 
-Locked design context remains in ${markdownCell(source.path)}. Test Title is copied from the locked Test Cases for scanability and is not editable.
+Locked design context is copied from ${markdownCell(source.path)} for execution and remains authoritative there. Test Title and design fields are not editable.
 
 ${markdownTable(headers, model.rows)}
 `;
@@ -682,14 +708,21 @@ function importCsv(source, inputPath) {
     Defect: row.Defect,
     Cleanup: row.Cleanup,
     Note: row.Note,
+    ...Object.fromEntries(csvDesignFieldMap.map(([csvField, designField]) => [designField, row[csvField] ?? ""])),
   }));
+  const lockedFields = [
+    ...(titleProvided ? [["Test Title", "Title"]] : []),
+    ...csvDesignFieldMap
+      .filter(([csvField]) => headers.includes(csvField))
+      .map(([, designField]) => [designField, designField]),
+  ];
   return validateImport(
     source,
     inputPath,
     "csv",
     metadata,
     execution,
-    titleProvided ? [["Test Title", "Title"]] : [],
+    lockedFields,
     warnings,
     metadataErrors,
   );
@@ -721,14 +754,25 @@ function importMarkdown(source, inputPath) {
     Defect: cleanMarkdown(row.Defect),
     Cleanup: cleanMarkdown(row.Cleanup),
     Note: cleanMarkdown(row.Note),
+    ...Object.fromEntries(
+      designHeaders
+        .filter((header) => !["TC ID", "Title"].includes(header))
+        .map((header) => [header, cleanMarkdown(row[header])]),
+    ),
   }));
+  const lockedFields = [
+    ...(titleProvided ? [["Test Title", "Title"]] : []),
+    ...designHeaders
+      .filter((header) => !["TC ID", "Title"].includes(header) && executionTable.headers.includes(header))
+      .map((header) => [header, header]),
+  ];
   return validateImport(
     source,
     inputPath,
     "markdown",
     metadata,
     execution,
-    titleProvided ? [["Test Title", "Title"]] : [],
+    lockedFields,
     warnings,
     [],
   );

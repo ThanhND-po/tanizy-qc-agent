@@ -59,11 +59,17 @@ Never renumber an existing TC to close a gap.
 1. Design from a locked `LEAF` Viewpoint, not directly from a `HIGH_LEVEL` parent. Every Test Case traces to one primary leaf VP ID.
 2. For each leaf Viewpoint, define the coverage item, coverage target, denominator or selection rule, selected Test Design Technique, and rationale before drafting Test Cases.
 3. A coverage target may be proposed as a QC design decision, but it must be explicit and approved with the Test Case draft. Do not present an unsupported percentage, sampling rate, or combination count as a requirement.
-4. Keep Steps atomic and numbered.
-5. Write Expected Results in natural language as observable outcomes. Number them to match the relevant Steps.
-6. Use concrete synthetic Test Data. The values may be generated, but every business limit, format, status, and validation outcome must trace to a source.
-7. Cover positive, negative, boundary, state, NFR, migration, compatibility, regression, timing, and interaction intent only when the locked leaf Viewpoint and governing source define the required oracle.
-8. Record source-backed omissions and blocked coverage explicitly.
+4. Design every Test Case so a human can execute it before any automation implementation exists. Automation Eligibility remains separate metadata.
+5. Write Preconditions as only the case-specific state or condition that must already exist before the first action, such as an authenticated role or a previously created neutral test object. Do not replace them with a generic statement that an approved fixture exists.
+6. Keep Steps atomic and numbered. Identify the actor or role, action surface, concrete action, and observable checkpoint needed by the test intent.
+7. Do not use meta-steps such as confirming Preconditions, preparing the stated Test Data, or observing through an unspecified approved channel as substitutes for executable actions.
+8. Require an exact route, selector, query, or observation command only when an approved source or verified runtime evidence provides it. Never invent implementation detail to make a Test Case appear executable.
+9. Write Expected Results in natural language as observable outcomes. Number them to match the relevant Steps and keep only case-specific UI, business state, persisted data, file, audit, and side-effect or no-side-effect oracles.
+10. Do not repeat fixture validation, Preconditions, readiness statements, or generic control-boundary wording in Expected Results.
+11. Use concrete synthetic Test Data. The values may be generated, but every business limit, format, status, and validation outcome must trace to a source.
+12. Optionally reference an existing approved Fixture Requirement ID inside Preconditions or Test Data when multiple cases, whether manual or automated, share a reusable controlled data state. Do not require a Fixture Catalog, add a canonical Fixture ID column, or create `qc/refs/test-data-spec.md` without separate content and path approval.
+13. Cover positive, negative, boundary, state, NFR, migration, compatibility, regression, timing, and interaction intent only when the locked leaf Viewpoint and governing source define the required oracle.
+14. Record source-backed omissions and blocked coverage explicitly.
 
 If design exposes a source revision mismatch, a missing locked condition, or a new product impact, stop the affected scope.
 Return it to `qc-design-viewpoints` for a new locked revision.
@@ -102,14 +108,15 @@ Missing endpoint, route, locator, fixture, auth, cleanup, or runner evidence pre
 3. Verify that the current approved source revisions match the locked parent manifest. This is a staleness check, not Viewpoint rediscovery.
 4. For every in-scope leaf Viewpoint, choose the coverage item, coverage target, denominator or selection rule, and appropriate technique from `references/test-design-techniques.md`. Record the rationale and any constraint that limits coverage.
 5. Return any missing or stale leaf coverage to `qc-design-viewpoints`; do not continue that affected scope.
-6. Draft cases with concrete Test Data, numbered Steps, numbered Expected Results, trace refs, priority, and automation metadata.
+6. Draft human-executable cases with case-specific Preconditions, concrete Test Data, numbered Steps, numbered Expected Results, trace refs, priority, and automation metadata in the reader-facing language confirmed at the Scope Gate.
 7. Build traceability matrices and coverage totals for AC, business rule, NFR, impact or regression, high-level Viewpoints, leaf Viewpoints, and design coverage targets.
 8. List blocked source items and leaf Viewpoints with OQ IDs and no TC IDs.
-9. Run the Quality Gates below.
-10. Present the Test Design Basis, Test Case draft, and exact write set in chat.
-11. Obtain explicit content, path, coverage-target, and Lock Gate approval.
-12. Write `qc/test-cases/<scope-key>-test-cases.md` with state `LOCKED`.
-13. After validation succeeds, recommend exporting the locked Test Case table to an XLSX manual run workbook through `qc-record-manual-results`. State that this is optional and requires separate path approval. Do not create the workbook automatically.
+9. Review repeated narrative across Preconditions, Steps, and Expected Results. Treat duplication as a review signal, not an automatic failure; retain repeated text only when it is necessary and specific or factor an approved shared constraint into an artifact-level section without making the rows ambiguous.
+10. Run the Quality Gates below.
+11. Present the Test Design Basis, Test Case draft, and exact write set in chat.
+12. Obtain explicit content, path, coverage-target, and Lock Gate approval.
+13. Write `qc/test-cases/<scope-key>-test-cases.md` with state `LOCKED`.
+14. After validation succeeds, recommend exporting the locked Test Case table to an XLSX manual run workbook through `qc-record-manual-results`. State that this is optional and requires separate path approval. Do not create the workbook automatically.
 
 Do not create an execution log during Test Case design.
 `qc-record-manual-results` appends it only after the Manual Result Gate, and a runtime execution skill appends it only after an approved Execution Gate.
@@ -182,19 +189,24 @@ Include:
 2. Every TC traces to one locked leaf Viewpoint and one exact source ref.
 3. Every in-scope leaf Viewpoint has at least one TC or one explicit blocked reason.
 4. Every Test Design Basis row records a coverage item, coverage target, denominator or selection rule, technique, rationale, and mapped TC IDs or blocker.
-5. Steps and Expected Results are numbered and semantically matched.
-6. Test Data is concrete and contains no unsupported business value.
-7. Every row has one canonical automation eligibility value and tags.
-8. Blocked items have no fabricated TC.
-9. Coverage totals reconcile with the source inventory, locked Viewpoint revision, and approved coverage targets.
-10. The readiness route matches the locked parent Viewpoint; a Gap Report is required only for `GAP_ANALYSIS`.
-11. The parent Discovery Material Manifest and Coverage Map are present and unchanged; this skill did not rerun discovery.
-12. All relative links resolve.
-13. Artifact state is `LOCKED`, with an explicit revision and approver.
+5. Preconditions contain case-specific initial state only and are sufficient for human execution without claiming that an unspecified fixture exists.
+6. Steps are numbered and identify the actor or role, action surface, concrete action, and observable checkpoint without generic meta-wrappers.
+7. Expected Results are numbered, semantically matched to Steps, and contain only case-specific observable oracles rather than repeated Preconditions or readiness boilerplate.
+8. Test Data is concrete and contains no unsupported business value. An optional Fixture Requirement ID resolves to an existing approved test-data source and is not treated as automation-only metadata.
+9. Every row has one canonical automation eligibility value and tags.
+10. Blocked items have no fabricated TC.
+11. Coverage totals name the approved source-backed numerator and denominator, list blocked and waived or `OUT_OF_SCOPE` items separately, and do not present a bare `100%` as complete product coverage.
+12. `STATIC_VALID`, `AUTOMATION_ELIGIBLE`, `RUNTIME_READY`, and `EXECUTED` are reported separately when evidence for those states exists.
+13. The readiness route matches the locked parent Viewpoint; a Gap Report is required only for `GAP_ANALYSIS`.
+14. The parent Discovery Material Manifest and Coverage Map are present and unchanged; this skill did not rerun discovery.
+15. Reader-facing narrative follows the Scope Gate language while exact technical and business terms, IDs, paths, fields, source literals, and controlled values remain unchanged.
+16. All relative links resolve.
+17. Artifact state is `LOCKED`, with an explicit revision and approver.
 
 ## Rules
 
 - Do not redesign or rediscover Viewpoints in this skill.
 - Do not read Viewpoint discovery material in this skill.
 - Do not claim execution readiness from static completeness.
+- Do not add an artifact-language field or a Fixture ID column to the Test Case header.
 - Keep requirement documents read-only.

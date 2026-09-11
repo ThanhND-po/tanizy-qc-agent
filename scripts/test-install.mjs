@@ -87,6 +87,25 @@ try {
       assert.match(installedSkill, /`BLOCKED_INPUT`/);
       assert.match(installedSkill, /explicitly approve one bounded search root/);
       assert.match(installedSkill, /do not request broader filesystem permission/i);
+      for (const header of installedSkill.split("\n").filter((line) => line.startsWith("| Scope Key |"))) {
+        assert.doesNotMatch(header, /Artifact Language/i);
+      }
+      if (skill === "qc-orchestrator") {
+        assert.match(installedSkill, /reader-facing artifact language/i);
+        assert.match(installedSkill, /do not add the selected language to an artifact header/i);
+      }
+      if (skill === "qc-gap-finder") {
+        assert.match(installedSkill, /Scope Gate language/);
+        assert.match(installedSkill, /Do not add an artifact-language field to the Gap Report header/);
+      }
+      if (skill === "qc-design-viewpoints") {
+        assert.match(installedSkill, /artifact state is not the downstream readiness decision/);
+      }
+      if (skill === "qc-design-test-cases") {
+        assert.match(installedSkill, /human can execute it before any automation implementation exists/);
+        assert.match(installedSkill, /Do not require a Fixture Catalog/);
+        assert.match(installedSkill, /Treat duplication as a review signal, not an automatic failure/);
+      }
       assert.ok(
         !existsSync(join(skillRoot(target, root), skill, "references", "material-paths.md")),
       );
@@ -111,6 +130,9 @@ try {
     assert.ok(existsSync(installedMaterialPaths));
     assert.match(readFileSync(installedMaterialPaths, "utf8"), /## Input Boundary and Source Discovery/);
     assert.match(readFileSync(installedMaterialPaths, "utf8"), /A filesystem permission prompt is not a substitute/);
+    assert.match(readFileSync(installedMaterialPaths, "utf8"), /## Artifact Language Scope Gate/);
+    assert.match(readFileSync(installedMaterialPaths, "utf8"), /not as persistent artifact metadata/);
+    assert.match(readFileSync(installedMaterialPaths, "utf8"), /## Coverage and Readiness Reporting/);
     assert.ok(!existsSync(join(root, "qc", "config", "field-validation-checklist.md")));
     assert.ok(!existsSync(join(root, "qc", "config", "ui-component-checklist.md")));
     assert.ok(
@@ -167,8 +189,14 @@ try {
     assert.match(adapter, /`BLOCKED_INPUT`/);
     assert.match(adapter, /Do not search for missing inputs/);
     assert.match(adapter, /Do not request broader filesystem permission/);
+    assert.match(adapter, /reader-facing artifact language/i);
+    assert.match(adapter, /never add the selected language to artifact headers/i);
     if (target === "antigravity") {
       assert.ok(existsSync(join(root, ".agents", "rules", "tanizy-qc.md")));
+      assert.match(
+        readFileSync(join(root, ".agents", "rules", "tanizy-qc.md"), "utf8"),
+        /Confirm reader-facing artifact language at the QC Scope Gate/,
+      );
     }
   }
 

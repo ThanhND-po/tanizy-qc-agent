@@ -39,3 +39,5 @@ They repeat the same decision and may become inconsistent with `Automation Eligi
 
 `STATIC_VALID`, `AUTOMATION_ELIGIBLE`, and `RUNTIME_READY` are separate states.
 Eligibility alone never proves that a test can run in the current environment.
+Do not rename `UI-AUTO` to `UI-AUTO-CANDIDATE` or introduce another candidate value.
+Every eligible Test Case must remain human-executable before automation implementation exists.

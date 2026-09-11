@@ -29,6 +29,7 @@ Confirm these inputs before dispatching a phase:
 |---|---|
 | Approved requirement sources | Required. Accept only exact user-supplied or explicitly approved project, external local, or canonical URI locators; record approval state and revision or hash |
 | QC phase scope | Required. List only phases requested for this session |
+| Reader-facing artifact language | Confirm at the Scope Gate. Default to Vietnamese unless the user explicitly requests another language; do not add it to artifact headers |
 | Viewpoint readiness route | Required when Viewpoint design is requested: `GAP_ANALYSIS` or `DIRECT_SOURCE_CHECK` |
 | System context | Load `qc/refs/system-context.md` when present; otherwise mark unknown |
 | Bug base | Load `qc/refs/bug-base.md` when present; otherwise mark unknown |
@@ -62,7 +63,7 @@ Approval for one gate does not imply approval for another.
 
 | Gate | Required decision |
 |---|---|
-| Scope Gate | User confirms sources, scope key, scope code, and phases |
+| Scope Gate | User confirms sources, scope key, scope code, phases, and reader-facing artifact language |
 | Persist Gate | User approves draft content and exact files to write |
 | Lock Gate | User approves the Viewpoint or Test Case revision for downstream use |
 | Manual Result Gate | User approves prepared or imported result content, source locator, and exact execution-log path |
@@ -130,7 +131,8 @@ Do not use a shared `qc/qc-task.md`.
 ## Rules
 
 - Keep requirement and PO artifacts read-only.
-- Ask in Vietnamese by default and retain precise English technical terms.
+- Use the Scope Gate language for reader-facing artifact narrative. Default to Vietnamese and retain precise English technical and business terms, IDs, paths, fields, literals, and controlled values.
+- Do not add the selected language to an artifact header or infer a different language from prior sessions, machine memory, or a user profile.
 - Do not invent business rules, routes, payloads, selectors, thresholds, or release decisions.
 - Write only the files approved by the user.
 - Keep `STATIC_VALID`, `AUTOMATION_ELIGIBLE`, and `RUNTIME_READY` separate.

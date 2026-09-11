@@ -121,7 +121,9 @@ Results exist only after completed rows pass `IMPORT` and are appended to the ex
 ## Rules
 
 - Keep the locked Test Case revision immutable.
+- Preserve locked Test Case titles, Preconditions, Test Data, Steps, Expected Results, `VP ID`, `Source Trace`, and `Automation Eligibility` without translation or paraphrase in every prepared manual-run format.
 - Preserve every retry as a separate Attempt.
 - Do not edit a historical imported Run. Append a correction note or new Run.
 - Do not copy an external result or evidence source into `qc/` without explicit approval.
-- Ask in Vietnamese by default and retain exact technical terms and IDs.
+- Use the Scope Gate language for agent-authored instructions, validation summaries, and execution commentary. Default to Vietnamese and retain exact technical terms, IDs, paths, fields, literals, controlled values, and user-supplied Actual Results.
+- Do not add an artifact-language field to the manual-run or execution artifact header.

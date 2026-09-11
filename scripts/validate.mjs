@@ -294,6 +294,12 @@ const adapterInputBoundaryRules = [
   "Do not request broader filesystem permission",
   "feature name, module name, scope key, keyword, or prior project knowledge",
 ];
+const adapterLanguageRules = [
+  "reader-facing artifact language",
+  "QC Scope Gate",
+  "Default to Vietnamese",
+  "never add the selected language to artifact headers",
+];
 const repositoryInstructions = join(repoRoot, "AGENTS.md");
 if (existsSync(repositoryInstructions)) {
   validateMarkdownSourceFormatting(
@@ -322,6 +328,11 @@ for (const adapterInstruction of [
       fail(`${relative(repoRoot, adapterInstruction)}: Input Boundary rule is missing: ${rule}`);
     }
   }
+  for (const rule of adapterLanguageRules) {
+    if (!content.toLowerCase().includes(rule.toLowerCase())) {
+      fail(`${relative(repoRoot, adapterInstruction)}: Artifact Language Scope Gate rule is missing: ${rule}`);
+    }
+  }
 }
 
 const antigravityRulePath = join(
@@ -336,6 +347,11 @@ const antigravityRule = readFileSync(antigravityRulePath, "utf8");
 for (const rule of ["`BLOCKED_INPUT`", "not a source locator", "request broader filesystem permission"]) {
   if (!antigravityRule.includes(rule)) {
     fail(`${relative(repoRoot, antigravityRulePath)}: Input Boundary rule is missing: ${rule}`);
+  }
+}
+for (const rule of ["Artifact Language", "QC Scope Gate", "never add the selected language to artifact headers"]) {
+  if (!antigravityRule.toLowerCase().includes(rule.toLowerCase())) {
+    fail(`${relative(repoRoot, antigravityRulePath)}: Artifact Language Scope Gate rule is missing: ${rule}`);
   }
 }
 
@@ -433,6 +449,20 @@ if (
 if (!testCaseSkill.includes("recommend exporting the locked Test Case table")) {
   fail("qc-design-test-cases: manual XLSX handoff recommendation is missing");
 }
+for (const rule of [
+  "human can execute it before any automation implementation exists",
+  "case-specific state or condition",
+  "actor or role, action surface, concrete action, and observable checkpoint",
+  "Do not use meta-steps",
+  "Fixture Requirement ID",
+  "Do not require a Fixture Catalog",
+  "Treat duplication as a review signal, not an automatic failure",
+  "Do not add an artifact-language field or a Fixture ID column",
+]) {
+  if (!testCaseSkill.includes(rule)) {
+    fail(`qc-design-test-cases: human-executable authoring rule is missing: ${rule}`);
+  }
+}
 
 const materialPaths = readFileSync(
   join(repoRoot, "core", "references", "material-paths.md"),
@@ -445,9 +475,22 @@ for (const rule of [
   "Do not request broader filesystem permission",
   "A filesystem permission prompt is not a substitute",
   "ask requirement clarification questions in chat",
+  "## Artifact Language Scope Gate",
+  "not as persistent artifact metadata",
+  "Do not add an `Artifact Language` field to an artifact header or canonical table",
+  "## Coverage and Readiness Reporting",
+  "Never present a bare `100%`",
 ]) {
   if (!materialPaths.includes(rule)) {
     fail(`core/references/material-paths.md: canonical Input Boundary rule is missing: ${rule}`);
+  }
+}
+for (const skill of skillNames) {
+  const content = readFileSync(join(skillsRoot, skill, "SKILL.md"), "utf8");
+  for (const header of content.split("\n").filter((line) => line.startsWith("| Scope Key |"))) {
+    if (/Artifact Language/i.test(header)) {
+      fail(`${skill}: Artifact Language must remain a Scope Gate decision, not an artifact header field`);
+    }
   }
 }
 const viewpointSkill = readFileSync(
@@ -489,6 +532,15 @@ for (const route of ["GAP_ANALYSIS", "DIRECT_SOURCE_CHECK"]) {
 if (!viewpointSkill.includes("Gap Analysis = NOT_RUN")) {
   fail("qc-design-viewpoints: direct readiness must record Gap Analysis as NOT_RUN");
 }
+for (const rule of [
+  "Require its Design Gate to be `READY` or `PARTIAL`",
+  "artifact state is not the downstream readiness decision",
+  "Do not use its artifact state as the downstream readiness decision",
+]) {
+  if (!viewpointSkill.includes(rule)) {
+    fail(`qc-design-viewpoints: Gap Report gate rule is missing: ${rule}`);
+  }
+}
 if (viewpointSkill.includes("If gap analysis is missing")) {
   fail("qc-design-viewpoints: Gap Analysis must not remain a mandatory prerequisite");
 }
@@ -505,6 +557,9 @@ if ((readme.match(/DIRECT_SOURCE_CHECK/g) ?? []).length < 4) {
 }
 if ((readme.match(/UNSUPPORTED_AUTOMATION_AUTHORING/g) ?? []).length < 2) {
   fail("README.md: Playwright authoring limitation must be documented in English and Vietnamese");
+}
+if ((readme.match(/Artifact Language Scope Gate/g) ?? []).length < 2) {
+  fail("README.md: Artifact Language Scope Gate must be documented in English and Vietnamese");
 }
 
 const playwrightSkill = readFileSync(

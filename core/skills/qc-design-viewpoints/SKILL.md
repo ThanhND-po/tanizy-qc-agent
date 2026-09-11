@@ -70,9 +70,10 @@ If the user does not know the locator, ask requirement clarification questions i
 
 ## Readiness Routing
 
-Use `GAP_ANALYSIS` when an approved Gap Report already exists or the user explicitly requests that phase.
-Require its gate to be `READY` or `PARTIAL`.
+Use `GAP_ANALYSIS` when a current Gap Report revision already exists or the user explicitly requests that phase.
+Require its Design Gate to be `READY` or `PARTIAL`.
 Stop when its gate is `STOP` or its revision is stale.
+The Gap Report artifact state is not the downstream readiness decision and does not block Viewpoint design by itself.
 
 Use `DIRECT_SOURCE_CHECK` when the user requests Viewpoint design without Gap Analysis.
 Do not require or create a Gap Report.
@@ -102,7 +103,7 @@ An execution-only blocker does not erase source-backed design coverage.
 ## Workflow
 
 1. Confirm and record the readiness route.
-2. For `GAP_ANALYSIS`, validate the approved Gap Report revision and gate. For `DIRECT_SOURCE_CHECK`, perform the bounded readiness check above.
+2. For `GAP_ANALYSIS`, validate the current Gap Report revision and require `Design Gate = READY` or `PARTIAL`. Do not use its artifact state as the downstream readiness decision. For `DIRECT_SOURCE_CHECK`, perform the bounded readiness check above.
 3. Build a source inventory of ACs, business rules, NFRs, state transitions, roles, impact or regression items, and explicit user decisions.
 4. Build the Test Target Map. Separate feature and business value, product risks, test level, stakeholders or users, test objects, named test items, lifecycle impact, data, versions, integrations, and environments. Mark a QC risk assessment as `QC_RISK_ASSESSMENT`; do not present it as a sourced business rule.
 5. Inventory named test items and classify each item type, parent object, and scope status. Do not force non-UI items into a UI taxonomy.
@@ -116,7 +117,7 @@ An execution-only blocker does not erase source-backed design coverage.
 13. Build the Discovery Coverage Map from each selected guide or extension ID to its applicability decision and mapped leaf VP IDs. Preserve the material revision or hash used for this analysis.
 14. Calculate coverage totals separately for AC, business rule, NFR, impact or regression, selected discovery prompts, and leaf Viewpoints.
 15. List blocked items and their existing OQ IDs outside the Viewpoint table when the route is `GAP_ANALYSIS` with a `PARTIAL` gate.
-16. Draft the readiness basis, Test Target Map, Test Item Inventory, Viewpoint Breakdown, Discovery Coverage Map, and coverage summary in chat.
+16. Draft the readiness basis, Test Target Map, Test Item Inventory, Viewpoint Breakdown, Discovery Coverage Map, and coverage summary in chat using the reader-facing language confirmed at the Scope Gate.
 17. Ask the user to merge, split, reprioritize, add, drop, or approve items.
 18. Recalculate coverage after every adjustment. Viewpoint discovery and decomposition may iterate until the revision is approved.
 19. Obtain approval for the locked content and exact path.
@@ -180,7 +181,7 @@ Do not copy unused catalog sections into the artifact.
 - Every leaf Viewpoint has an exact approved source or explicit recorded decision for its test oracle. A QC risk assessment may justify scope or priority but cannot replace that evidence.
 - The artifact records exactly one readiness route and its evidence.
 - `DIRECT_SOURCE_CHECK` is locked only with `PASS`, `READY`, and `Gap Analysis = NOT_RUN`.
-- `GAP_ANALYSIS` links an approved `READY` or `PARTIAL` parent revision.
+- `GAP_ANALYSIS` links a current parent revision whose Design Gate is `READY` or `PARTIAL`; the parent artifact state is not used as the readiness decision.
 - The Discovery Material Manifest records the canonical guide revision or hash and any project extension used.
 - Every high-level Viewpoint has at least one leaf child.
 - Every leaf Viewpoint names one test item, one parent, one lens, and one coherent condition or risk.
@@ -191,12 +192,15 @@ Do not copy unused catalog sections into the artifact.
 - Every `OUT_OF_SCOPE` prompt has an approved scope decision or waiver.
 - Blocked items are excluded from the covered numerator.
 - Coverage denominators are explicit and reproducible.
+- Coverage reporting names its approved source-backed denominator, lists blocked and waived or `OUT_OF_SCOPE` items separately, and does not present a bare `100%` as complete product coverage.
+- Reader-facing narrative follows the Scope Gate language while exact technical and business terms, IDs, paths, fields, source literals, and controlled values remain unchanged.
 - The revision is `LOCKED` only after explicit user approval.
 - All relative links resolve.
 
 ## Rules
 
 - Keep requirements and gap findings unchanged.
+- Do not add an artifact-language field to the Viewpoint header.
 - Do not turn Open Questions into assumed Viewpoints.
 - Do not claim `No gaps` when Gap Analysis was not run.
 - Do not create Test Cases, choose coverage targets, or apply Test Design Techniques in this skill.

@@ -116,4 +116,6 @@ Preserve an approved external evidence locator without copying it into the proje
 - Run only on explicit user request and only after the Execution Gate.
 - Do not describe interactive browser execution as a generated or reusable Playwright Test suite.
 - Keep requirement documents read-only.
+- Use the Scope Gate language for agent-authored execution commentary and normalized Actual Result narrative. Preserve exact UI text, technical terms, IDs, paths, fields, literals, evidence content, and controlled values.
+- Do not add an artifact-language field to the execution artifact header.
 - Do not expose credentials or personal data in chat or artifacts.

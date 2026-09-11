@@ -56,7 +56,7 @@ Do not classify a failure as accepted based on age, severity, or silence.
 4. Apply the assessment policy and count attempt rows, attempted TCs, assessed TCs, and the selected result statuses separately. Show absolute `PASS`, `FAIL`, `BLOCKED`, `ERROR`, `SKIP`, and derived `NOT_RUN` values. Do not show pass rate without these counts.
 5. Use `COMPACT` mode unless the user explicitly requests an audit report, full trace matrix, or detailed appendix. Do not ask for report depth when the request is otherwise clear.
 6. Select only visuals that materially clarify a decision or comparison.
-7. Draft the compact core and any conditionally required detail in chat.
+7. Draft the compact core and any conditionally required detail in chat using the reader-facing language confirmed at the Scope Gate.
 8. Show the exact output path and version suffix, if needed.
 9. Obtain explicit content and path approval.
 10. Write `qc/reports/<scope-key>-test-report-<YYYY-MM-DD>[-vN].<ext>`.
@@ -70,7 +70,9 @@ Do not classify a failure as accepted based on age, severity, or silence.
 - Mark unexecuted or blocked scope explicitly. Never infer `PASS`.
 - Do not discard a valid result solely because Evidence is blank under the approved Evidence Policy. State the resulting confidence limitation.
 - Distinguish design coverage from executed coverage.
-- Distinguish `STATIC_VALID`, `AUTOMATION_ELIGIBLE`, and `RUNTIME_READY`.
+- Distinguish approved source-backed design coverage, blocked scope, waived or `OUT_OF_SCOPE` scope, `STATIC_VALID`, `AUTOMATION_ELIGIBLE`, `RUNTIME_READY`, and `EXECUTED`. Never present a bare `100%` as complete product or production-risk coverage.
+- Write agent-authored narrative in the Scope Gate language while preserving exact technical and business terms, IDs, paths, fields, source literals, user-supplied results, and controlled values.
+- Do not add an artifact-language field to the report header.
 - Do not render empty sections, redundant tables, or decorative charts.
 - Do not update Bug Base or System Context merely because a report is created.
 - Do not touch files outside the approved `qc/` write set.

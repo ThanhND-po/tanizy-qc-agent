@@ -86,4 +86,6 @@ Mark it `RUNTIME_READY` only when environment variables, credentials, data fixtu
 
 - Export only. Do not run Postman, Newman, or API requests in this skill.
 - Keep requirements and source Test Cases unchanged.
+- Preserve locked Test Case narrative in request names and descriptions. Use the current Scope Gate language for new manifest explanations while retaining exact API fields, literals, IDs, paths, and controlled values.
+- Do not add an artifact-language field to the collection or manifest header.
 - Use the descriptive manifest filename defined above.

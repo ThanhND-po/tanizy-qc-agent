@@ -104,5 +104,6 @@ This skill does not create step definitions or run tests.
 ## Rules
 
 - Keep source Test Cases and requirements unchanged.
-- Keep Gherkin keywords in English and scenario text in the source TC language.
+- Keep Gherkin keywords in English and scenario text in the source TC language. Use the current Scope Gate language for new manifest explanations without translating locked Test Case content.
+- Do not add an artifact-language field to the feature or manifest header.
 - Do not describe a static feature file as Playwright-runnable without runtime bridge evidence.

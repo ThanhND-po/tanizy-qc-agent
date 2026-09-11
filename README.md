@@ -21,8 +21,25 @@ QC never starts automatically and never modifies requirement documents.
 - Keep Test Analysis and Test Case Design separate. `qc-design-viewpoints` owns discovery materials. `qc-design-test-cases` selects coverage items, coverage targets, and Test Design Techniques from the locked leaf Viewpoints; it does not run Viewpoint discovery again.
 - Draft content and exact paths first. Write only after user approval.
 - Keep static validity, automation eligibility, and runtime readiness separate.
+- Report approved source-backed coverage with its numerator and denominator, and keep blocked, waived, runtime-ready, and executed scope separate. Never present a bare `100%` as complete product coverage.
 - Require a dedicated Execution Gate before browser or API actions.
 - Preserve full traceability from requirement source to report results and available evidence.
+
+### Artifact Language Scope Gate
+
+Confirm the reader-facing artifact language at the QC Scope Gate.
+Use Vietnamese by default unless the user explicitly requests another language, and keep exact English technical and business terms, IDs, paths, fields, literals, and controlled values.
+The language is a workflow decision for the current scope, not artifact metadata.
+Do not add an artifact-language field to generated headers or infer a different language from prior sessions, machine memory, or a user profile.
+
+### Test Case Authoring Quality
+
+- Design every Test Case so a human can execute it before automation implementation exists.
+- Use Preconditions only for case-specific initial state. An existing approved Fixture Requirement ID may be referenced in Preconditions or Test Data for either manual or automated cases, but no Fixture Catalog or Fixture ID column is mandatory.
+- Write Steps with an actor or role, action surface, concrete action, and observable checkpoint. Do not substitute generic preparation or observation wrappers for executable actions.
+- Keep Expected Results limited to case-specific observable oracles, persisted state, audit evidence, and side effects.
+- Review repeated Preconditions, Steps, and Expected Results before Lock, while allowing repetition that remains necessary and specific.
+- Keep `UI-AUTO` as Automation Eligibility. It does not mean that the Test Case is runtime-ready or executed.
 
 ### Skills
 
@@ -71,14 +88,15 @@ qc/executions/<scope-key> -> qc-report-generator
 Export and execution branches are optional and require explicit scope.
 Gap Analysis is also optional.
 If `DIRECT_SOURCE_CHECK` passes, record Gap Analysis as `NOT_RUN`, not as `No gaps`.
+For `GAP_ANALYSIS`, downstream readiness depends on a current Gap Report revision with `Design Gate = READY` or `PARTIAL`, not on the Gap Report artifact state.
 
 #### Routing Guide
 
 | Your objective | Invoke | Required input or gate | Example prompt |
 |---|---|---|---|
-| Run several QC phases as one controlled workflow | `qc-orchestrator` | Approved source locator, requested phases, scope key, scope code, and write set | `Use $qc-orchestrator to review the approved requirement at <path>. Run gap analysis, Viewpoint design, and Test Case design only.` |
+| Run several QC phases as one controlled workflow | `qc-orchestrator` | Approved source locator, requested phases, scope key, scope code, reader-facing language, and write set | `Use $qc-orchestrator to review the approved requirement at <path>. Run gap analysis, Viewpoint design, and Test Case design only.` |
 | Find missing, ambiguous, or conflicting specification behavior | `qc-gap-finder` | Approved requirement source | `Use $qc-gap-finder to review <path> and identify specification gaps and Open Questions.` |
-| Design testing angles after Gap Analysis | `qc-design-viewpoints` | Approved sources, Gap Report with `READY` or `PARTIAL`, applicable Open Questions, the package discovery guide, and any approved project extension | `Use $qc-design-viewpoints to understand the Test Target, decompose source-backed leaf Viewpoints, and lock them for <scope-key> using the approved Gap Report.` |
+| Design testing angles after Gap Analysis | `qc-design-viewpoints` | Approved sources, current Gap Report with `Design Gate = READY` or `PARTIAL`, applicable Open Questions, the package discovery guide, and any approved project extension | `Use $qc-design-viewpoints to understand the Test Target, decompose source-backed leaf Viewpoints, and lock them for <scope-key> using the current Gap Report and its Design Gate.` |
 | Design testing angles without Gap Analysis | `qc-design-viewpoints` | Approved sources, `DIRECT_SOURCE_CHECK`, the package discovery guide, and any approved project extension; the skill stops if design evidence is missing or conflicting | `Use $qc-design-viewpoints to run a Direct Source Check, understand the Test Target, and lock source-backed leaf Viewpoints for <scope-key> without Gap Analysis.` |
 | Design concrete and reproducible Test Cases | `qc-design-test-cases` | Locked leaf Viewpoint revision, matching source artifacts, and the package Test Design Techniques material | `Use $qc-design-test-cases to define coverage items and targets, select techniques, and design Test Cases from the locked leaf Viewpoints for <scope-key>.` |
 | Export UI Test Cases as Gherkin | `qc-export-gherkin` | Locked eligible UI Test Cases and approved export path | `Use $qc-export-gherkin to export the eligible locked UI Test Cases for <scope-key>.` |
@@ -268,7 +286,7 @@ Follow the [legacy migration mapping](docs/install-codex.md#legacy-layout) one s
 
 ```text
 1. Invoke $qc-orchestrator or one specific qc-* skill.
-2. Confirm approved source files, scope key, stable scope code, and requested phases.
+2. Confirm approved source files, scope key, stable scope code, requested phases, and reader-facing artifact language.
 3. Select `GAP_ANALYSIS` or `DIRECT_SOURCE_CHECK` as the Viewpoint readiness route.
 4. Obtain `READY`, `PARTIAL`, or `STOP` from Gap Analysis, or `PASS` and
    `READY` from the Direct Source Check.
@@ -288,6 +306,7 @@ Follow the [legacy migration mapping](docs/install-codex.md#legacy-layout) one s
 
 For XLSX, CSV, and Markdown creation and import, `qc-record-manual-results` uses its bundled Node.js scripts on every target.
 Every format places locked Test Title immediately after TC ID for fast scanning.
+Every format also preserves the locked design context, including Preconditions, Test Data, Steps, Expected Results, `VP ID`, `Source Trace`, and `Automation Eligibility`, and IMPORT rejects changed supplied values.
 This baseline does not depend on a model-specific spreadsheet skill, Microsoft Excel, Python, a connector, or a network-installed library.
 A target's native spreadsheet capability may additionally inspect, render, or enhance an XLSX workbook.
 CSV and Markdown are used only when the user explicitly selects them.
@@ -330,8 +349,25 @@ QC không tự động bắt đầu và không chỉnh sửa requirement documen
 - Tách biệt Test Analysis và Test Case Design. `qc-design-viewpoints` sở hữu material discovery. `qc-design-test-cases` chọn coverage item, coverage target và Test Design Technique từ locked leaf Viewpoint, không chạy lại Viewpoint discovery.
 - Draft nội dung và exact path trước. Chỉ ghi file sau khi người dùng phê duyệt.
 - Tách biệt static validity, automation eligibility và runtime readiness.
+- Báo approved source-backed coverage kèm numerator và denominator, đồng thời tách riêng blocked, waived, runtime-ready và executed scope. Không dùng `100%` đơn lẻ như complete product coverage.
 - Yêu cầu Execution Gate riêng trước khi thực hiện browser hoặc API action.
 - Duy trì đầy đủ traceability từ requirement source đến report result và evidence hiện có.
+
+### Artifact Language Scope Gate
+
+Xác nhận ngôn ngữ cho nội dung diễn giải tại QC Scope Gate.
+Mặc định sử dụng tiếng Việt trừ khi người dùng yêu cầu rõ ngôn ngữ khác, đồng thời giữ nguyên English technical và business terms, IDs, paths, fields, literals và controlled values.
+Language là quyết định workflow của scope hiện tại, không phải metadata của artifact.
+Không thêm artifact-language field vào generated header và không suy ra language khác từ prior session, machine memory hoặc user profile.
+
+### Chất lượng nội dung Test Case
+
+- Thiết kế mọi Test Case để human có thể thực hiện trước khi có automation implementation.
+- Chỉ dùng Preconditions cho case-specific initial state. Có thể tham chiếu Fixture Requirement ID đã được phê duyệt trong Preconditions hoặc Test Data cho cả manual và automated case, nhưng không bắt buộc Fixture Catalog hoặc cột Fixture ID.
+- Steps phải có actor hoặc role, action surface, hành động cụ thể và observable checkpoint. Không dùng generic preparation hoặc observation wrapper thay cho executable action.
+- Expected Results chỉ giữ case-specific observable oracle, persisted state, audit evidence và side effect.
+- Review Preconditions, Steps và Expected Results bị lặp trước Lock Gate, nhưng vẫn cho phép nội dung lặp khi cần thiết và cụ thể.
+- Giữ `UI-AUTO` làm Automation Eligibility. Giá trị này không có nghĩa Test Case đã runtime-ready hoặc executed.
 
 ### Danh sách skill
 
@@ -380,14 +416,15 @@ qc/executions/<scope-key> -> qc-report-generator
 Các nhánh export và execution là tùy chọn và phải được yêu cầu rõ trong scope.
 Gap Analysis cũng là phase tùy chọn.
 Nếu `DIRECT_SOURCE_CHECK` pass, phải ghi Gap Analysis là `NOT_RUN`, không được ghi `No gaps`.
+Với `GAP_ANALYSIS`, downstream readiness phụ thuộc vào current Gap Report revision có `Design Gate = READY` hoặc `PARTIAL`, không phụ thuộc vào artifact state của Gap Report.
 
 #### Bảng chọn skill
 
 | Mục tiêu | Skill cần gọi | Input hoặc gate bắt buộc | Prompt mẫu |
 |---|---|---|---|
-| Thực hiện nhiều QC phase trong một workflow có kiểm soát | `qc-orchestrator` | Requirement source đã được phê duyệt, danh sách phase, scope key, scope code và write set | `Dùng $qc-orchestrator để review requirement đã được phê duyệt tại <path>. Chỉ thực hiện Gap Analysis, thiết kế Test Viewpoint và thiết kế Test Case.` |
+| Thực hiện nhiều QC phase trong một workflow có kiểm soát | `qc-orchestrator` | Requirement source đã được phê duyệt, danh sách phase, scope key, scope code, reader-facing language và write set | `Dùng $qc-orchestrator để review requirement đã được phê duyệt tại <path>. Chỉ thực hiện Gap Analysis, thiết kế Test Viewpoint và thiết kế Test Case.` |
 | Tìm behavior còn thiếu, chưa rõ hoặc mâu thuẫn trong specification | `qc-gap-finder` | Requirement source đã được phê duyệt | `Dùng $qc-gap-finder để review <path>, xác định specification gap và tạo Open Question.` |
-| Thiết kế các góc kiểm thử sau Gap Analysis | `qc-design-viewpoints` | Source đã được phê duyệt, Gap Report có gate `READY` hoặc `PARTIAL`, Open Question liên quan, package discovery guide và project extension đã được phê duyệt nếu có | `Dùng $qc-design-viewpoints để hiểu Test Target, phân rã và lock leaf Viewpoint có source trace cho <scope-key> dựa trên Gap Report đã được phê duyệt.` |
+| Thiết kế các góc kiểm thử sau Gap Analysis | `qc-design-viewpoints` | Source đã được phê duyệt, current Gap Report có `Design Gate = READY` hoặc `PARTIAL`, Open Question liên quan, package discovery guide và project extension đã được phê duyệt nếu có | `Dùng $qc-design-viewpoints để hiểu Test Target, phân rã và lock leaf Viewpoint có source trace cho <scope-key> dựa trên current Gap Report và Design Gate của file.` |
 | Thiết kế các góc kiểm thử không chạy Gap Analysis | `qc-design-viewpoints` | Source đã được phê duyệt, `DIRECT_SOURCE_CHECK`, package discovery guide và project extension đã được phê duyệt nếu có; skill sẽ dừng nếu thiếu hoặc mâu thuẫn design evidence | `Dùng $qc-design-viewpoints để thực hiện Direct Source Check, hiểu Test Target và lock leaf Viewpoint có source trace cho <scope-key> mà không chạy Gap Analysis.` |
 | Thiết kế Test Case cụ thể và có thể tái thực hiện | `qc-design-test-cases` | Locked leaf Viewpoint revision, các source artifact tương ứng và package Test Design Techniques material | `Dùng $qc-design-test-cases để xác định coverage item và target, chọn technique và thiết kế Test Case từ locked leaf Viewpoint của <scope-key>.` |
 | Export UI Test Case sang Gherkin | `qc-export-gherkin` | Locked UI Test Case đủ điều kiện và export path đã được phê duyệt | `Dùng $qc-export-gherkin để export các locked UI Test Case đủ điều kiện của <scope-key>.` |
@@ -577,7 +614,7 @@ Thực hiện theo [legacy migration mapping](docs/install-codex.md#legacy-layou
 
 ```text
 1. Gọi $qc-orchestrator hoặc một skill qc-* cụ thể.
-2. Xác nhận approved source file, scope key, stable scope code và các phase được yêu cầu.
+2. Xác nhận approved source file, scope key, stable scope code, các phase được yêu cầu và reader-facing artifact language.
 3. Chọn `GAP_ANALYSIS` hoặc `DIRECT_SOURCE_CHECK` làm Viewpoint readiness route.
 4. Nhận `READY`, `PARTIAL` hoặc `STOP` từ Gap Analysis, hoặc nhận `PASS` và
    `READY` từ Direct Source Check.
@@ -597,6 +634,7 @@ Thực hiện theo [legacy migration mapping](docs/install-codex.md#legacy-layou
 
 Khi tạo và import XLSX, CSV hoặc Markdown, `qc-record-manual-results` sử dụng bundled Node.js script trên mọi target.
 Mọi format đặt locked Test Title ngay sau TC ID để dễ scan.
+Mọi format cũng giữ locked design context, gồm Preconditions, Test Data, Steps, Expected Results, `VP ID`, `Source Trace` và `Automation Eligibility`; IMPORT sẽ reject supplied value đã bị thay đổi.
 Baseline này không phụ thuộc vào spreadsheet skill riêng của model, Microsoft Excel, Python, connector hoặc thư viện cần cài qua network.
 Spreadsheet capability native của target có thể được dùng thêm để inspect, render hoặc cải thiện XLSX workbook.
 Chỉ dùng CSV và Markdown khi người dùng chọn rõ các format này.

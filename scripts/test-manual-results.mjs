@@ -6,7 +6,7 @@ import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { parseWorksheet, readZip, writeZip } from "../core/skills/qc-record-manual-results/scripts/xlsx-lite.mjs";
+import { columnName, parseWorksheet, readZip, writeZip } from "../core/skills/qc-record-manual-results/scripts/xlsx-lite.mjs";
 
 const repoRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const skillScripts = join(repoRoot, "core", "skills", "qc-record-manual-results", "scripts");
@@ -140,16 +140,24 @@ try {
   assert.equal(executionRows[1][3], "Valid login");
   assert.equal(executionRows[1][0], "TRUE");
   assert.equal(executionRows[2][0], "FALSE");
+  assert.equal(executionRows[1][executionRows[0].indexOf("VP ID")], "VP-LOG-001");
+  assert.equal(executionRows[1][executionRows[0].indexOf("Source Trace")], "AC-01");
+  assert.equal(executionRows[1][executionRows[0].indexOf("Automation Eligibility")], "UI-AUTO");
+  assert.equal(executionRows[1][executionRows[0].indexOf("Expected Results")], "1. Dashboard displays.");
   assert.match(executionXml, /sqref="E2:E3"/);
   assert.match(executionXml, /E2=&quot;PASS&quot;/);
 
   const csvText = readFileSync(prepared.csv, "utf8");
   assert.match(csvText, /TCID,TestTitle,TestResult/);
   assert.match(csvText, /TC-LOG-001,Valid login,/);
+  assert.match(csvText, /ExpectedResults,VPID,SourceTrace,AutomationEligibility,Tags/);
+  assert.match(csvText, /1\. Dashboard displays\.,VP-LOG-001,AC-01,UI-AUTO,@Smoke/);
   assert.match(csvText, /"N\/A, no test data created"/);
   const markdownText = readFileSync(prepared.markdown, "utf8");
   assert.match(markdownText, /\| TC ID \| Test Title \| Test Result \|/);
   assert.match(markdownText, /\| TC-LOG-001 \| Valid login \|/);
+  assert.match(markdownText, /\| Expected Results \| VP ID \| Source Trace \| Automation Eligibility \| Tags \|/);
+  assert.match(markdownText, /\| 1\. Dashboard displays\. \| VP-LOG-001 \| AC-01 \| UI-AUTO \| @Smoke \|/);
 
   for (const [format, input] of Object.entries(prepared)) {
     const preview = JSON.parse(run(["import", "--source", source, "--input", input]).stdout);
@@ -206,13 +214,39 @@ try {
   const mismatchedCsv = join(temporaryRoot, "login-title-mismatch.csv");
   const mismatchedRows = parsedCsv.rows.map((row) => [...row]);
   mismatchedRows[0][parsedCsv.headers.indexOf("TestTitle")] = "Changed title";
+  mismatchedRows[0][parsedCsv.headers.indexOf("SourceTrace")] = "AC-99";
   writeFileSync(mismatchedCsv, serializeTestCsv(parsedCsv.headers, mismatchedRows), "utf8");
   const mismatchPreview = JSON.parse(run(
     ["import", "--source", source, "--input", mismatchedCsv],
     2,
   ).stdout);
   assert.equal(mismatchPreview.valid, false);
-  assert.equal(mismatchPreview.summary.validationCounts.changedLockedFields, 1);
+  assert.equal(mismatchPreview.summary.validationCounts.changedLockedFields, 2);
+
+  const mismatchedXlsx = join(temporaryRoot, "login-source-trace-mismatch.xlsx");
+  const mismatchedXlsxFiles = readZip(prepared.xlsx);
+  let mismatchedExecutionXml = mismatchedXlsxFiles.get("xl/worksheets/sheet3.xml").toString("utf8");
+  const sourceTraceColumn = columnName(executionRows[0].indexOf("Source Trace"));
+  mismatchedExecutionXml = replaceInlineCell(mismatchedExecutionXml, `${sourceTraceColumn}2`, "AC-99");
+  mismatchedXlsxFiles.set("xl/worksheets/sheet3.xml", Buffer.from(mismatchedExecutionXml, "utf8"));
+  writeZip([...mismatchedXlsxFiles].map(([name, data]) => ({ name, data })), mismatchedXlsx);
+  const mismatchedXlsxPreview = JSON.parse(run(
+    ["import", "--source", source, "--input", mismatchedXlsx],
+    2,
+  ).stdout);
+  assert.equal(mismatchedXlsxPreview.summary.validationCounts.changedLockedFields, 1);
+
+  const mismatchedMarkdown = join(temporaryRoot, "login-source-trace-mismatch.md");
+  writeFileSync(
+    mismatchedMarkdown,
+    markdownText.replace("| VP-LOG-001 | AC-01 | UI-AUTO |", "| VP-LOG-001 | AC-99 | UI-AUTO |"),
+    "utf8",
+  );
+  const mismatchedMarkdownPreview = JSON.parse(run(
+    ["import", "--source", source, "--input", mismatchedMarkdown],
+    2,
+  ).stdout);
+  assert.equal(mismatchedMarkdownPreview.summary.validationCounts.changedLockedFields, 1);
 
   const legacyCsv = join(temporaryRoot, "login-legacy.csv");
   const titleIndex = parsedCsv.headers.indexOf("TestTitle");
@@ -224,7 +258,7 @@ try {
   assert.equal(legacyPreview.rows[0].testTitle, "Valid login");
   assert.ok(legacyPreview.warnings.some((warning) => warning.includes("no TestTitle")));
 
-  console.log("Manual result tests passed: XLSX, CSV, Markdown, Test Title validation, legacy import, and XLSX compatibility wrapper.");
+  console.log("Manual result tests passed: XLSX, CSV, and Markdown preserve locked design context; changed fields, legacy import, and XLSX compatibility are validated.");
 } finally {
   rmSync(temporaryRoot, { recursive: true, force: true });
 }

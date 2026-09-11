@@ -36,6 +36,15 @@ Keep every source read-only.
 - Reading the selected skill, its package-managed references, `qc/config/material-paths.md`, and a fixed project artifact path explicitly named by the selected skill is contract loading, not source discovery. If a named artifact is absent, do not search for an alternative location.
 - If the user does not know the locator, ask requirement clarification questions in chat. Treat an answer as an explicit user decision only after it is confirmed, and do not infer unstated behavior.
 
+## Artifact Language Scope Gate
+
+- Confirm the reader-facing artifact language as part of the QC Scope Gate. Use Vietnamese by default unless the user explicitly requests another language.
+- Treat the selected language as a workflow decision for the current approved scope, not as persistent artifact metadata. Do not add an `Artifact Language` field to an artifact header or canonical table.
+- Write explanatory narrative in the selected language. Preserve exact English technical and business terms, IDs, paths, URLs, commands, code, API and database fields, literal UI values, source quotations, and controlled values such as `READY`, `PARTIAL`, `STOP`, `LOCKED`, and `UI-AUTO`.
+- Apply the selected language consistently to Gap Report findings and summaries, Open Questions, Viewpoint intent and rationale, Test Case titles and instructions, QC task notes, automation descriptions, execution commentary, and stakeholder reports.
+- Preserve user-supplied execution results and source-native literals without silently translating or rewriting them.
+- Check narrative language before the Persist Gate or Lock Gate. Do not infer a different language from prior sessions, machine memory, or a user profile.
+
 A PO handoff makes sources available to QC.
 It does not imply QC phase scope, artifact write approval, Lock Gate approval, Execution Gate approval, or release authority.
 QC starts only after an explicit QC request and applies its own gates.
@@ -148,12 +157,16 @@ Use these states consistently:
 
 | State | Meaning |
 |---|---|
-| `DRAFT` | Content is being prepared and is not approved for downstream use |
+| `DRAFT` | Content is being prepared and has not received lifecycle approval |
 | `REVIEW_REQUIRED` | Draft is ready for user review |
 | `APPROVED` | Content and path were explicitly approved |
 | `LOCKED` | Approved Viewpoint or Test Case revision may be consumed downstream |
 | `BLOCKED_SPEC` | Required behavior or evidence is unresolved |
 | `STALE` | A source, parent revision, or decision changed after approval |
+
+For a Gap Report, `State` is lifecycle metadata and does not decide downstream readiness.
+Its current revision and `Design Gate = READY | PARTIAL | STOP` control whether Viewpoint design may continue.
+For a locked Viewpoint or Test Case, keep applying the phase-specific approval and Lock Gate rules below.
 
 Do not mutate a `LOCKED` design revision with execution results.
 Keep result, executor, date, Evidence Policy, evidence locator, and defect history in the append-only execution log.
@@ -184,7 +197,7 @@ Select and record one readiness route before Viewpoint design:
 
 | Readiness Route | Use when | Evidence |
 |---|---|---|
-| `GAP_ANALYSIS` | The user explicitly requests gap analysis, requirement review, or Open Questions, or approves a handoff after a direct check fails | Approved Gap Report revision and applicable OQ rows |
+| `GAP_ANALYSIS` | The user explicitly requests gap analysis, requirement review, or Open Questions, or approves a handoff after a direct check fails | Current Gap Report revision with `Design Gate = READY` or `PARTIAL`, plus applicable OQ rows |
 | `DIRECT_SOURCE_CHECK` | The user requests Viewpoint design without Gap Analysis and the approved sources appear complete for the selected scope | Readiness assessment embedded in the Viewpoint artifact |
 
 Gap Analysis is optional.
@@ -274,3 +287,11 @@ Keep these states separate:
 | `RUNTIME_READY` | Environment, route, auth, fixture, cleanup, runner, and dependencies are verified, with no unresolved OQ blocking from `DESIGN`, `EXPORT`, or `EXECUTION` |
 
 Never describe static validity or automation eligibility as runtime readiness.
+
+## Coverage and Readiness Reporting
+
+- Never present a bare `100%` as complete product or production-risk coverage.
+- Name the approved source-backed denominator and show the numerator and denominator together.
+- Report blocked and explicitly waived or `OUT_OF_SCOPE` items separately from covered items.
+- When the phase has the relevant evidence, report `STATIC_VALID`, `AUTOMATION_ELIGIBLE`, `RUNTIME_READY`, and `EXECUTED` separately.
+- Do not turn Automation Eligibility into runtime or execution coverage.

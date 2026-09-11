@@ -135,19 +135,25 @@ Recalculate all counts from cell values during import.
 
 CSV uses one row per Test Case or attempt.
 Repeat Run metadata on every row because CSV has no separate metadata sheet.
-New canonical CSV requires these headers:
+New canonical CSV keeps scan-first execution fields before locked design context and requires these headers:
 
 ```text
 ScopeKey,ScopeCode,RunID,SourceTestCases,SourceRevision,PreparedAt,RunAt,
 Environment,ApplicationBuild,ExecutionMethod,Executor,RetryPolicy,
 AssessmentPolicy,CleanupPlan,EvidencePolicy,SourceIntegrity,SelectedForRun,
 Attempt,TCID,TestTitle,TestResult,ActualResult,TestedBy,TestedAt,Evidence,
-Defect,Cleanup,Note
+Defect,Cleanup,Note,Module,Risk,Priority,Preconditions,TestData,Steps,
+ExpectedResults,VPID,SourceTrace,AutomationEligibility,Tags
 ```
 
 Accept an RFC 4180-compatible UTF-8 CSV with a header row.
 Detect inconsistent repeated Run metadata as an import error.
 Blank `TestResult` rows do not create attempts.
+
+## Markdown Input
+
+The separate Markdown form uses the same scan-first execution fields as XLSX, followed by the locked design context with the canonical Markdown Test Case column names.
+Preserve Title as `Test Title` and preserve Module, Risk, Priority, Preconditions, Test Data, Steps, Expected Results, VP ID, Source Trace, Automation Eligibility, and Tags without translation or paraphrase.
 For legacy CSV without `SelectedForRun`, treat supplied rows as selected and emit a warning.
 
 ## Non-Canonical Tabular Sources

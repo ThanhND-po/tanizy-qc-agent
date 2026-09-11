@@ -99,10 +99,10 @@ Silence never resolves an OQ.
 7. Create or update an OQ only when a decision or governing source is required. Keep Finding Class separate from Question Domain, apply the PO to QC status mapping from `references/open-questions-guide.md`, and use `-` as OQ ID for a finding that needs no decision.
 8. Assign the scope design gate: `READY` when every in-scope behavior is testable. `PARTIAL` when only a source-backed subset can proceed. `STOP` when no testable workflow exists or a critical conflict invalidates the flow.
 9. When no findings exist, keep Findings as `None`, leave the OQ ledger unchanged, and assign `READY` only when the source inventory and coverage denominator prove every in-scope item is testable.
-10. Draft the gap report and proposed OQ changes in chat.
+10. Draft the gap report and proposed OQ changes in chat using the reader-facing language confirmed at the Scope Gate.
 11. Obtain approval for content and exact paths.
 12. Write `qc/gap-reports/<scope-key>-gap-report.md` and only the approved OQ rows.
-13. Validate relative links, scope key, stable Finding and OQ IDs, and coverage totals.
+13. Validate narrative language, relative links, scope key, stable Finding and OQ IDs, and coverage totals.
 
 Ask blocking questions first.
 Group related questions in one concise review when this is clearer, but keep one decision per OQ row.
@@ -158,6 +158,8 @@ When the scope has no testable behavior, report `0/0` and do not create placehol
 ## Rules
 
 - Keep requirement documents read-only.
+- Write explanatory findings, applicability bases, summaries, questions, allowed scope, blocked coverage, and coverage notes in the Scope Gate language. Preserve exact technical and business terms, IDs, paths, fields, source literals, and controlled values.
+- Do not add an artifact-language field to the Gap Report header.
 - Do not invent options as decisions. Label proposed options as proposals.
 - Do not continue blocked behavior to downstream skills.
 - Do not claim Gap Analysis was performed when the readiness route was `DIRECT_SOURCE_CHECK`.
