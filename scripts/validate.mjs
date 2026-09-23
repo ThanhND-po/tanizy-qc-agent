@@ -480,6 +480,10 @@ for (const rule of [
   "Do not add an `Artifact Language` field to an artifact header or canonical table",
   "## Coverage and Readiness Reporting",
   "Never present a bare `100%`",
+  "The project extension is optional",
+  "give only a non-blocking suggestion",
+  "Do not return `BLOCKED_INPUT`",
+  "obtain explicit approval for the exact content and canonical write path",
 ]) {
   if (!materialPaths.includes(rule)) {
     fail(`core/references/material-paths.md: canonical Input Boundary rule is missing: ${rule}`);
@@ -520,9 +524,40 @@ for (const section of [
   }
 }
 const canonicalDiscoveryMaterialHeader =
-  "| Material | Locator | Package Revision or File Hash | Role |";
+  "| Material | Canonical Locator | Status | Revision or Hash | Used IDs | Notes |";
 if (!viewpointSkill.includes(canonicalDiscoveryMaterialHeader)) {
   fail("qc-design-viewpoints: Discovery Material Manifest revision schema is missing or changed");
+}
+for (const rule of [
+  "The extension is optional and its absence is not `BLOCKED_INPUT`",
+  "give only a non-blocking suggestion",
+  "Do not lock the Viewpoint artifact with `PRESENT_UNCONFIRMED`",
+  "These are extension candidates, not permission to write",
+  "obtain approval for the exact content and canonical path",
+]) {
+  if (!viewpointSkill.includes(rule)) {
+    fail(`qc-design-viewpoints: optional extension lifecycle rule is missing: ${rule}`);
+  }
+}
+const viewpointGuide = readFileSync(
+  join(skillsRoot, "qc-design-viewpoints", "references", "viewpoint-discovery-guide.md"),
+  "utf8",
+);
+for (const rule of [
+  "`VDG` means `Viewpoint Discovery Guide`",
+  "A `VDG-*` ID identifies a discovery prompt in this guide",
+  "Its absence alone is not an extension candidate",
+  "An extension candidate is not write approval",
+  "Source Locator",
+  "Source Revision or Hash",
+  "PRESENT_APPLICABLE",
+  "PRESENT_NOT_APPLICABLE",
+  "PRESENT_UNCONFIRMED",
+  "use `N/A` for its revision or hash, not for its locator",
+]) {
+  if (!viewpointGuide.includes(rule)) {
+    fail(`viewpoint-discovery-guide: optional extension rule is missing: ${rule}`);
+  }
 }
 for (const route of ["GAP_ANALYSIS", "DIRECT_SOURCE_CHECK"]) {
   if (!materialPaths.includes(`\`${route}\``) || !viewpointSkill.includes(`\`${route}\``)) {

@@ -176,6 +176,8 @@ The package-managed Test Design Techniques material exists only at `<skill-root>
 The optional `qc/config/viewpoint-discovery-extension.md` supplements Viewpoint discovery with project-specific knowledge.
 It does not define Test Case coverage or techniques.
 The guide and extension are discovery heuristics, not requirement, business-rule, or Expected Result sources.
+If the extension is absent, Viewpoint design continues with the package guide and may give a non-blocking suggestion to add reusable project or domain prompts later; it does not ask for a locator or return `BLOCKED_INPUT` solely because the optional file is missing.
+When an extension candidate exists, the agent can draft the required manifest, prompt rows, and provenance, but writes the canonical project file only after approval of the exact content and path.
 
 Never install skills under `qc/.agents/skills/`.
 Never create `qc/refs/open-questions.md` or a shared `qc/qc-task.md`.
@@ -504,6 +506,8 @@ Package-managed Test Design Techniques material chỉ tồn tại tại `<skill-
 File `qc/config/viewpoint-discovery-extension.md` là tùy chọn, dùng để bổ sung project-specific knowledge cho Viewpoint discovery.
 File này không định nghĩa coverage hoặc technique của Test Case.
 Guide và extension chỉ là discovery heuristic, không phải source của requirement, business rule hoặc Expected Result.
+Nếu extension chưa tồn tại, Viewpoint design tiếp tục dùng package guide và chỉ có thể đưa ra gợi ý không blocking để bổ sung reusable project hoặc domain prompt sau; Agent không hỏi locator hoặc trả `BLOCKED_INPUT` chỉ vì thiếu optional file này.
+Khi có extension candidate, Agent có thể draft manifest, prompt row và provenance theo format quy định, nhưng chỉ ghi canonical project file sau khi exact content và path được phê duyệt.
 
 Không cài đặt skill trong `qc/.agents/skills/`.
 Không tạo `qc/refs/open-questions.md` hoặc file dùng chung `qc/qc-task.md`.

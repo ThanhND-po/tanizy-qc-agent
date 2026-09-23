@@ -106,6 +106,8 @@ Feature và business value
 
 Discovery guide và extension chỉ là heuristic.
 Chúng không được dùng làm source của requirement, business rule hoặc Expected Result.
+Extension vắng mặt không phải required-input failure, không block Viewpoint design và không làm phát sinh câu hỏi về locator.
+Khi có reusable project hoặc domain prompt chưa được package guide biểu diễn, Agent có thể gợi ý và draft extension theo template, nhưng chỉ persist tại canonical path sau khi User duyệt exact content và path.
 
 Test Viewpoint là source-backed test condition, không phải executable Test Case.
 Test Case chỉ trace tới leaf Viewpoint đã lock.

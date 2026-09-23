@@ -39,15 +39,26 @@ Every Test Case must trace to one primary locked leaf Viewpoint.
 ## Artifact Contract
 
 Read the shared contract at `qc/config/material-paths.md` and the package-managed `references/viewpoint-discovery-guide.md`.
-When the project provides `qc/config/viewpoint-discovery-extension.md`, read it after the canonical guide, confirm its revision for the selected scope, and treat it only as a project-specific extension.
+Check only the canonical project path `qc/config/viewpoint-discovery-extension.md`; this fixed-path check is contract loading, not source discovery.
+The extension is optional and its absence is not `BLOCKED_INPUT`, a reason to stop, or a reason to ask the user for a locator.
+When the file is absent, continue with the package guide, record `ABSENT`, and give only a non-blocking suggestion that the user may add an extension when reusable project or domain prompts exist.
+When the file exists, read it after the canonical guide, confirm its revision and applicability for the selected scope, and treat it only as a project-specific extension.
 
 The guide and extension are discovery heuristics, not requirement or design sources.
 They may identify questions to ask but cannot define a business rule, limit, error, state transition, Expected Result, or scope decision.
 Only an approved source or explicit recorded decision can provide that evidence.
 
 Record the exact guide locator and its package revision or file hash in the locked artifact.
-Record the extension locator and revision or hash when it is used.
+Record the canonical extension locator, status, revision or hash, and used IDs according to the manifest schema below.
 The optional extension must not copy the canonical guide wholesale.
+
+Use `USED` for the canonical guide and exactly one extension status: `ABSENT`, `PRESENT_APPLICABLE`, `PRESENT_NOT_APPLICABLE`, or `PRESENT_UNCONFIRMED`.
+Do not lock the Viewpoint artifact with `PRESENT_UNCONFIRMED`; obtain an explicit decision to confirm the revision, exclude it for the scope, or update it.
+
+Read the guide's `Optional Project Extension Contract` when the user supplies reusable project or domain discovery knowledge, requests migration from an approved legacy checklist, or the current source-backed analysis reveals a reusable discovery prompt that the package guide does not represent.
+These are extension candidates, not permission to write.
+Draft the proposed extension rows and provenance in chat, obtain approval for the exact content and canonical path, then write or update the extension and rerun discovery.
+If an approved source is outside the canonical path, preserve its locator and revision or hash as provenance; do not treat the external file as an alternate runtime extension.
 
 Use the confirmed scope key across every artifact that exists for the workstream.
 
@@ -107,7 +118,7 @@ An execution-only blocker does not erase source-backed design coverage.
 3. Build a source inventory of ACs, business rules, NFRs, state transitions, roles, impact or regression items, and explicit user decisions.
 4. Build the Test Target Map. Separate feature and business value, product risks, test level, stakeholders or users, test objects, named test items, lifecycle impact, data, versions, integrations, and environments. Mark a QC risk assessment as `QC_RISK_ASSESSMENT`; do not present it as a sourced business rule.
 5. Inventory named test items and classify each item type, parent object, and scope status. Do not force non-UI items into a UI taxonomy.
-6. Use the discovery guide to select only relevant catalog IDs and item-type routes. Apply a project extension only when it exists, its revision is confirmed for the scope, and its provenance is recorded. Do not copy the guide as a generic checklist.
+6. Use the discovery guide to select only relevant catalog IDs and item-type routes. Record the optional extension status without asking for a locator merely because the file is absent. Apply a project extension only when it exists, its revision is confirmed for the scope, and its provenance is recorded. When an extension candidate is triggered, follow the guide's draft, approval, canonical-write, and rerun workflow. Do not copy the guide as a generic checklist.
 7. Classify every selected discovery prompt as `DEFINED`, `SPEC_GAP`, `NOT_APPLICABLE`, or `OUT_OF_SCOPE` using the guide contract.
 8. Derive source-backed high-level Viewpoints from `DEFINED` prompts, Test Objectives, and supported product risks. Decompose each one into leaf Viewpoints that state one condition or risk for one named test item.
 9. If analysis reveals a new `SPEC_GAP` or conflict that blocks from `DESIGN`, stop the affected scope. Under `GAP_ANALYSIS`, return it to `qc-gap-finder` because the parent report is incomplete or stale. Under `DIRECT_SOURCE_CHECK`, report the blocker and propose that skill. Do not create an OQ or Gap Report in this skill.
@@ -138,7 +149,7 @@ A new angle found after lock requires a new Viewpoint revision; do not mutate th
 | Source path | Section or ID | Revision or hash |
 
 ## 3. Discovery Material Manifest
-| Material | Locator | Package Revision or File Hash | Role |
+| Material | Canonical Locator | Status | Revision or Hash | Used IDs | Notes |
 
 ## 4. Readiness Basis
 | Route | Check or Parent Artifact | Result | Notes |
@@ -182,7 +193,9 @@ Do not copy unused catalog sections into the artifact.
 - The artifact records exactly one readiness route and its evidence.
 - `DIRECT_SOURCE_CHECK` is locked only with `PASS`, `READY`, and `Gap Analysis = NOT_RUN`.
 - `GAP_ANALYSIS` links a current parent revision whose Design Gate is `READY` or `PARTIAL`; the parent artifact state is not used as the readiness decision.
-- The Discovery Material Manifest records the canonical guide revision or hash and any project extension used.
+- The Discovery Material Manifest records the canonical guide locator, `USED` status, revision or hash, and selected IDs.
+- The Discovery Material Manifest records the canonical extension locator and exactly one allowed extension status even when the file is absent or not used.
+- `ABSENT` does not block design and does not trigger a locator question; `PRESENT_UNCONFIRMED` prevents lock until the user confirms, excludes, or approves an update.
 - Every high-level Viewpoint has at least one leaf child.
 - Every leaf Viewpoint names one test item, one parent, one lens, and one coherent condition or risk.
 - No leaf Viewpoint contains a coverage target, selected Test Design Technique, representative Test Data, numbered Steps, or step-level Expected Results.

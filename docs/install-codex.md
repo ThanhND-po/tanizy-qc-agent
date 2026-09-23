@@ -82,6 +82,8 @@ Design materials have phase-specific ownership:
 
 The discovery guide and extension are heuristics.
 They can identify questions to ask but never define a requirement, business rule, or Expected Result.
+An absent extension does not block Viewpoint design and does not trigger a locator question.
+The agent may give a non-blocking suggestion to add reusable project or domain prompts and can draft the extension template when a candidate exists, but it writes the canonical path only after the exact content and path are approved.
 
 The required flow is:
 

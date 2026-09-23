@@ -41,6 +41,8 @@ Preserve the governing rule in the source trace and derive its concrete design v
 ## Catalog ID Contract
 
 Every package prompt has a stable ID.
+`VDG` means `Viewpoint Discovery Guide`.
+A `VDG-*` ID identifies a discovery prompt in this guide; it is not a requirement, business rule, Viewpoint, or Test Case ID.
 Preserve an ID when wording is clarified without changing its intent.
 Add a new ID when the discovery intent changes.
 Never reuse a retired ID for a different meaning.
@@ -96,6 +98,22 @@ This guide does not authorize creating or resolving Findings, OQs, rules, or exp
 
 Use `qc/config/viewpoint-discovery-extension.md` only when the project has reusable discovery prompts that are not represented by this guide.
 Do not copy the package catalog into the extension and do not redefine a package `VDG-*` ID.
+The extension is optional.
+Its absence alone is not an extension candidate, a required-input failure, a blocker, or a reason to ask the user for a locator.
+Continue with this guide, record `ABSENT`, and give only a non-blocking suggestion that the user may add an extension when reusable project or domain prompts exist.
+
+Treat one of these events as an extension candidate:
+
+- The user supplies reusable project-specific or domain-specific discovery knowledge;
+- The user supplies an approved checklist or source and requests reuse across scopes;
+- Current source-backed analysis reveals a reusable discovery prompt that this guide does not represent;
+- The user requests migration of still-relevant discovery rules from an approved legacy checklist.
+
+An extension candidate is not write approval.
+Draft the normalized prompt rows and provenance in chat, then obtain explicit approval for both the content and the exact canonical path before writing.
+If the candidate source is outside the project, read it only when its exact locator was supplied or explicitly approved, preserve that locator and revision or hash as provenance, and never use it as an alternate runtime extension.
+After an approved write, calculate the extension revision or file hash, rerun discovery for the selected scope, and record only the extension IDs actually used.
+If the user does not approve persistence, do not create or update the extension and do not present session-only knowledge as a reusable project rule.
 
 Recommended structure:
 
@@ -103,7 +121,7 @@ Recommended structure:
 # Viewpoint Discovery Extension
 
 ## Extension Manifest
-| Project or Domain | Revision | Maintainer | Basis or Rationale |
+| Project or Domain | Revision | Maintainer | Source Locator | Source Revision or Hash | Basis or Rationale |
 
 ## Discovery Prompts
 | Extension ID | Item Type or Context | Lens | Discovery Prompt | Companion VDG IDs | Notes |
@@ -113,6 +131,18 @@ Use `EXT-VDG-<PROJECT-CODE>-NNN` for every extension row.
 An extension prompt may identify a domain-specific question or routing rule, but it remains a heuristic.
 It must not contain an assumed business rule, limit, state mapping, Expected Result, coverage target, Test Design Technique, or concrete Test Data.
 Record the extension revision or file hash in the locked Discovery Material Manifest when any extension ID is used.
+
+Use this material-status schema in the locked Viewpoint artifact:
+
+| Material | Canonical Locator | Status | Revision or Hash | Used IDs | Notes |
+|---|---|---|---|---|---|
+| Test Viewpoint Discovery Guide | `<installed-skill>/references/viewpoint-discovery-guide.md` | `USED` | Package revision or file hash | Selected `VDG-*` IDs | Package-managed canonical guide |
+| Project extension | `qc/config/viewpoint-discovery-extension.md` | `ABSENT`, `PRESENT_APPLICABLE`, `PRESENT_NOT_APPLICABLE`, or `PRESENT_UNCONFIRMED` | File revision or hash; `N/A` only when absent | Selected `EXT-VDG-*` IDs or `NONE` | Record the applicability or confirmation basis |
+
+Use `PRESENT_APPLICABLE` only after the revision and scope applicability are confirmed.
+Use `PRESENT_NOT_APPLICABLE` when the file exists but its declared project or domain does not apply to the selected scope.
+Use `PRESENT_UNCONFIRMED` when the file exists but its revision or scope applicability cannot be confirmed, and do not lock the Viewpoint artifact until the user confirms, excludes, or approves an update.
+Keep the canonical locator even when the file is absent; use `N/A` for its revision or hash, not for its locator.
 
 ## Test Target Map
 

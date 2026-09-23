@@ -63,6 +63,8 @@ Material được tách theo phase:
 - `<skill-root>/qc-design-test-cases/references/test-design-techniques.md` do package quản lý, chỉ dùng để xác định coverage item, coverage target và Test Design Technique từ locked leaf Viewpoint trước khi thiết kế Test Case.
 
 Discovery guide và extension chỉ là heuristic để tìm câu hỏi cần làm rõ, không phải source của requirement, business rule hoặc Expected Result.
+Extension vắng mặt không block Viewpoint design và không làm phát sinh câu hỏi về locator.
+Agent có thể đưa ra gợi ý không blocking và hỗ trợ draft extension theo template khi có reusable project hoặc domain prompt, nhưng chỉ ghi canonical path sau khi exact content và path được phê duyệt.
 
 ```text
 Hiểu Test Target

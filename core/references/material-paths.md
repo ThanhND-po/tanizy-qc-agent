@@ -232,8 +232,18 @@ If the gate is `STOP`, report coverage as `0/0` for the unsupported scope and do
 ## Viewpoint Discovery and Test Design Boundary
 
 `qc-design-viewpoints` owns Test Target understanding, Viewpoint discovery, and Viewpoint decomposition.
-It reads the package-managed `references/viewpoint-discovery-guide.md` from its installed skill folder and, when present, the project-owned `qc/config/viewpoint-discovery-extension.md`.
+It reads the package-managed `references/viewpoint-discovery-guide.md` from its installed skill folder and checks only the fixed project-owned path `qc/config/viewpoint-discovery-extension.md`.
 Both are heuristics only and must not be cited as business rules or Expected Results.
+
+The project extension is optional.
+When it is absent, continue with the package guide, record `ABSENT`, and give only a non-blocking suggestion that the user may add an extension when reusable project or domain prompts exist.
+Do not return `BLOCKED_INPUT`, stop design, search for an alternate location, or ask the user for a locator merely because the optional file is absent.
+When it exists, record `PRESENT_APPLICABLE`, `PRESENT_NOT_APPLICABLE`, or `PRESENT_UNCONFIRMED` according to its revision and scope applicability.
+Do not lock a Viewpoint artifact while an existing relevant extension is `PRESENT_UNCONFIRMED`.
+
+When the user supplies reusable project or domain discovery knowledge, requests migration from an approved legacy checklist, or source-backed analysis reveals a reusable prompt missing from the package guide, `qc-design-viewpoints` may propose extension content using the package template.
+The agent must draft the normalized prompt and provenance in chat, obtain explicit approval for the exact content and canonical write path, write only `qc/config/viewpoint-discovery-extension.md`, then rerun discovery and record its revision or hash and used `EXT-VDG-*` IDs.
+An approved external source remains provenance and never becomes an alternate runtime extension path.
 
 The locked Viewpoint artifact must preserve the selected discovery IDs, applicability decisions, mapped leaf VP IDs, and material revision or hash.
 Every Test Case traces to one primary locked leaf Viewpoint.

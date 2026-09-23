@@ -100,6 +100,10 @@ try {
       }
       if (skill === "qc-design-viewpoints") {
         assert.match(installedSkill, /artifact state is not the downstream readiness decision/);
+        assert.match(installedSkill, /absence is not `BLOCKED_INPUT`/);
+        assert.match(installedSkill, /give only a non-blocking suggestion/);
+        assert.match(installedSkill, /extension candidates, not permission to write/);
+        assert.match(installedSkill, /PRESENT_UNCONFIRMED/);
       }
       if (skill === "qc-design-test-cases") {
         assert.match(installedSkill, /human can execute it before any automation implementation exists/);
@@ -135,6 +139,7 @@ try {
     assert.match(readFileSync(installedMaterialPaths, "utf8"), /## Coverage and Readiness Reporting/);
     assert.ok(!existsSync(join(root, "qc", "config", "field-validation-checklist.md")));
     assert.ok(!existsSync(join(root, "qc", "config", "ui-component-checklist.md")));
+    assert.ok(!existsSync(join(root, "qc", "config", "viewpoint-discovery-extension.md")));
     assert.ok(
       existsSync(
         join(
@@ -241,6 +246,10 @@ try {
     if (skill === "qc-design-viewpoints") {
       assert.ok(existsSync(join(installedReferences, "viewpoint-discovery-guide.md")));
       assert.ok(!existsSync(join(installedReferences, "test-design-techniques.md")));
+      const installedGuide = readFileSync(join(installedReferences, "viewpoint-discovery-guide.md"), "utf8");
+      assert.match(installedGuide, /An extension candidate is not write approval/);
+      assert.match(installedGuide, /Source Revision or Hash/);
+      assert.match(installedGuide, /PRESENT_NOT_APPLICABLE/);
       continue;
     }
     assert.ok(

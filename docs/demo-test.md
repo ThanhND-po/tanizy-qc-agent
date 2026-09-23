@@ -206,6 +206,16 @@ The installer must not automatically delete or migrate legacy checklist content.
 The user reviews relevant project-specific discovery rules and merges them into `qc/config/viewpoint-discovery-extension.md` before separately approving archival or deletion.
 Manual-result, Playwright, and report skills must still retain `references/executions-log.md`.
 
+### Optional extension lifecycle check
+
+Run these three scenarios for `qc-design-viewpoints`:
+
+1. Leave `qc/config/viewpoint-discovery-extension.md` absent. Confirm the skill records `ABSENT`, continues with the package guide, does not return `BLOCKED_INPUT`, and does not ask for an extension locator. It may give a non-blocking suggestion that the user can add reusable project or domain prompts later.
+2. Create an extension whose manifest clearly applies to the selected scope. Confirm the skill reads it only from the canonical path, records `PRESENT_APPLICABLE`, preserves its revision or hash, and maps only the `EXT-VDG-*` IDs actually used. Change the scope so the manifest no longer applies and confirm `PRESENT_NOT_APPLICABLE` is recorded without applying its prompts.
+3. Supply an approved external checklist containing a reusable discovery prompt that the package guide does not represent. Confirm the skill drafts normalized extension content and provenance in chat, obtains explicit approval for the content and `qc/config/viewpoint-discovery-extension.md`, writes nothing before approval, then reruns discovery and records the resulting revision or hash and used IDs after the approved write.
+
+If an existing extension has an unconfirmed revision or unclear scope applicability, confirm the skill records `PRESENT_UNCONFIRMED` and does not lock the Viewpoint artifact until the user confirms, excludes, or approves an update.
+
 For a PO coexistence check, start with an `AGENTS.md` that contains a PO managed block and project-specific instructions.
 Install QC, modify only the installed QC block to simulate an older package version, then update with `--force`.
 Confirm the PO block and project instructions remain byte-equivalent and there is exactly one current QC block.
