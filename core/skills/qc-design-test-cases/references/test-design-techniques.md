@@ -52,7 +52,24 @@ Record a working Coverage Design Map:
 |---|---|---|---|---|---|---|---|
 
 One leaf Viewpoint may need multiple techniques.
-One Test Case may cover multiple coverage items only when its Preconditions, Test Data, Steps, and Expected Results remain atomic and failures remain diagnosable.
+One coherent leaf Viewpoint may produce multiple Test Cases, and one coverage target may map to multiple Test Cases.
+One Test Case may cover multiple coverage items only when they serve the same primary objective and its Preconditions, Test Data, Steps, Expected Results, and failure evidence remain diagnosable.
+Different data points, outcomes, branches, or child case counts do not by themselves require splitting the parent leaf.
+
+## Objective and Checkpoint Contract
+
+One primary test objective per Test Case is a package authoring convention, not a universal mandatory ISTQB rule.
+State the source-backed behavior or relationship, applicable input or initial state, trigger, and outcome clearly enough that a reviewer can determine what the case proves.
+A `Verify that ...` sentence is a useful heuristic for clarifying intent, not a semantic validator or a required schema field.
+
+Multiple checkpoints may remain in one case when they are needed to prove one transformation, transaction, interaction, output tuple, or state sequence.
+An output tuple is not split merely because one value could be correct while another is wrong.
+A state sequence is not split mechanically by transition count when the source-backed sequence is the objective.
+Split independent objectives that share only setup or workflow proximity, and usually split alternative branches when each branch needs its own reproducible initial state and verdict.
+
+A case remains diagnosable when evidence identifies the failing checkpoint, relevant input or state, expected outcome, and actual outcome.
+Do not require one possible root cause or one defect per case.
+Treat partial failure, downstream blocking, different data, separately executable actions, and `AND` or `OR` as review signals rather than automatic split rules.
 
 ## Technique Selection
 
@@ -93,6 +110,9 @@ They do not replace traceable coverage of locked Viewpoints and approved sources
 4. Trace the expected result at every selected point to the governing rule.
 5. Include temporal, count, size, page, sequence, and lifecycle boundaries when those are the locked risk, not only numeric field limits.
 
+Separate boundary points into different Test Cases when independent results are needed for each variation.
+Do not split the coherent parent leaf merely because the target selects multiple boundary values.
+
 ### `TDT-DT`, Decision Table
 
 1. List source-defined conditions and actions.
@@ -112,6 +132,8 @@ Treat the missing outcome as a blocker.
 4. Cover transition sequences when history affects the outcome.
 5. Keep state names and numeric values exactly as defined by their own domain.
 
+A source-backed transition sequence may remain one Test Case when the sequence itself is the primary objective and each checkpoint is observable.
+
 Do not reuse a status meaning from another module or lifecycle merely because the numeric code is the same.
 
 ### `TDT-SC`, Scenario and Use-Flow Design
@@ -119,7 +141,7 @@ Do not reuse a status meaning from another module or lifecycle merely because th
 1. Anchor the scenario to the locked business value and named actor.
 2. Identify the main flow plus source-defined alternative, rejection, cancel, retry, interruption, and recovery flows.
 3. Mark system boundaries and observable checkpoints.
-4. Keep each Test Case diagnosable. Split unrelated failures even if they occur in one long user journey.
+4. Keep each Test Case diagnosable. Split independent objectives even when they occur in one long user journey, but do not split a source-backed interaction or recovery sequence merely because an earlier failure can block a later checkpoint.
 5. Do not use scenario coverage as a substitute for detailed rule, boundary, or state coverage when those are separate locked Viewpoints.
 
 ### `TDT-RM`, Role and Permission Matrix
@@ -204,11 +226,13 @@ For each planned case:
 
 1. Assign one stable `TC-<SCOPE-CODE>-NNN` ID without renumbering existing cases.
 2. Trace it to one primary locked leaf VP ID and at least one exact approved source ref.
-3. State reproducible Preconditions and concrete Test Data.
-4. Number Steps in execution order.
-5. Number observable Expected Results to match the relevant Steps.
-6. Assign priority, tags, and one canonical Automation Eligibility value.
-7. Keep mutable execution evidence and runtime claims out of the design artifact.
+3. State one specific primary objective with the input or state, trigger, and outcome it proves.
+4. State reproducible Preconditions and concrete Test Data that distinguish the expected behavior from the fault the case is meant to detect.
+5. Number Steps in execution order and classify each checkpoint as an action path, a continuation condition, a direct assertion for the objective, or a separate objective.
+6. Number observable, source-backed Expected Results to match the relevant Steps and observation surfaces.
+7. Split independent objectives but keep coherent transformations, transactions, interactions, output tuples, and source-backed sequences together when their evidence remains diagnosable.
+8. Assign priority, tags, and one canonical Automation Eligibility value.
+9. Keep mutable execution evidence and runtime claims out of the design artifact.
 
 A case may cite secondary Viewpoints, but one primary leaf VP owns its coverage.
 If no locked leaf Viewpoint owns the intent, stop and return the affected scope to Test Analysis.
@@ -221,20 +245,29 @@ After drafting cases, reconcile planned and achieved coverage:
 |---|---|---|---|---|---|---|---|
 
 - Count only coverage items with complete, source-backed cases in the numerator.
+- Map each claimed item to the exact Test Case, action, and oracle that exercise and assert it.
+- A branch named only in a Title, Test Data, or Coverage Design Map is not covered without its corresponding action and oracle.
+- Map coverage to another Test Case explicitly when that case supplies the action and oracle; do not infer cross-case coverage.
 - Keep `SPEC_GAP`, design-blocking OQ, and unresolved conflict items out of the covered numerator.
 - Keep `NOT_APPLICABLE` and approved `OUT_OF_SCOPE` items out of the denominator.
 - Record any approved risk-based omission or waiver explicitly.
 - Report Viewpoint, requirement, business-rule, NFR, and impact or regression coverage separately when required by the parent artifact.
+- Keep Viewpoint-to-TC mapping, achieved design coverage, and runtime execution results separate.
 - Do not claim `100%` unless the denominator and inclusion rule are explicit and every item reconciles.
+- Do not shrink the denominator merely to obtain `100%`.
 
 ## Exit Check
 
 Test Case Design is ready for review only when:
 
 - Every case traces to one locked leaf Viewpoint and exact source evidence.
+- Every case has one specific primary objective, and every checkpoint is necessary for that objective rather than grouped only to share setup.
 - Every selected technique has an explicit coverage item, target, denominator or selection rule, and rationale.
-- Concrete data contains no unsupported business value.
-- Steps and Expected Results are numbered, observable, and semantically matched.
+- Concrete data contains no unsupported business value and distinguishes the expected outcome from the fault the case is intended to detect.
+- Steps and Expected Results are numbered, observable, semantically matched, and source-backed.
+- Every claimed coverage item maps to a supporting action and oracle, with omissions, exclusions, and blockers disclosed against the declared denominator.
+- A coherent leaf may produce multiple Test Cases, while a bundled locked leaf returns to `qc-design-viewpoints` for an approved revision of the affected scope.
+- Failure evidence identifies checkpoint, input or state, expected outcome, and actual outcome; a later unexecuted checkpoint is not reported as verified or `PASS`.
 - Every excluded or blocked item has the correct status and traceable reason.
 - Coverage totals reconcile with the locked parent and Coverage Design Map.
 - Automation eligibility remains separate from static and runtime readiness.

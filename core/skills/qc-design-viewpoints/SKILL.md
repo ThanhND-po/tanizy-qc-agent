@@ -18,7 +18,10 @@ A Test Target Model describes the feature or business value, test level, stakeho
 It separates where the feature exists from the lenses used to examine it.
 
 A high-level Viewpoint names one relevant lens or coverage area, such as function, data, boundary, state, timing, interaction, user, environment, integration, migration, compatibility, regression, or a quality characteristic.
-A leaf Viewpoint decomposes that lens into one specific, traceable condition or risk for a named test item.
+A leaf Viewpoint decomposes that lens into one coherent, traceable condition or risk for a named test item.
+A leaf Viewpoint must not bundle independent rules merely because they share a requirement, form, screen, actor, feature, or workflow.
+A coherent leaf may still require multiple Test Cases and multiple techniques to cover source-defined partitions, boundaries, decision rules, or transitions.
+Different child Test Case counts, Test Data, or outcomes do not by themselves prove that the leaf is too broad.
 
 A leaf Viewpoint must state what needs to be demonstrated.
 It must not choose a coverage target, Test Design Technique, representative Test Data, concrete execution setup, numbered Steps, or step-level Expected Results.
@@ -123,7 +126,7 @@ An execution-only blocker does not erase source-backed design coverage.
 8. Derive source-backed high-level Viewpoints from `DEFINED` prompts, Test Objectives, and supported product risks. Decompose each one into leaf Viewpoints that state one condition or risk for one named test item.
 9. If analysis reveals a new `SPEC_GAP` or conflict that blocks from `DESIGN`, stop the affected scope. Under `GAP_ANALYSIS`, return it to `qc-gap-finder` because the parent report is incomplete or stale. Under `DIRECT_SOURCE_CHECK`, report the blocker and propose that skill. Do not create an OQ or Gap Report in this skill.
 10. Require an approved scope decision or waiver for `OUT_OF_SCOPE`; do not treat it as `NOT_APPLICABLE`.
-11. Merge prompts only when they express one coherent condition or risk. Split a leaf Viewpoint when its child Test Cases would require unrelated test items, rules, states, roles, or quality characteristics.
+11. Merge prompts only when they express one coherent condition or risk. Split a leaf Viewpoint when it bundles independent conditions or risks rather than one source-backed relationship or condition. Do not split merely because one coherent condition needs multiple child Test Cases, techniques, data variants, boundaries, decision rules, or transitions.
 12. Give every Viewpoint a stable `VP-<SCOPE-CODE>-NNN` ID. Set `Parent VP ID = NONE` and `Level = HIGH_LEVEL` for a root Viewpoint. Set `Level = LEAF` and reference exactly one high-level parent for a leaf Viewpoint.
 13. Build the Discovery Coverage Map from each selected guide or extension ID to its applicability decision and mapped leaf VP IDs. Preserve the material revision or hash used for this analysis.
 14. Calculate coverage totals separately for AC, business rule, NFR, impact or regression, selected discovery prompts, and leaf Viewpoints.
@@ -136,6 +139,9 @@ An execution-only blocker does not erase source-backed design coverage.
 
 Dropping a source-backed Viewpoint requires an explicit waiver and must not be reported as covered.
 A new angle found after lock requires a new Viewpoint revision; do not mutate the locked revision through Test Case Design.
+
+When this skill receives a return from Test Case Design for a previously locked leaf, check the cumulative return count for the affected VP ID according to the shared `Cross-Phase Iteration Policy` in `qc/config/material-paths.md`.
+After the third return, stop the affected scope and present the iteration history and disputed conditions to the user instead of attempting another revision.
 
 ## File Structure
 
@@ -198,6 +204,8 @@ Do not copy unused catalog sections into the artifact.
 - `ABSENT` does not block design and does not trigger a locator question; `PRESENT_UNCONFIRMED` prevents lock until the user confirms, excludes, or approves an update.
 - Every high-level Viewpoint has at least one leaf child.
 - Every leaf Viewpoint names one test item, one parent, one lens, and one coherent condition or risk.
+- No leaf Viewpoint bundles independent rules merely because they share a requirement, form, screen, actor, feature, or workflow.
+- A coherent leaf may produce multiple Test Cases for partitions, boundaries, decision rules, transitions, or other source-backed variants without requiring a new Viewpoint revision solely because the case count, Test Data, or outcomes differ.
 - No leaf Viewpoint contains a coverage target, selected Test Design Technique, representative Test Data, numbered Steps, or step-level Expected Results.
 - Every covered source item maps to at least one leaf Viewpoint.
 - Every selected `DEFINED` discovery prompt maps to at least one leaf Viewpoint.

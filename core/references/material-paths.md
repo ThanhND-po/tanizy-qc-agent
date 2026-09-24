@@ -45,6 +45,17 @@ Keep every source read-only.
 - Preserve user-supplied execution results and source-native literals without silently translating or rewriting them.
 - Check narrative language before the Persist Gate or Lock Gate. Do not infer a different language from prior sessions, machine memory, or a user profile.
 
+## Cross-Phase Iteration Policy
+
+When Test Case Design returns an affected VP ID to Viewpoint Design, both phases must track the cumulative return count for that VP ID within the current scope revision.
+
+- After the third return for the same VP ID without a resolved revision that Test Case Design accepts, both phases must stop the affected scope.
+- Present the full iteration history to the user: each VP ID, the condition or risk under dispute, the rationale from each return, and the Viewpoint revision attempted.
+- Do not attempt a fourth Viewpoint revision or Test Case design pass for the same VP ID without explicit user direction.
+- The user may resolve the dispute by approving one interpretation, redefining the scope, splitting or merging the leaf with an explicit decision, or waiving the affected scope.
+- A scope that is stopped by this policy is not failed or out of scope; it is awaiting human judgment.
+- Record the iteration count and stop reason in the handoff message and in the artifact's Review History when the revision is next written.
+
 A PO handoff makes sources available to QC.
 It does not imply QC phase scope, artifact write approval, Lock Gate approval, Execution Gate approval, or release authority.
 QC starts only after an explicit QC request and applies its own gates.

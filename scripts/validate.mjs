@@ -255,6 +255,13 @@ for (const path of publishedTextFiles) {
   if (path.endsWith(".md")) validateMarkdownSourceFormatting(path, content);
   validateMarkdownLinks(path, content);
 }
+const regressionTextFiles = filesUnder(join(repoRoot, "tests")).filter((path) => /\.(md|json)$/.test(path));
+for (const path of regressionTextFiles) {
+  const content = readFileSync(path, "utf8");
+  if (content.includes("—")) fail(`${relative(repoRoot, path)}: em dash is not allowed`);
+  if (path.endsWith(".md")) validateMarkdownSourceFormatting(path, content);
+  validateMarkdownLinks(path, content);
+}
 
 const publicExampleDenylist = [
   /\b(?:shinsei|zengin|paypay|earlybill|talentbank|anyjob|ikura|sbi)\b/i,
@@ -264,8 +271,10 @@ const publicExampleDenylist = [
 ];
 const publicRepositoryTextFiles = [
   ...publishedTextFiles,
+  ...regressionTextFiles,
   join(repoRoot, "package.json"),
   join(repoRoot, "scripts", "install.mjs"),
+  join(repoRoot, "scripts", "test-atomic-objectives.mjs"),
   join(repoRoot, "scripts", "test-install.mjs"),
   join(repoRoot, "scripts", "test-manual-results.mjs"),
 ];
@@ -463,6 +472,26 @@ for (const rule of [
     fail(`qc-design-test-cases: human-executable authoring rule is missing: ${rule}`);
   }
 }
+for (const rule of [
+  "One primary test objective per Test Case is this package's authoring convention, not a universal mandatory ISTQB rule",
+  "## Test Case Split Decision",
+  "## Return-to-Viewpoint Boundary",
+  "No single signal automatically requires a split",
+  "Every claimed coverage item must map to the Test Case and the specific Steps and Expected Results",
+  "Viewpoint-to-TC mapping, achieved design coverage, and runtime execution results as separate dimensions",
+  "A checkpoint that was not executed after an earlier failure is not verified",
+  "Do not add a mandatory Objective column",
+]) {
+  if (!testCaseSkill.includes(rule)) {
+    fail(`qc-design-test-cases: atomic objective contract is missing: ${rule}`);
+  }
+}
+if (!testCaseSkill.includes("Cross-Phase Iteration Policy")) {
+  fail("qc-design-test-cases: Cross-Phase Iteration Policy reference is missing");
+}
+if (!testCaseSkill.includes("present both interpretations to the user")) {
+  fail("qc-design-test-cases: gray-zone escalation rule is missing");
+}
 
 const materialPaths = readFileSync(
   join(repoRoot, "core", "references", "material-paths.md"),
@@ -487,6 +516,16 @@ for (const rule of [
 ]) {
   if (!materialPaths.includes(rule)) {
     fail(`core/references/material-paths.md: canonical Input Boundary rule is missing: ${rule}`);
+  }
+}
+for (const rule of [
+  "## Cross-Phase Iteration Policy",
+  "third return for the same VP ID",
+  "stop the affected scope",
+  "Present the full iteration history",
+]) {
+  if (!materialPaths.includes(rule)) {
+    fail(`core/references/material-paths.md: Cross-Phase Iteration Policy rule is missing: ${rule}`);
   }
 }
 for (const skill of skillNames) {
@@ -537,6 +576,34 @@ for (const rule of [
 ]) {
   if (!viewpointSkill.includes(rule)) {
     fail(`qc-design-viewpoints: optional extension lifecycle rule is missing: ${rule}`);
+  }
+}
+for (const rule of [
+  "one coherent, traceable condition or risk",
+  "must not bundle independent rules",
+  "Different child Test Case counts, Test Data, or outcomes do not by themselves prove that the leaf is too broad",
+  "Do not split merely because one coherent condition needs multiple child Test Cases",
+]) {
+  if (!viewpointSkill.includes(rule)) {
+    fail(`qc-design-viewpoints: leaf atomicity contract is missing: ${rule}`);
+  }
+}
+if (!viewpointSkill.includes("Cross-Phase Iteration Policy")) {
+  fail("qc-design-viewpoints: Cross-Phase Iteration Policy reference is missing");
+}
+const techniqueGuide = readFileSync(
+  join(skillsRoot, "qc-design-test-cases", "references", "test-design-techniques.md"),
+  "utf8",
+);
+for (const rule of [
+  "## Objective and Checkpoint Contract",
+  "One primary test objective per Test Case is a package authoring convention",
+  "A `Verify that ...` sentence is a useful heuristic",
+  "Map each claimed item to the exact Test Case, action, and oracle",
+  "Do not shrink the denominator merely to obtain `100%`",
+]) {
+  if (!techniqueGuide.includes(rule)) {
+    fail(`test-design-techniques: atomic objective contract is missing: ${rule}`);
   }
 }
 const viewpointGuide = readFileSync(

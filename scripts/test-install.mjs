@@ -104,11 +104,23 @@ try {
         assert.match(installedSkill, /give only a non-blocking suggestion/);
         assert.match(installedSkill, /extension candidates, not permission to write/);
         assert.match(installedSkill, /PRESENT_UNCONFIRMED/);
+        assert.match(installedSkill, /must not bundle independent rules/);
+        assert.match(installedSkill, /Do not split merely because one coherent condition needs multiple child Test Cases/);
       }
       if (skill === "qc-design-test-cases") {
         assert.match(installedSkill, /human can execute it before any automation implementation exists/);
         assert.match(installedSkill, /Do not require a Fixture Catalog/);
         assert.match(installedSkill, /Treat duplication as a review signal, not an automatic failure/);
+        assert.match(installedSkill, /One primary test objective per Test Case is this package's authoring convention/);
+        assert.match(installedSkill, /## Test Case Split Decision/);
+        assert.match(installedSkill, /## Return-to-Viewpoint Boundary/);
+        assert.match(installedSkill, /Every claimed coverage item must map to the Test Case/);
+        const installedTechniqueGuide = readFileSync(
+          join(skillRoot(target, root), skill, "references", "test-design-techniques.md"),
+          "utf8",
+        );
+        assert.match(installedTechniqueGuide, /## Objective and Checkpoint Contract/);
+        assert.match(installedTechniqueGuide, /Map each claimed item to the exact Test Case, action, and oracle/);
       }
       assert.ok(
         !existsSync(join(skillRoot(target, root), skill, "references", "material-paths.md")),

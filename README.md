@@ -35,9 +35,12 @@ Do not add an artifact-language field to generated headers or infer a different 
 ### Test Case Authoring Quality
 
 - Design every Test Case so a human can execute it before automation implementation exists.
+- Treat one primary test objective per Test Case as a package authoring convention, while allowing multiple source-backed checkpoints for one transformation, transaction, interaction, output tuple, or state sequence.
+- Split independent objectives that share only setup or workflow proximity. Do not split mechanically because data, outcomes, possible root causes, checkpoints, or transitions differ.
 - Use Preconditions only for case-specific initial state. An existing approved Fixture Requirement ID may be referenced in Preconditions or Test Data for either manual or automated cases, but no Fixture Catalog or Fixture ID column is mandatory.
 - Write Steps with an actor or role, action surface, concrete action, and observable checkpoint. Do not substitute generic preparation or observation wrappers for executable actions.
 - Keep Expected Results limited to case-specific observable oracles, persisted state, audit evidence, and side effects.
+- Reconcile every coverage claim to the Test Case actions and oracles that exercise it. Keep Viewpoint mapping, achieved design coverage, and runtime results separate.
 - Review repeated Preconditions, Steps, and Expected Results before Lock, while allowing repetition that remains necessary and specific.
 - Keep `UI-AUTO` as Automation Eligibility. It does not mean that the Test Case is runtime-ready or executed.
 
@@ -75,7 +78,8 @@ Approved requirement source
                                       LOCKED leaf Viewpoints
                                                 │
                                      qc-design-test-cases
-                         Coverage item -> Coverage target -> Technique -> TC
+              Coverage item -> Target -> Technique -> Primary objective -> TC
+                          Actions and oracles -> Coverage reconciliation
                                        ├── qc-export-gherkin
                                        ├── qc-export-postman
                                        ├── qc-record-manual-results -> qc/executions/<scope-key>
@@ -298,8 +302,10 @@ Follow the [legacy migration mapping](docs/install-codex.md#legacy-layout) one s
    discover and decompose Viewpoints, then review and lock source-backed leaf
    Viewpoints.
 7. From the locked leaf Viewpoints, define coverage items and coverage targets,
-   select suitable Test Design Techniques, then review and lock concrete Test
-   Cases. Do not run Viewpoint discovery again in this phase.
+   select suitable Test Design Techniques, design Test Cases with one primary
+   objective and coherent checkpoints, then reconcile every claim to actions
+   and oracles before review and Lock. Do not run Viewpoint discovery again in
+   this phase.
 8. Offer an optional XLSX manual run export through `qc-record-manual-results`.
 9. Import completed manual results, or execute eligible cases through an
    approved runtime skill.
@@ -365,9 +371,12 @@ Không thêm artifact-language field vào generated header và không suy ra lan
 ### Chất lượng nội dung Test Case
 
 - Thiết kế mọi Test Case để human có thể thực hiện trước khi có automation implementation.
+- Xem one primary test objective per Test Case là authoring convention của package, đồng thời cho phép nhiều source-backed checkpoint cùng chứng minh một transformation, transaction, interaction, output tuple hoặc state sequence.
+- Tách các objective độc lập chỉ đang dùng chung setup hoặc gần nhau trong workflow. Không split máy móc chỉ vì data, outcome, possible root cause, checkpoint hoặc transition khác nhau.
 - Chỉ dùng Preconditions cho case-specific initial state. Có thể tham chiếu Fixture Requirement ID đã được phê duyệt trong Preconditions hoặc Test Data cho cả manual và automated case, nhưng không bắt buộc Fixture Catalog hoặc cột Fixture ID.
 - Steps phải có actor hoặc role, action surface, hành động cụ thể và observable checkpoint. Không dùng generic preparation hoặc observation wrapper thay cho executable action.
 - Expected Results chỉ giữ case-specific observable oracle, persisted state, audit evidence và side effect.
+- Đối soát mọi coverage claim với Test Case action và oracle thực sự exercise item đó. Tách riêng Viewpoint mapping, achieved design coverage và runtime result.
 - Review Preconditions, Steps và Expected Results bị lặp trước Lock Gate, nhưng vẫn cho phép nội dung lặp khi cần thiết và cụ thể.
 - Giữ `UI-AUTO` làm Automation Eligibility. Giá trị này không có nghĩa Test Case đã runtime-ready hoặc executed.
 
@@ -405,7 +414,8 @@ Requirement source đã được phê duyệt
                                       LOCKED leaf Viewpoint
                                                 │
                                      qc-design-test-cases
-                    Coverage item -> Coverage target -> Technique -> Test Case
+              Coverage item -> Target -> Technique -> Primary objective -> TC
+                          Action và oracle -> Coverage reconciliation
                                        ├── qc-export-gherkin
                                        ├── qc-export-postman
                                        ├── qc-record-manual-results -> qc/executions/<scope-key>
@@ -628,8 +638,10 @@ Thực hiện theo [legacy migration mapping](docs/install-codex.md#legacy-layou
    để tìm, phân rã Viewpoint, sau đó review và lock leaf Viewpoint có source
    trace.
 7. Từ locked leaf Viewpoint, xác định coverage item và coverage target, chọn
-   Test Design Technique phù hợp, sau đó review và lock Test Case cụ thể. Không
-   chạy lại Viewpoint discovery trong phase này.
+   Test Design Technique phù hợp, thiết kế Test Case với một primary objective
+   và các coherent checkpoint, sau đó đối soát từng claim với action và oracle
+   trước khi review và Lock. Không chạy lại Viewpoint discovery trong phase
+   này.
 8. Đề xuất export XLSX manual run tùy chọn qua `qc-record-manual-results`.
 9. Import manual result đã hoàn thành hoặc thực thi Test Case đủ điều kiện qua
    runtime skill đã được phê duyệt.

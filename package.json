@@ -1,6 +1,6 @@
 {
   "name": "@thanhndpo/tanizy-qc-agent",
-  "version": "0.8.5",
+  "version": "0.8.6",
   "description": "Portable Quality Control agent workflows for Gemini CLI, Codex, Claude Code, and Antigravity.",
   "license": "MIT",
   "type": "module",
@@ -21,9 +21,10 @@
   "scripts": {
     "install:agent": "node scripts/install.mjs",
     "validate": "node scripts/validate.mjs",
+    "test:atomic-objectives": "node scripts/test-atomic-objectives.mjs",
     "test:install": "node scripts/test-install.mjs",
     "test:manual-results": "node scripts/test-manual-results.mjs",
-    "pack:check": "npm run validate && npm run test:manual-results && npm run test:install"
+    "pack:check": "npm run validate && npm run test:atomic-objectives && npm run test:manual-results && npm run test:install"
   },
   "keywords": [
     "agent-skills",

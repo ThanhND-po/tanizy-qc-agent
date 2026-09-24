@@ -95,7 +95,8 @@ Feature và business value
 -> LOCK leaf Viewpoint revision
 -> Chọn coverage item và coverage target
 -> Chọn Test Design Technique
--> Thiết kế Test Case
+-> Thiết kế Test Case với one primary objective và coherent checkpoints
+-> Đối soát coverage claim với action và oracle
 ```
 
 | Material | Ownership | Phase và giới hạn |
@@ -112,6 +113,9 @@ Khi có reusable project hoặc domain prompt chưa được package guide biể
 Test Viewpoint là source-backed test condition, không phải executable Test Case.
 Test Case chỉ trace tới leaf Viewpoint đã lock.
 Test Case Design không đọc lại discovery material để tìm Viewpoint mới.
+Một coherent leaf Viewpoint có thể sinh nhiều Test Case cho partitions, boundaries, branches hoặc transitions mà không cần split leaf chỉ vì data hoặc outcome khác nhau.
+Mỗi Test Case dùng một primary objective theo authoring convention của package, nhưng có thể giữ nhiều checkpoint khi chúng cùng chứng minh một transformation, transaction, interaction, output tuple hoặc source-backed sequence.
+Coverage chỉ được claim khi có mapping tới action và oracle tương ứng; Viewpoint mapping, achieved design coverage và runtime result phải được báo riêng.
 Khi phát hiện thiếu Viewpoint hoặc source thay đổi, dừng affected scope và quay lại `qc-design-viewpoints` để tạo, review và lock revision mới.
 
 Hai file `qc/config/field-validation-checklist.md` và `qc/config/ui-component-checklist.md` là legacy.
