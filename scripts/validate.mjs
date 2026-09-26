@@ -309,6 +309,11 @@ const adapterLanguageRules = [
   "Default to Vietnamese",
   "never add the selected language to artifact headers",
 ];
+const adapterLegendRules = [
+  "Controlled Value Legends",
+  "after every artifact content change",
+  "LEGEND_UNDEFINED_VALUE",
+];
 const repositoryInstructions = join(repoRoot, "AGENTS.md");
 if (existsSync(repositoryInstructions)) {
   validateMarkdownSourceFormatting(
@@ -342,6 +347,11 @@ for (const adapterInstruction of [
       fail(`${relative(repoRoot, adapterInstruction)}: Artifact Language Scope Gate rule is missing: ${rule}`);
     }
   }
+  for (const rule of adapterLegendRules) {
+    if (!content.toLowerCase().includes(rule.toLowerCase())) {
+      fail(`${relative(repoRoot, adapterInstruction)}: Controlled Value Legend rule is missing: ${rule}`);
+    }
+  }
 }
 
 const antigravityRulePath = join(
@@ -361,6 +371,11 @@ for (const rule of ["`BLOCKED_INPUT`", "not a source locator", "request broader 
 for (const rule of ["Artifact Language", "QC Scope Gate", "never add the selected language to artifact headers"]) {
   if (!antigravityRule.toLowerCase().includes(rule.toLowerCase())) {
     fail(`${relative(repoRoot, antigravityRulePath)}: Artifact Language Scope Gate rule is missing: ${rule}`);
+  }
+}
+for (const rule of adapterLegendRules) {
+  if (!antigravityRule.toLowerCase().includes(rule.toLowerCase())) {
+    fail(`${relative(repoRoot, antigravityRulePath)}: Controlled Value Legend rule is missing: ${rule}`);
   }
 }
 
@@ -438,7 +453,7 @@ for (const discoveryMaterial of [
 const canonicalTestDesignBasisHeader =
   "| Leaf VP ID | Coverage Item | Coverage Target | Denominator or Selection Rule | Test Design Technique | Rationale | TC IDs | Status or Blocked Reason |";
 if (
-  !testCaseSkill.includes("## 3. Test Design Basis") ||
+  !testCaseSkill.includes("## 4. Test Design Basis") ||
   !testCaseSkill.includes(canonicalTestDesignBasisHeader)
 ) {
   fail("qc-design-test-cases: canonical Test Design Basis schema is missing or changed");
@@ -553,10 +568,10 @@ for (const legacyChecklist of [
   }
 }
 for (const section of [
-  "## 3. Discovery Material Manifest",
-  "## 5. Test Target Map",
-  "## 7. Viewpoint Breakdown",
-  "## 8. Discovery Coverage Map",
+  "## 4. Discovery Material Manifest",
+  "## 6. Test Target Map",
+  "## 8. Viewpoint Breakdown",
+  "## 9. Discovery Coverage Map",
 ]) {
   if (!viewpointSkill.includes(section)) {
     fail(`qc-design-viewpoints: locked schema section ${section} is missing`);
@@ -770,6 +785,20 @@ const executionContract = readFileSync(
   join(repoRoot, "core", "references", "executions-log.md"),
   "utf8",
 );
+const artifactContract = readFileSync(
+  join(repoRoot, "core", "references", "material-paths.md"),
+  "utf8",
+);
+for (const rule of [
+  "## Reader-Facing Controlled Value Legends",
+  "seven or fewer values",
+  "used controlled values ⊆ Legend values",
+  "LEGEND_UNDEFINED_VALUE",
+]) {
+  if (!artifactContract.includes(rule)) {
+    fail(`core/references/material-paths.md: Controlled Value Legend contract is missing: ${rule}`);
+  }
+}
 if (!executionContract.includes("Assessment Policy")) {
   fail("core/references/executions-log.md: Assessment Policy is required");
 }
@@ -781,6 +810,27 @@ if (!executionContract.includes("Evidence may be blank")) {
 }
 if (!executionContract.includes("Source Locator")) {
   fail("core/references/executions-log.md: manual result provenance is missing");
+}
+if (!executionContract.includes("retain the complete Result Vocabulary")) {
+  fail("core/references/executions-log.md: Result Vocabulary synchronization rule is missing");
+}
+
+for (const skill of ["qc-gap-finder", "qc-design-viewpoints", "qc-design-test-cases"]) {
+  const content = readFileSync(join(skillsRoot, skill, "SKILL.md"), "utf8");
+  if (!content.includes("Legend") || !content.includes("LEGEND_UNDEFINED_VALUE")) {
+    fail(`${skill}: reader-facing Legend synchronization contract is missing`);
+  }
+}
+
+const openQuestionsSeed = readFileSync(join(repoRoot, "refs-templates", "open-questions.md"), "utf8");
+for (const section of ["### Status Values", "### Finding Class Values", "### Blocks From Phase Values"]) {
+  if (!openQuestionsSeed.includes(section)) {
+    fail(`refs-templates/open-questions.md: Legend section is missing: ${section}`);
+  }
+}
+const bugLegendSeed = readFileSync(join(repoRoot, "refs-templates", "bug-base.md"), "utf8");
+if (!bugLegendSeed.includes("## Status Legend")) {
+  fail("refs-templates/bug-base.md: Status Legend is missing");
 }
 
 const manualResultSkill = readFileSync(
@@ -833,6 +883,9 @@ if (!reportSkill.includes("relative to the proposed file under")) {
 }
 if (!reportContentSpec.includes("## DETAILED Appendices")) {
   fail("qc-report-generator: optional DETAILED appendices contract is missing");
+}
+if (!reportContentSpec.includes("Controlled Value Legends") || !reportSkill.includes("Legend synchronization")) {
+  fail("qc-report-generator: Controlled Value Legend contract is missing");
 }
 if (/same eight sections|eight content sections/i.test(`${reportSkill}\n${reportContentSpec}`)) {
   fail("qc-report-generator: every report must not be forced into eight sections");

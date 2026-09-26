@@ -56,6 +56,8 @@ It is required for imported manual results and is separate from optional support
 | `ERROR` | Runner, manual tool, setup, or observation mechanism failed before product behavior could be assessed |
 
 Use `SKIP`, never `SKIPPED`.
+Because this vocabulary has seven or fewer canonical values, retain the complete Result Vocabulary and reconcile it whenever a Run update introduces or changes a result value.
+Do not append a Run with `LEGEND_UNDEFINED_VALUE` unresolved.
 
 ## Summary Per Run
 

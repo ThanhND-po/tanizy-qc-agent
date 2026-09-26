@@ -67,7 +67,9 @@ Never write tokens, passwords, or production personal data into the collection.
 6. Write `<scope-key>.postman_collection.json` and `<scope-key>-postman-manifest.md`.
 7. Validate JSON structure, traceability, and secret handling.
 
-The manifest records Scope Key, Scope Code, Artifact Type, Revision, State, readiness route, locked source TC revision, exported and rejected TC IDs, source coverage, validation state, secret variable names, and runtime blockers.
+The manifest records Scope Key, Scope Code, Artifact Type, Revision, State, readiness route, locked source TC revision, exported and rejected TC IDs, source coverage, validation state, secret variable names, runtime blockers, and a synchronized Controlled Value Legend.
+Reread the canonical definitions and reconcile the complete manifest before approval.
+Include the complete vocabulary for every governed set with seven or fewer values and never leave `LEGEND_UNDEFINED_VALUE` unresolved.
 
 ## Static Validation Gate
 
@@ -78,6 +80,7 @@ The manifest records Scope Key, Scope Code, Artifact Type, Revision, State, read
 - No secret value is embedded.
 - Rejected IDs and reasons appear in the manifest.
 - All relative source links resolve.
+- Every controlled value used in the manifest has exactly one matching Legend definition.
 
 Mark the collection `STATIC_VALID` after these checks.
 Mark it `RUNTIME_READY` only when environment variables, credentials, data fixtures, dependencies, and cleanup are verified.

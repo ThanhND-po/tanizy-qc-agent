@@ -3,7 +3,9 @@
 This project-owned ledger is seeded at `qc/open-questions.md`.
 Installer updates preserve existing content.
 
-## Status Values
+## Controlled Value Legends
+
+### Status Values
 
 - `OPEN`: no decision exists.
 - `ANSWERED`: an explicit decision exists, but the governing source may not be updated yet.
@@ -13,10 +15,25 @@ Installer updates preserve existing content.
 Silence is not approval.
 A blocking Open Question prevents downstream work for its affected scope.
 
+### Finding Class Values
+
+- `GAP`: required behavior or evidence is absent.
+- `AMB`: wording allows more than one behavior.
+- `CONFLICT`: sources state incompatible behavior.
+- `RISK`: a verified dependency, known bug, or current-state fact creates test risk.
+
+### Blocks From Phase Values
+
+- `DESIGN`: unresolved evidence first prevents a source-backed Viewpoint or Test Case.
+- `EXPORT`: unresolved evidence first prevents a faithful Gherkin or Postman artifact.
+- `EXECUTION`: unresolved evidence first prevents a safe, reproducible live run.
+- `REPORT`: unresolved evidence first prevents a requested report claim or release verdict.
+- `NONE`: no approved phase is blocked.
+
 Use `OQ-<SCOPE-CODE>-NNN`.
 Keep IDs unique across this ledger and never reuse an ID for a different decision.
 
-Use `GAP`, `AMB`, `CONFLICT`, or `RISK` for Finding Class.
+Use `GAP`, `AMB`, `CONFLICT`, or `RISK` for Finding Class and keep the complete Finding Class Legend synchronized when this ledger is revised.
 Record the business or technical topic separately in Question Domain, for example `Business Rule`, `File Contract`, `NFR`, or `UI Contract`.
 Proposed Options are proposals, not decisions.
 

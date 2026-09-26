@@ -14,6 +14,11 @@ Place the Report Basis once in the title or header block: scope key, locked View
 Mark an unknown value explicitly.
 Do not repeat this metadata in later sections.
 
+Place a compact `Controlled Value Legends` block after the Report Basis and before the Decision Summary.
+Include the complete Result vocabulary: `PASS`, `FAIL`, `BLOCKED`, `ERROR`, `SKIP`, and `NOT_RUN`.
+Include the complete Verdict vocabulary: `GO`, `CONDITIONAL GO`, `NO-GO`, and `UNDETERMINED`.
+Use the canonical meanings from this specification and the execution contract, and reconcile the block whenever report content changes.
+
 ### 1. Decision Summary
 
 Use one table:

@@ -10,7 +10,17 @@ Use an exact file path, URL, or external evidence ID.
 Do not invent a customer tracker ID or use `TBD`.
 
 Use one lifecycle table so traceability remains available after closure.
-Status is `OPEN`, `IN_PROGRESS`, `FIXED`, `VERIFIED`, `CLOSED`, or `REOPENED`.
+
+## Status Legend
+
+| Status | Meaning |
+|---|---|
+| `OPEN` | The defect is recorded and not yet being resolved |
+| `IN_PROGRESS` | Resolution work is in progress |
+| `FIXED` | A fix is reported but has not yet passed QC verification |
+| `VERIFIED` | QC verified the fix against the applicable expected behavior |
+| `CLOSED` | The defect lifecycle is complete under the approved closure rule |
+| `REOPENED` | The defect remains or recurred after a prior fix or closure |
 
 ## Bug Registry
 

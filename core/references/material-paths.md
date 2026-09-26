@@ -45,6 +45,37 @@ Keep every source read-only.
 - Preserve user-supplied execution results and source-native literals without silently translating or rewriting them.
 - Check narrative language before the Persist Gate or Lock Gate. Do not infer a different language from prior sessions, machine memory, or a user profile.
 
+## Reader-Facing Controlled Value Legends
+
+Every reader-facing artifact must explain the abbreviations, classifications, statuses, gates, levels, eligibility values, verdicts, and other controlled values that a reader needs to interpret that artifact.
+Use the artifact-specific canonical definitions from the selected skill and its package-managed references; do not invent or change their meaning, and do not copy an inaccessible package path into the reader-facing explanation.
+
+Apply these rules whenever an artifact is created or revised:
+
+1. Read the complete current artifact, collect controlled values from every section governed by each Legend, and reread the canonical definitions before drafting the update.
+2. When a canonical vocabulary has seven or fewer values, include the complete canonical vocabulary in its Legend, even when the current revision does not use every value.
+3. When a canonical vocabulary has more than seven values, include every value used in the current artifact, every value still needed to interpret retained history, and every value required by the artifact-specific template.
+4. Every controlled value used in the governed artifact content must have exactly one matching Legend definition. Reconcile the Legend after adding, changing, or removing content; export-time generation alone is insufficient.
+5. A Legend value must come from the canonical vocabulary, an explicitly approved custom definition, or a retained legacy value clearly marked `LEGACY`. Do not infer the meaning of an unknown custom value.
+6. When the user supplies a non-canonical value without an approved definition, preserve the supplied content, report `LEGEND_UNDEFINED_VALUE`, and obtain the definition before approving or locking the affected revision.
+7. Do not promote an artifact-local custom value into the package-wide canonical vocabulary without separate approval to change the package contract.
+
+For each governed vocabulary, enforce these invariants:
+
+```text
+used controlled values ⊆ Legend values
+
+when canonical vocabulary size <= 7:
+Legend values = canonical values, plus approved custom or required LEGACY values
+
+when canonical vocabulary size > 7:
+used and retained-history values ⊆ Legend values ⊆ canonical values + approved custom or required LEGACY values
+```
+
+Use a compact table such as `Value | Meaning` or the artifact-specific Legend schema.
+Place the Legend before the first section that depends on it, unless the artifact-specific template requires another location.
+Update Review History when a classification change or Legend definition change affects interpretation of retained content.
+
 ## Cross-Phase Iteration Policy
 
 When Test Case Design returns an affected VP ID to Viewpoint Design, both phases must track the cumulative return count for that VP ID within the current scope revision.

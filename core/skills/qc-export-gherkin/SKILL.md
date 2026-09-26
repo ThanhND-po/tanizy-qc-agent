@@ -85,7 +85,9 @@ qc/automation/gherkin/fs-login/
 └── fs-login-gherkin-manifest.md
 ```
 
-The manifest records Scope Key, Scope Code, Artifact Type, Revision, State, readiness route, locked source TC revision, exported and rejected TC IDs, Viewpoint/source coverage, validation state, and runtime blockers.
+The manifest records Scope Key, Scope Code, Artifact Type, Revision, State, readiness route, locked source TC revision, exported and rejected TC IDs, Viewpoint/source coverage, validation state, runtime blockers, and a synchronized Controlled Value Legend.
+Reread the canonical definitions and reconcile the complete manifest before approval.
+Include the complete vocabulary for every governed set with seven or fewer values and never leave `LEGEND_UNDEFINED_VALUE` unresolved.
 Use the descriptive manifest filename defined above.
 
 ## Static Validation Gate
@@ -96,6 +98,7 @@ Use the descriptive manifest filename defined above.
 - No blocked or ineligible TC is exported.
 - Feature and manifest filenames follow the approved scope key.
 - Gherkin syntax is parseable by an available parser, when one exists.
+- Every controlled value used in the manifest has exactly one matching Legend definition.
 
 Mark the result `STATIC_VALID` when these checks pass.
 Mark `RUNTIME_READY` only after the project verifies its BDD runner, matching step definitions, environment, auth, fixtures, and cleanup.

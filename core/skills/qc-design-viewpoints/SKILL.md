@@ -134,8 +134,9 @@ An execution-only blocker does not erase source-backed design coverage.
 16. Draft the readiness basis, Test Target Map, Test Item Inventory, Viewpoint Breakdown, Discovery Coverage Map, and coverage summary in chat using the reader-facing language confirmed at the Scope Gate.
 17. Ask the user to merge, split, reprioritize, add, drop, or approve items.
 18. Recalculate coverage after every adjustment. Viewpoint discovery and decomposition may iterate until the revision is approved.
-19. Obtain approval for the locked content and exact path.
-20. Write `qc/test-viewpoints/<scope-key>-viewpoints.md` as the locked revision.
+19. Reread the canonical definitions and reconcile the reader-facing Legends against the complete artifact. Include the complete canonical vocabulary for each governed set with seven or fewer values, including readiness route, Design Gate, material status, Test Item scope status, Viewpoint level, and discovery classification.
+20. Obtain approval for the locked content and exact path.
+21. Write `qc/test-viewpoints/<scope-key>-viewpoints.md` as the locked revision.
 
 Dropping a source-backed Viewpoint requires an explicit waiver and must not be reported as covered.
 A new angle found after lock requires a new Viewpoint revision; do not mutate the locked revision through Test Case Design.
@@ -151,34 +152,37 @@ After the third return, stop the affected scope and present the iteration histor
 ## 1. Artifact Header
 | Scope Key | Scope Code | Artifact Type | Revision | State | Readiness Route | Design Gate | Gap Analysis | Parent Gap Revision | Blocking OQs | Approved By | Approved At |
 
-## 2. Source Manifest
+## 2. Controlled Value Legends
+| Vocabulary | Value | Meaning |
+
+## 3. Source Manifest
 | Source path | Section or ID | Revision or hash |
 
-## 3. Discovery Material Manifest
+## 4. Discovery Material Manifest
 | Material | Canonical Locator | Status | Revision or Hash | Used IDs | Notes |
 
-## 4. Readiness Basis
+## 5. Readiness Basis
 | Route | Check or Parent Artifact | Result | Notes |
 
-## 5. Test Target Map
+## 6. Test Target Map
 | Aspect | Confirmed Detail | Basis or Source | Status |
 
-## 6. Test Item Inventory
+## 7. Test Item Inventory
 | Test Item | Item Type | Parent Object | Source Refs | Scope Status | Applicable Guide IDs | Notes |
 
-## 7. Viewpoint Breakdown
+## 8. Viewpoint Breakdown
 | VP ID | Parent VP ID | Level | Test Item | Item Type | Lens | Coverage Intent | Priority | Source, Objective, or Risk Trace | Rationale |
 
-## 8. Discovery Coverage Map
+## 9. Discovery Coverage Map
 | Guide or Extension ID | Test Item | Classification | Leaf VP IDs | Evidence or Exclusion Basis |
 
-## 9. Coverage
+## 10. Coverage
 | Dimension | Covered | Total | Blocked | Coverage % |
 
-## 10. Blocked Scope
+## 11. Blocked Scope
 | Test Item or Requirement Ref | Guide ID or Missing Behavior | OQ ID | Missing Evidence |
 
-## 11. Review History
+## 12. Review History
 | Revision | Date | Change | Reviewer |
 ```
 
@@ -216,6 +220,7 @@ Do not copy unused catalog sections into the artifact.
 - Coverage reporting names its approved source-backed denominator, lists blocked and waived or `OUT_OF_SCOPE` items separately, and does not present a bare `100%` as complete product coverage.
 - Reader-facing narrative follows the Scope Gate language while exact technical and business terms, IDs, paths, fields, source literals, and controlled values remain unchanged.
 - The revision is `LOCKED` only after explicit user approval.
+- Every controlled value used in the artifact has exactly one matching Legend definition, and every governed canonical vocabulary with seven or fewer values is complete.
 - All relative links resolve.
 
 ## Rules
@@ -224,5 +229,6 @@ Do not copy unused catalog sections into the artifact.
 - Do not add an artifact-language field to the Viewpoint header.
 - Do not turn Open Questions into assumed Viewpoints.
 - Do not claim `No gaps` when Gap Analysis was not run.
+- Do not lock a Viewpoint artifact with `LEGEND_UNDEFINED_VALUE` unresolved.
 - Do not create Test Cases, choose coverage targets, or apply Test Design Techniques in this skill.
 - Write only after the Persist and Lock Gates pass.

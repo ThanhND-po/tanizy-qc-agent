@@ -97,6 +97,8 @@ try {
       if (skill === "qc-gap-finder") {
         assert.match(installedSkill, /Scope Gate language/);
         assert.match(installedSkill, /Do not add an artifact-language field to the Gap Report header/);
+        assert.match(installedSkill, /## 3\. Legends/);
+        assert.match(installedSkill, /LEGEND_UNDEFINED_VALUE/);
       }
       if (skill === "qc-design-viewpoints") {
         assert.match(installedSkill, /artifact state is not the downstream readiness decision/);
@@ -106,6 +108,8 @@ try {
         assert.match(installedSkill, /PRESENT_UNCONFIRMED/);
         assert.match(installedSkill, /must not bundle independent rules/);
         assert.match(installedSkill, /Do not split merely because one coherent condition needs multiple child Test Cases/);
+        assert.match(installedSkill, /## 2\. Controlled Value Legends/);
+        assert.match(installedSkill, /LEGEND_UNDEFINED_VALUE/);
       }
       if (skill === "qc-design-test-cases") {
         assert.match(installedSkill, /human can execute it before any automation implementation exists/);
@@ -115,6 +119,8 @@ try {
         assert.match(installedSkill, /## Test Case Split Decision/);
         assert.match(installedSkill, /## Return-to-Viewpoint Boundary/);
         assert.match(installedSkill, /Every claimed coverage item must map to the Test Case/);
+        assert.match(installedSkill, /## 2\. Controlled Value Legends/);
+        assert.match(installedSkill, /LEGEND_UNDEFINED_VALUE/);
         const installedTechniqueGuide = readFileSync(
           join(skillRoot(target, root), skill, "references", "test-design-techniques.md"),
           "utf8",
@@ -148,6 +154,9 @@ try {
     assert.match(readFileSync(installedMaterialPaths, "utf8"), /A filesystem permission prompt is not a substitute/);
     assert.match(readFileSync(installedMaterialPaths, "utf8"), /## Artifact Language Scope Gate/);
     assert.match(readFileSync(installedMaterialPaths, "utf8"), /not as persistent artifact metadata/);
+    assert.match(readFileSync(installedMaterialPaths, "utf8"), /## Reader-Facing Controlled Value Legends/);
+    assert.match(readFileSync(installedMaterialPaths, "utf8"), /seven or fewer values/);
+    assert.match(readFileSync(installedMaterialPaths, "utf8"), /LEGEND_UNDEFINED_VALUE/);
     assert.match(readFileSync(installedMaterialPaths, "utf8"), /## Coverage and Readiness Reporting/);
     assert.ok(!existsSync(join(root, "qc", "config", "field-validation-checklist.md")));
     assert.ok(!existsSync(join(root, "qc", "config", "ui-component-checklist.md")));
@@ -190,6 +199,8 @@ try {
         canonicalOqHeader,
       ),
     );
+    assert.match(readFileSync(join(root, "qc", "open-questions.md"), "utf8"), /### Finding Class Values/);
+    assert.match(readFileSync(join(root, "qc", "open-questions.md"), "utf8"), /### Blocks From Phase Values/);
     const installedSystemContext = readFileSync(
       join(root, "qc", "refs", "system-context.md"),
       "utf8",
@@ -201,6 +212,7 @@ try {
         canonicalBugHeader,
       ),
     );
+    assert.match(readFileSync(join(root, "qc", "refs", "bug-base.md"), "utf8"), /## Status Legend/);
     const adapter = readFileSync(adapterPath(target, root), "utf8");
     assert.match(adapter, /BEGIN TANIZY QC AGENT MANAGED BLOCK/);
     assert.match(adapter, /`BLOCKED_INPUT`/);
@@ -208,11 +220,17 @@ try {
     assert.match(adapter, /Do not request broader filesystem permission/);
     assert.match(adapter, /reader-facing artifact language/i);
     assert.match(adapter, /never add the selected language to artifact headers/i);
+    assert.match(adapter, /Controlled Value Legends/);
+    assert.match(adapter, /LEGEND_UNDEFINED_VALUE/);
     if (target === "antigravity") {
       assert.ok(existsSync(join(root, ".agents", "rules", "tanizy-qc.md")));
       assert.match(
         readFileSync(join(root, ".agents", "rules", "tanizy-qc.md"), "utf8"),
         /Confirm reader-facing artifact language at the QC Scope Gate/,
+      );
+      assert.match(
+        readFileSync(join(root, ".agents", "rules", "tanizy-qc.md"), "utf8"),
+        /Controlled Value Legends/,
       );
     }
   }

@@ -133,6 +133,7 @@ Do not use a shared `qc/qc-task.md`.
 - Keep requirement and PO artifacts read-only.
 - Use the Scope Gate language for reader-facing artifact narrative. Default to Vietnamese and retain precise English technical and business terms, IDs, paths, fields, literals, and controlled values.
 - Do not add the selected language to an artifact header or infer a different language from prior sessions, machine memory, or a user profile.
+- Require every reader-facing artifact to reconcile its Controlled Value Legends after each content change according to the shared contract; do not pass a Persist or Lock Gate with `LEGEND_UNDEFINED_VALUE` unresolved.
 - Do not invent business rules, routes, payloads, selectors, thresholds, or release decisions.
 - Write only the files approved by the user.
 - Keep `STATIC_VALID`, `AUTOMATION_ELIGIBLE`, and `RUNTIME_READY` separate.

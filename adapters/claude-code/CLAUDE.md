@@ -16,6 +16,7 @@ Do not start QC because a requirement file was created or changed.
 - Treat a PO handoff as source input only. It does not grant QC write, Lock, Execution, or Release Verdict approval.
 - Apply the spec-first gate. Missing behavior that affects Test Data or Expected Results blocks the affected design, export, and execution scope.
 - Confirm the reader-facing artifact language at the QC Scope Gate. Default to Vietnamese unless the user explicitly requests another language, retain exact English technical and business terms, IDs, paths, fields, literals, and controlled values, and never add the selected language to artifact headers.
+- Reconcile reader-facing Controlled Value Legends after every artifact content change according to `qc/config/material-paths.md`; never approve, lock, export, or report with `LEGEND_UNDEFINED_VALUE` unresolved.
 - Draft first, then obtain explicit approval for content and exact paths before writing.
 - Require a separate Execution Gate before browser or API actions.
 - Ask in Vietnamese by default, retain exact English technical terms, and never guess business rules, selectors, endpoints, payloads, or release decisions.

@@ -98,11 +98,12 @@ Silence never resolves an OQ.
 6. Record each finding with source evidence, applicability basis, `Blocks From Phase`, and affected downstream artifacts.
 7. Create or update an OQ only when a decision or governing source is required. Keep Finding Class separate from Question Domain, apply the PO to QC status mapping from `references/open-questions-guide.md`, and use `-` as OQ ID for a finding that needs no decision.
 8. Assign the scope design gate: `READY` when every in-scope behavior is testable. `PARTIAL` when only a source-backed subset can proceed. `STOP` when no testable workflow exists or a critical conflict invalidates the flow.
-9. When no findings exist, keep Findings as `None`, leave the OQ ledger unchanged, and assign `READY` only when the source inventory and coverage denominator prove every in-scope item is testable.
-10. Draft the gap report and proposed OQ changes in chat using the reader-facing language confirmed at the Scope Gate.
-11. Obtain approval for content and exact paths.
-12. Write `qc/gap-reports/<scope-key>-gap-report.md` and only the approved OQ rows.
-13. Validate narrative language, relative links, scope key, stable Finding and OQ IDs, and coverage totals.
+9. Reconcile every controlled value with the reader-facing Legends. Because the Finding Class, Applicability, Blocks From Phase, and Design Gate vocabularies each contain seven or fewer canonical values, include each complete vocabulary even when the current report uses only a subset.
+10. When no findings exist, keep Findings as `None`, leave the OQ ledger unchanged, and assign `READY` only when the source inventory and coverage denominator prove every in-scope item is testable.
+11. Draft the gap report and proposed OQ changes in chat using the reader-facing language confirmed at the Scope Gate.
+12. Obtain approval for content and exact paths.
+13. Write `qc/gap-reports/<scope-key>-gap-report.md` and only the approved OQ rows.
+14. Validate narrative language, relative links, scope key, stable Finding and OQ IDs, coverage totals, and Legend synchronization.
 
 Ask blocking questions first.
 Group related questions in one concise review when this is clearer, but keep one decision per OQ row.
@@ -118,22 +119,32 @@ Group related questions in one concise review when this is clearer, but keep one
 ## 2. Decision Summary
 Design gate: READY | PARTIAL | STOP
 
-## 3. Source Manifest
+## 3. Legends
+### 3.1 Finding Class Legend
+| Finding Class | Meaning |
+### 3.2 Applicability Legend
+| Applicability | Meaning |
+### 3.3 Blocks From Phase Legend
+| Value | Meaning |
+### 3.4 Design Gate Legend
+| Design Gate | Meaning |
+
+## 4. Source Manifest
 | Source path | Section or ID | Approval state | Revision or hash |
 
-## 4. Findings
+## 5. Findings
 | Finding ID | Source Ref | Class | Finding | Applicability Basis | Priority | Blocks From Phase | OQ ID |
 
-## 5. Open Questions Added or Updated
+## 6. Open Questions Added or Updated
 | OQ ID | Finding Class | Question Domain | Question | Owner | Target Date | Status | Blocks From Phase | Impacted Artifacts |
 
-## 6. Source-Backed Scope Allowed to Continue
+## 7. Source-Backed Scope Allowed to Continue
 | Requirement Ref | Evidence | Allowed Next Phase |
 
-## 7. Blocked Coverage
+## 8. Blocked Coverage
 | Requirement Ref | Missing Evidence | Required Answer or Source |
 
-## 8. Coverage Totals
+## 9. Coverage Totals
 | Dimension | Source Items | Testable | Blocked |
 ```
 
@@ -163,3 +174,4 @@ When the scope has no testable behavior, report `0/0` and do not create placehol
 - Do not invent options as decisions. Label proposed options as proposals.
 - Do not continue blocked behavior to downstream skills.
 - Do not claim Gap Analysis was performed when the readiness route was `DIRECT_SOURCE_CHECK`.
+- Do not approve a Gap Report with a controlled value missing from its governing Legend or with `LEGEND_UNDEFINED_VALUE` unresolved.

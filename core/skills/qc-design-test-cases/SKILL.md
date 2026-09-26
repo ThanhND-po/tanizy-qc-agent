@@ -168,11 +168,12 @@ Missing endpoint, route, locator, fixture, auth, cleanup, or runner evidence pre
 8. Build traceability matrices and separate coverage totals for AC, business rule, NFR, impact or regression, high-level Viewpoints, leaf Viewpoints, design coverage targets, and execution evidence when available.
 9. List blocked source items and leaf Viewpoints with OQ IDs and no TC IDs, and record design omissions or approved exclusions without shrinking the declared denominator to obtain `100%`.
 10. Review repeated narrative across Preconditions, Steps, and Expected Results. Treat duplication as a review signal, not an automatic failure; retain repeated text only when it is necessary and specific or factor an approved shared constraint into an artifact-level section without making the rows ambiguous.
-11. Run the Quality Gates below.
-12. Present the Test Design Basis, Test Case draft, coverage reconciliation, and exact write set in chat.
-13. Obtain explicit content, path, coverage-target, and Lock Gate approval.
-14. Write `qc/test-cases/<scope-key>-test-cases.md` with state `LOCKED`.
-15. After validation succeeds, recommend exporting the locked Test Case table to an XLSX manual run workbook through `qc-record-manual-results`. State that this is optional and requires separate path approval. Do not create the workbook automatically.
+11. Reread the canonical definitions and reconcile the reader-facing Legends against the complete artifact. Include all five canonical Automation Eligibility values and every other governed canonical vocabulary with seven or fewer values.
+12. Run the Quality Gates below.
+13. Present the Test Design Basis, Test Case draft, coverage reconciliation, and exact write set in chat.
+14. Obtain explicit content, path, coverage-target, and Lock Gate approval.
+15. Write `qc/test-cases/<scope-key>-test-cases.md` with state `LOCKED`.
+16. After validation succeeds, recommend exporting the locked Test Case table to an XLSX manual run workbook through `qc-record-manual-results`. State that this is optional and requires separate path approval. Do not create the workbook automatically.
 
 Do not create an execution log during Test Case design.
 `qc-record-manual-results` appends it only after the Manual Result Gate, and a runtime execution skill appends it only after an approved Execution Gate.
@@ -185,13 +186,16 @@ Do not create an execution log during Test Case design.
 ## 1. Artifact Header
 | Scope Key | Scope Code | Artifact Type | Revision | State | Parent Viewpoint Revision | Readiness Route | Blocking OQs | Approved By | Approved At |
 
-## 2. Source Manifest
+## 2. Controlled Value Legends
+| Vocabulary | Value | Meaning |
+
+## 3. Source Manifest
 | Source | Revision or hash | Role |
 
-## 3. Test Design Basis
+## 4. Test Design Basis
 | Leaf VP ID | Coverage Item | Coverage Target | Denominator or Selection Rule | Test Design Technique | Rationale | TC IDs | Status or Blocked Reason |
 
-## 4. Test Case Table
+## 5. Test Case Table
 ```
 
 Use relative Markdown links for project-local sources in the Source Manifest and trace columns.
@@ -273,6 +277,7 @@ Mapping every leaf Viewpoint to at least one TC does not prove that every covera
 22. Reader-facing narrative follows the Scope Gate language while exact technical and business terms, IDs, paths, fields, source literals, and controlled values remain unchanged.
 23. All relative links resolve.
 24. Artifact state is `LOCKED`, with an explicit revision and approver.
+25. Every controlled value used in the artifact has exactly one matching Legend definition, every governed canonical vocabulary with seven or fewer values is complete, and no `LEGEND_UNDEFINED_VALUE` remains unresolved.
 
 ## Rules
 
