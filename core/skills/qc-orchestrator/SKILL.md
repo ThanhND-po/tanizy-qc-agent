@@ -15,11 +15,15 @@ Use one confirmed `scope-key` and the exact paths defined there.
 
 ## Input Preflight
 
-Apply the shared `Input Boundary and Source Discovery` contract before dispatching any phase.
-If any required source or artifact locator or content is missing, stop with `BLOCKED_INPUT` in chat and ask the user to provide it or explicitly approve one bounded search root.
-Do not search the current project, parent directories, sibling projects, the broader workspace, the user home directory, or an external location to discover missing input, and do not request broader filesystem permission for that purpose.
-A feature name, module name, scope key, keyword, or prior project knowledge is context only, not a locator.
-If the user does not know the locator, ask requirement clarification questions in chat and do not infer unstated behavior.
+Resolve `qc/` paths from the confirmed project root and `references/` or `scripts/` paths from this loaded skill directory, never from an assumed working directory.
+If the project root is unclear, ask for it without filesystem discovery.
+If the shared contract or a required package reference/helper is missing or unreadable, stop the affected phase with `BLOCKED_INSTALLATION` in chat, name the exact path, and request repair with the installer; do not search for substitutes or reconstruct the contract from memory.
+After loading the contract, apply `Path Resolution and Recovery` to moved or deleted project inputs.
+
+Apply `Input Boundary and Source Discovery` and `Read Scope and Template Sources` in `qc/config/material-paths.md` before dispatching a phase.
+Use only the current approved intake, handoff, and the fixed-path checks listed below; never open historical artifacts to learn formatting.
+For a missing required locator or content, report `BLOCKED_INPUT` in chat and request the exact input or explicit approval for one bounded search root.
+Optional inputs stay optional; reuse confirmed locators and approvals from the current workstream.
 
 ## Mandatory Intake
 
@@ -30,6 +34,7 @@ Confirm these inputs before dispatching a phase:
 | Approved requirement sources | Required. Accept only exact user-supplied or explicitly approved project, external local, or canonical URI locators; record approval state and revision or hash |
 | QC phase scope | Required. List only phases requested for this session |
 | Reader-facing artifact language | Confirm at the Scope Gate. Default to Vietnamese unless the user explicitly requests another language; do not add it to artifact headers |
+| Expected Result presentation | When Test Case design is requested, confirm one overall outcome after all Steps by default (`CASE_OUTCOME`), or optional step-linked expectations (`STEP_CHECKPOINTS`), before Test Case analysis/drafting. Reuse an explicit project standard or confirmed current-workstream choice; record it in the handoff and do not ask again |
 | Viewpoint readiness route | Required when Viewpoint design is requested: `GAP_ANALYSIS` or `DIRECT_SOURCE_CHECK` |
 | System context | Load `qc/refs/system-context.md` when present; otherwise mark unknown |
 | Bug base | Load `qc/refs/bug-base.md` when present; otherwise mark unknown |
@@ -63,7 +68,7 @@ Approval for one gate does not imply approval for another.
 
 | Gate | Required decision |
 |---|---|
-| Scope Gate | User confirms sources, scope key, scope code, phases, and reader-facing artifact language |
+| Scope Gate | User confirms sources, scope key, scope code, phases, reader-facing artifact language, and Expected Result presentation when Test Case design is included |
 | Persist Gate | User approves draft content and exact files to write |
 | Lock Gate | User approves the Viewpoint or Test Case revision for downstream use |
 | Manual Result Gate | User approves prepared or imported result content, source locator, and exact execution-log path |

@@ -5,7 +5,11 @@ Do not start QC because a requirement file was created or changed.
 
 ### QC Rules
 
-- Read the shared contract at `qc/config/material-paths.md` before proposing an artifact.
+- Resolve `qc/` from the confirmed project root and skill references/helpers from the loaded skill directory; ask for an unclear root without searching.
+- If the shared contract or a required package reference/helper is missing or unreadable, stop with `BLOCKED_INSTALLATION`, name the exact path, and request installer repair; never search for substitutes or reconstruct instructions from memory.
+- Apply `Path Resolution and Recovery` in the shared contract to moved or deleted project inputs.
+
+- Read the shared contract at `qc/config/material-paths.md` before proposing an artifact. Apply its `Read Scope and Template Sources` boundary: never open historical artifacts to learn formatting; use only routed package templates and explicit project standards. Reuse confirmed current-workstream locators and approvals.
 - Keep installed skills in `.claude/skills/qc-*` and project-owned artifacts under `qc/`. Never install skills inside `qc/`.
 - Keep requirement and PO artifacts read-only.
 - Accept explicitly supplied approved specs from inside or outside the project when their exact locator, approval state, and revision are available.

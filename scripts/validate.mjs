@@ -168,11 +168,15 @@ const skillNames = readdirSync(skillsRoot)
 const seenNames = new Set();
 const skillInputBoundaryRules = [
   "## Input Preflight",
+  "BLOCKED_INSTALLATION",
+  "Path Resolution and Recovery",
+  "confirmed project root",
+  "this loaded skill directory",
   "Input Boundary and Source Discovery",
   "`BLOCKED_INPUT`",
-  "explicitly approve one bounded search root",
-  "do not request broader filesystem permission",
-  "feature name, module name, scope key, keyword, or prior project knowledge",
+  "Read Scope and Template Sources",
+  "explicit approval for one bounded search root",
+  "never open historical artifacts to learn formatting",
 ];
 
 for (const folder of skillNames) {
@@ -277,6 +281,7 @@ const publicRepositoryTextFiles = [
   join(repoRoot, "scripts", "test-atomic-objectives.mjs"),
   join(repoRoot, "scripts", "test-install.mjs"),
   join(repoRoot, "scripts", "test-manual-results.mjs"),
+  join(repoRoot, "scripts", "test-read-boundaries.mjs"),
 ];
 for (const path of new Set(publicRepositoryTextFiles)) {
   const content = readFileSync(path, "utf8");
@@ -310,6 +315,11 @@ const adapterLanguageRules = [
   "never add the selected language to artifact headers",
 ];
 const adapterLegendRules = [
+  "BLOCKED_INSTALLATION",
+  "Path Resolution and Recovery",
+  "confirmed project root",
+  "Read Scope and Template Sources",
+  "never open historical artifacts to learn formatting",
   "Controlled Value Legends",
   "after every artifact content change",
   "LEGEND_UNDEFINED_VALUE",
@@ -329,7 +339,6 @@ for (const adapterInstruction of [
   join(repoRoot, "adapters", "antigravity", "AGENTS.md"),
   join(repoRoot, "adapters", "claude-code", "CLAUDE.md"),
   join(repoRoot, "adapters", "codex", "AGENTS.md"),
-  join(repoRoot, "adapters", "gemini-cli", "GEMINI.md"),
 ]) {
   const content = readFileSync(adapterInstruction, "utf8");
   for (const rule of markdownFormattingRules) {
@@ -450,22 +459,29 @@ for (const discoveryMaterial of [
     fail(`qc-design-test-cases: discovery material ${discoveryMaterial} belongs to Viewpoint analysis`);
   }
 }
+const testCaseFormat = readFileSync(
+  join(skillsRoot, "qc-design-test-cases", "references", "test-case-format.md"),
+  "utf8",
+);
+if (!testCaseSkill.includes("references/test-case-format.md")) {
+  fail("qc-design-test-cases: required canonical template route is missing");
+}
 const canonicalTestDesignBasisHeader =
   "| Leaf VP ID | Coverage Item | Coverage Target | Denominator or Selection Rule | Test Design Technique | Rationale | TC IDs | Status or Blocked Reason |";
 if (
-  !testCaseSkill.includes("## 4. Test Design Basis") ||
-  !testCaseSkill.includes(canonicalTestDesignBasisHeader)
+  !testCaseFormat.includes("## 4. Test Design Basis") ||
+  !testCaseFormat.includes(canonicalTestDesignBasisHeader)
 ) {
   fail("qc-design-test-cases: canonical Test Design Basis schema is missing or changed");
 }
 const canonicalTcHeader =
   "| TC ID | Module | Risk | Title | Preconditions | Test Data | Steps | Expected Results | Source Trace | VP ID | Priority | Automation Eligibility | Tags |";
-if (!testCaseSkill.includes(canonicalTcHeader)) {
+if (!testCaseFormat.includes(canonicalTcHeader)) {
   fail("qc-design-test-cases: canonical Test Case table header is missing or changed");
 }
 if (
   /^\| TC ID \|.*(?:Automatable|Auto Type|Status|Attempt|Selected for Run|Test Result|Actual Result|Executor|Test By|Test Date|Evidence|Defect|Cleanup)/m.test(
-    testCaseSkill,
+    testCaseFormat,
   )
 ) {
   fail("qc-design-test-cases: duplicate automation or mutable execution columns are not allowed");
@@ -513,7 +529,16 @@ const materialPaths = readFileSync(
   "utf8",
 );
 for (const rule of [
+  "## Path Resolution and Recovery",
+  "`BLOCKED_INSTALLATION`",
+  "--force --skip-refs --dry-run",
+  "Expected existing OQ ledger or execution history",
   "## Input Boundary and Source Discovery",
+  "## Read Scope and Template Sources",
+  "Project Viewpoints, Test Cases, task notes, execution logs, and reports are phase inputs or outputs, never format contracts",
+  "### Identifier Collision Check",
+  "metadata-only lookup",
+  "An already confirmed code inherited from the current locked parent",
   "A feature name, module name, scope key, keyword, or prior project knowledge is not a source locator",
   "stop with `BLOCKED_INPUT` in chat",
   "Do not request broader filesystem permission",
@@ -612,7 +637,7 @@ const techniqueGuide = readFileSync(
 );
 for (const rule of [
   "## Objective and Checkpoint Contract",
-  "One primary test objective per Test Case is a package authoring convention",
+  "../SKILL.md#test-case-split-decision",
   "A `Verify that ...` sentence is a useful heuristic",
   "Map each claimed item to the exact Test Case, action, and oracle",
   "Do not shrink the denominator merely to obtain `100%`",

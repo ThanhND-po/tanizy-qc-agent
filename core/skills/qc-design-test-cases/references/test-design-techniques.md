@@ -46,10 +46,8 @@ Define the following three elements before writing Test Cases for each leaf View
 Do not write arbitrary percentages such as `20% of other forms` or `100%` without defining the denominator, selection rule, and source-backed or approved rationale.
 A target is reproducible only when another reviewer can derive the same included and excluded items.
 
-Record a working Coverage Design Map:
-
-| Leaf VP ID | Coverage item | Coverage target | Denominator or selection rule | Technique IDs | Rationale | Planned TC IDs | Exclusions or blockers |
-|---|---|---|---|---|---|---|---|
+Use the canonical Test Design Basis schema in [test-case-format.md](test-case-format.md#complete-template) for both planning and final output.
+Do not maintain a second Coverage Design Map with synonymous columns.
 
 One leaf Viewpoint may need multiple techniques.
 One coherent leaf Viewpoint may produce multiple Test Cases, and one coverage target may map to multiple Test Cases.
@@ -58,18 +56,29 @@ Different data points, outcomes, branches, or child case counts do not by themse
 
 ## Objective and Checkpoint Contract
 
-One primary test objective per Test Case is a package authoring convention, not a universal mandatory ISTQB rule.
-State the source-backed behavior or relationship, applicable input or initial state, trigger, and outcome clearly enough that a reviewer can determine what the case proves.
+Apply [Primary Objective, Checkpoints, and Diagnosability](../SKILL.md#primary-objective-checkpoints-and-diagnosability) and [Test Case Split Decision](../SKILL.md#test-case-split-decision) from the skill entrypoint.
+Those sections own the split/keep policy; technique selection cannot override them.
 A `Verify that ...` sentence is a useful heuristic for clarifying intent, not a semantic validator or a required schema field.
 
-Multiple checkpoints may remain in one case when they are needed to prove one transformation, transaction, interaction, output tuple, or state sequence.
-An output tuple is not split merely because one value could be correct while another is wrong.
-A state sequence is not split mechanically by transition count when the source-backed sequence is the objective.
-Split independent objectives that share only setup or workflow proximity, and usually split alternative branches when each branch needs its own reproducible initial state and verdict.
+## Expected Result Presentation and Evidence
 
-A case remains diagnosable when evidence identifies the failing checkpoint, relevant input or state, expected outcome, and actual outcome.
-Do not require one possible root cause or one defect per case.
-Treat partial failure, downstream blocking, different data, separately executable actions, and `AND` or `OR` as review signals rather than automatic split rules.
+Apply [Expected Result Presentation](test-case-format.md#expected-result-presentation) before analysis or drafting.
+The format reference owns the two presentations, their intake, and coverage safeguards.
+The default is one case-level outcome after all Steps with the stated Preconditions and Test Data; several observable conditions may establish that one outcome.
+Choose techniques and coverage targets independently of presentation; do not turn the number of Steps, conditions, or assertions into an automatic split rule.
+
+The following sources explain the rationale and its limits; they are supporting methodology references, not product requirements or mandatory runtime reads.
+Do not browse them to fill a missing product oracle or override approved project standards.
+
+| Source | Relevant evidence | Limit |
+|---|---|---|
+| [ISTQB Glossary: test case](https://glossary.istqb.org/en_US/term/test-case?exact_matches_first=true) | Defines a Test Case through preconditions, inputs, actions where applicable, expected results, and postconditions | The definition does not prescribe one assertion per case or a result for every action |
+| [ISTQB CTAL-TA v4.0, section 1.3.2, page 19](https://istqb.org/wp-content/uploads/sdm-uploads/ISTQB-CTAL-TA-Syllabus-v4.0-EN.pdf#page=19) | Emphasizes clarity, completeness, precision, conciseness, and granularity corresponding to test basis and conditions; its calculation example has a discount and final total in one expected result | Supports coherent multi-condition outcomes and context-sensitive granularity; it does not mandate this package's default presentation |
+| [BrowserStack: How to write Test Cases](https://www.browserstack.com/guide/how-to-write-test-cases) | Its login example describes the expected outcome after the action sequence; its tooling description supports both text-based and steps-based templates | A practical example and vendor guide, not a universal test-documentation standard |
+
+`CASE_OUTCOME` as the default and `STEP_CHECKPOINTS` as the selectable alternative are package authoring conventions.
+Neither is claimed to be a mandatory global QA standard.
+Keep required intermediate evidence explicit when the final outcome alone cannot establish the selected coverage item.
 
 ## Technique Selection
 
@@ -220,29 +229,14 @@ Do not invent a threshold, supported platform matrix, security control, or acces
 - Preserve leading zeros, character width, precision, legacy representation, and byte or character counting rules when applicable.
 - Do not turn a discovery prompt into an expected rejection without an approved oracle.
 
-## Atomic Test Case Derivation
+## Test Case Derivation
 
-For each planned case:
-
-1. Assign one stable `TC-<SCOPE-CODE>-NNN` ID without renumbering existing cases.
-2. Trace it to one primary locked leaf VP ID and at least one exact approved source ref.
-3. State one specific primary objective with the input or state, trigger, and outcome it proves.
-4. State reproducible Preconditions and concrete Test Data that distinguish the expected behavior from the fault the case is meant to detect.
-5. Number Steps in execution order and classify each checkpoint as an action path, a continuation condition, a direct assertion for the objective, or a separate objective.
-6. Number observable, source-backed Expected Results to match the relevant Steps and observation surfaces.
-7. Split independent objectives but keep coherent transformations, transactions, interactions, output tuples, and source-backed sequences together when their evidence remains diagnosable.
-8. Assign priority, tags, and one canonical Automation Eligibility value.
-9. Keep mutable execution evidence and runtime claims out of the design artifact.
-
-A case may cite secondary Viewpoints, but one primary leaf VP owns its coverage.
-If no locked leaf Viewpoint owns the intent, stop and return the affected scope to Test Analysis.
+Apply the entrypoint's [Source-Backed Design Rules](../SKILL.md#source-backed-design-rules) after choosing the technique and target.
+Use the [canonical template](test-case-format.md#complete-template); do not duplicate the authoring workflow here.
 
 ## Coverage Reconciliation
 
-After drafting cases, reconcile planned and achieved coverage:
-
-| Leaf VP ID | Technique ID | Coverage target | Planned items | Covered items | Blocked items | TC IDs | Result |
-|---|---|---|---|---|---|---|---|
+After drafting, use the Coverage Reconciliation table in [test-case-format.md](test-case-format.md#complete-template).
 
 - Count only coverage items with complete, source-backed cases in the numerator.
 - Map each claimed item to the exact Test Case, action, and oracle that exercise and assert it.
@@ -264,7 +258,8 @@ Test Case Design is ready for review only when:
 - Every case has one specific primary objective, and every checkpoint is necessary for that objective rather than grouped only to share setup.
 - Every selected technique has an explicit coverage item, target, denominator or selection rule, and rationale.
 - Concrete data contains no unsupported business value and distinguishes the expected outcome from the fault the case is intended to detect.
-- Steps and Expected Results are numbered, observable, semantically matched, and source-backed.
+- Steps are numbered; Expected Results use the confirmed presentation, with one overall outcome by default and multiple same-objective conditions when needed. Step-linked expectations are required only for the selected checkpoint presentation.
+- Outcome conditions and any required intermediate evidence are observable and source-backed; presentation does not remove coverage obligations.
 - Every claimed coverage item maps to a supporting action and oracle, with omissions, exclusions, and blockers disclosed against the declared denominator.
 - A coherent leaf may produce multiple Test Cases, while a bundled locked leaf returns to `qc-design-viewpoints` for an approved revision of the affected scope.
 - Failure evidence identifies checkpoint, input or state, expected outcome, and actual outcome; a later unexecuted checkpoint is not reported as verified or `PASS`.

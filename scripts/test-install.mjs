@@ -7,6 +7,7 @@ import {
   mkdtempSync,
   readFileSync,
   readdirSync,
+  renameSync,
   rmSync,
   statSync,
   symlinkSync,
@@ -56,13 +57,11 @@ function runNode(args, expectedStatus = 0) {
 }
 
 function skillRoot(target, root) {
-  if (target === "gemini-cli") return join(root, "skills");
   if (target === "claude-code") return join(root, ".claude", "skills");
   return join(root, ".agents", "skills");
 }
 
 function adapterPath(target, root) {
-  if (target === "gemini-cli") return join(root, "GEMINI.md");
   if (target === "claude-code") return join(root, "CLAUDE.md");
   return join(root, "AGENTS.md");
 }
@@ -74,8 +73,29 @@ function contentOutsideQcBlock(content) {
   return `${content.slice(0, start)}${content.slice(end + managedBlockEnd.length)}`;
 }
 
+function snapshot(root) {
+  if (!existsSync(root)) return {};
+  const result = {};
+  for (const name of readdirSync(root).sort()) {
+    const path = join(root, name);
+    if (statSync(path).isDirectory()) {
+      for (const [child, content] of Object.entries(snapshot(path))) {
+        result[`${name}/${child}`] = content;
+      }
+    } else result[name] = readFileSync(path).toString("base64");
+  }
+  return result;
+}
+
 try {
-  for (const target of ["gemini-cli", "codex", "claude-code", "antigravity"]) {
+  for (const unsupported of ["gemini-cli", "gemini"]) {
+    const root = project(`unsupported-${unsupported}`);
+    const before = snapshot(root);
+    const rejected = runNode(["--target", unsupported, "--project", root], 1);
+    assert.match(rejected.stderr, /invalid --target/);
+    assert.deepEqual(snapshot(root), before, "Unsupported targets must fail without writes.");
+  }
+  for (const target of ["codex", "claude-code", "antigravity"]) {
     const root = project(`full-${target}`);
     runNode(["--target", target, "--project", root]);
 
@@ -85,8 +105,9 @@ try {
       const installedSkill = readFileSync(installedSkillPath, "utf8");
       assert.match(installedSkill, /## Input Preflight/);
       assert.match(installedSkill, /`BLOCKED_INPUT`/);
-      assert.match(installedSkill, /explicitly approve one bounded search root/);
-      assert.match(installedSkill, /do not request broader filesystem permission/i);
+      assert.match(installedSkill, /explicit approval for one bounded search root/);
+      assert.match(installedSkill, /Read Scope and Template Sources/);
+      assert.match(installedSkill, /never open historical artifacts to learn formatting/);
       for (const header of installedSkill.split("\n").filter((line) => line.startsWith("| Scope Key |"))) {
         assert.doesNotMatch(header, /Artifact Language/i);
       }
@@ -119,7 +140,11 @@ try {
         assert.match(installedSkill, /## Test Case Split Decision/);
         assert.match(installedSkill, /## Return-to-Viewpoint Boundary/);
         assert.match(installedSkill, /Every claimed coverage item must map to the Test Case/);
-        assert.match(installedSkill, /## 2\. Controlled Value Legends/);
+        const formatPath = join(skillRoot(target, root), skill, "references", "test-case-format.md");
+        const installedFormat = readFileSync(formatPath, "utf8");
+        assert.equal(installedFormat, readFileSync(join(repoRoot, "core", "skills", skill, "references", "test-case-format.md"), "utf8"));
+        assert.match(installedFormat, /## 2\. Controlled Value Legends/);
+        assert.match(installedSkill, /references\/test-case-format\.md/);
         assert.match(installedSkill, /LEGEND_UNDEFINED_VALUE/);
         const installedTechniqueGuide = readFileSync(
           join(skillRoot(target, root), skill, "references", "test-design-techniques.md"),
@@ -150,7 +175,9 @@ try {
     }
     const installedMaterialPaths = join(root, "qc", "config", "material-paths.md");
     assert.ok(existsSync(installedMaterialPaths));
+    assert.equal(readFileSync(installedMaterialPaths, "utf8"), readFileSync(join(repoRoot, "core", "references", "material-paths.md"), "utf8"));
     assert.match(readFileSync(installedMaterialPaths, "utf8"), /## Input Boundary and Source Discovery/);
+    assert.match(readFileSync(installedMaterialPaths, "utf8"), /Read Scope and Template Sources/);
     assert.match(readFileSync(installedMaterialPaths, "utf8"), /A filesystem permission prompt is not a substitute/);
     assert.match(readFileSync(installedMaterialPaths, "utf8"), /## Artifact Language Scope Gate/);
     assert.match(readFileSync(installedMaterialPaths, "utf8"), /not as persistent artifact metadata/);
@@ -233,6 +260,57 @@ try {
         /Controlled Value Legends/,
       );
     }
+
+    // Simulate moving the whole project, then deleting managed files and a
+    // project-owned seed. Repair must restore only the managed installation.
+    const moved = join(temporaryRoot, `moved project ${target} thử`);
+    renameSync(root, moved);
+    const movedSkills = skillRoot(target, moved);
+    const managedContract = join(moved, "qc", "config", "material-paths.md");
+    const format = join(movedSkills, "qc-design-test-cases", "references", "test-case-format.md");
+    const executionsSchema = join(movedSkills, "qc-record-manual-results", "references", "executions-log.md");
+    const missingOptional = join(moved, "qc", "refs", "system-context.md");
+    const existingLedger = join(moved, "qc", "open-questions.md");
+    writeFileSync(existingLedger, "Project decision history sentinel.\n");
+    rmSync(managedContract);
+    rmSync(format);
+    rmSync(executionsSchema);
+    rmSync(missingOptional);
+    const beforeRepair = snapshot(moved);
+    const repairArgs = ["--target", target, "--project", moved, "--force", "--skip-refs", "--skill", "qc-design-test-cases", "--skill", "qc-record-manual-results"];
+    runNode([...repairArgs, "--dry-run"]);
+    assert.deepEqual(snapshot(moved), beforeRepair, "Repair preview must not mutate the project.");
+    runNode(repairArgs);
+    assert.equal(readFileSync(managedContract, "utf8"), readFileSync(join(repoRoot, "core", "references", "material-paths.md"), "utf8"));
+    assert.equal(readFileSync(format, "utf8"), readFileSync(join(repoRoot, "core", "skills", "qc-design-test-cases", "references", "test-case-format.md"), "utf8"));
+    assert.equal(readFileSync(executionsSchema, "utf8"), readFileSync(join(repoRoot, "core", "references", "executions-log.md"), "utf8"));
+    assert.equal(readFileSync(existingLedger, "utf8"), "Project decision history sentinel.\n");
+    assert.ok(!existsSync(missingOptional), "Package repair must not reseed a deleted project-owned file.");
+    for (const [name, content] of Object.entries(beforeRepair)) {
+      assert.equal(snapshot(moved)[name], content, `Repair changed existing project content: ${name}`);
+    }
+
+    const source = join(moved, "qc", "test-cases", "login-test-cases.md");
+    mkdirSync(join(moved, "qc", "test-cases"), { recursive: true });
+    writeFileSync(source, `# Login Test Cases
+
+| Scope Key | Scope Code | Artifact Type | Revision | State |
+|---|---|---|---|---|
+| login | LOG | Test Cases | 1 | LOCKED |
+
+| TC ID | Module | Risk | Title | Preconditions | Test Data | Steps | Expected Results | Source Trace | VP ID | Priority | Automation Eligibility | Tags |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| TC-LOG-001 | Login | High | Valid login | Logged out | Synthetic valid account | 1. Submit credentials. | 1. Dashboard displays. | AC-01 | VP-LOG-001 | P1 | UI-AUTO | |
+`);
+    mkdirSync(join(moved, "qc", "execution-inputs"), { recursive: true });
+    const prepared = spawnSync(process.execPath, [
+      join(movedSkills, "qc-record-manual-results", "scripts", "manual-results.mjs"),
+      "prepare", "--source", "qc/test-cases/login-test-cases.md", "--output", "qc/execution-inputs/login.xlsx", "--run-id", "RUN-20261015-090000",
+    ], { cwd: moved, encoding: "utf8" });
+    assert.equal(prepared.status, 0, `${prepared.stdout}\n${prepared.stderr}`);
+    assert.equal(JSON.parse(prepared.stdout).selectedTcCount, 1);
+    assert.ok(existsSync(join(moved, "qc", "execution-inputs", "login.xlsx")));
+    assert.ok(!existsSync(join(movedSkills, "qc-record-manual-results", "qc")), "Helper output must stay in the confirmed project root.");
   }
 
   const selective = project("selective");
@@ -665,6 +743,15 @@ try {
     encoding: "utf8",
   });
   assert.equal(extracted.status, 0, extracted.stderr);
+  for (const file of packData[0].files.filter((entry) => entry.path.endsWith(".md"))) {
+    const path = join(extractRoot, "package", file.path);
+    const content = readFileSync(path, "utf8").replace(/```[\s\S]*?```/g, "");
+    for (const [, href] of content.matchAll(/\[[^\]]+\]\(([^)]+)\)/g)) {
+      const target = href.split("#", 1)[0];
+      if (!target || /^(https?:|mailto:)/.test(target) || target.includes("<")) continue;
+      assert.ok(existsSync(resolve(path, "..", target)), `Packaged Markdown link is broken: ${file.path} -> ${target}`);
+    }
+  }
   const packagedBin = join(extractRoot, "package", "scripts", "install.mjs");
   assert.notEqual(statSync(packagedBin).mode & 0o111, 0, "Packaged CLI is not executable");
   assert.ok(existsSync(join(extractRoot, "package", "docs", "install-codex.md")));
@@ -674,6 +761,8 @@ try {
   const help = spawnSync(packagedBin, ["--help"], { encoding: "utf8" });
   assert.equal(help.status, 0, help.stderr);
   assert.match(help.stdout, /--skip-refs/);
+  assert.doesNotMatch(help.stdout, /gemini/i);
+  assert.ok(!packData[0].files.some((file) => file.path.startsWith("adapters/gemini-cli/")));
   const packagedProject = project("packaged-cli");
   const packagedDryRun = spawnSync(
     packagedBin,
@@ -683,8 +772,27 @@ try {
   assert.equal(packagedDryRun.status, 0, packagedDryRun.stderr);
   assert.match(packagedDryRun.stdout, /Dry run complete\. No files were written\./);
 
+  const packagedApply = spawnSync(packagedBin, ["--target", "codex", "--project", packagedProject], { encoding: "utf8" });
+  assert.equal(packagedApply.status, 0, packagedApply.stderr);
+  // A damaged distributable must fail before --force removes installed skills.
+  const packagedReference = join(extractRoot, "package", "core", "skills", "qc-design-test-cases", "references", "test-case-format.md");
+  const originalReference = readFileSync(packagedReference);
+  rmSync(packagedReference);
+  const beforeFailedRefresh = snapshot(packagedProject);
+  const damagedRefresh = spawnSync(packagedBin, ["--target", "codex", "--project", packagedProject, "--force"], { encoding: "utf8" });
+  assert.equal(damagedRefresh.status, 1);
+  assert.match(damagedRefresh.stderr, /Incomplete package: missing source.*test-case-format\.md/);
+  assert.deepEqual(snapshot(packagedProject), beforeFailedRefresh);
+  writeFileSync(packagedReference, originalReference);
+  const packagedContract = join(extractRoot, "package", "core", "references", "material-paths.md");
+  rmSync(packagedContract);
+  const missingContractRefresh = spawnSync(packagedBin, ["--target", "codex", "--project", packagedProject, "--force"], { encoding: "utf8" });
+  assert.equal(missingContractRefresh.status, 1);
+  assert.match(missingContractRefresh.stderr, /Incomplete package: missing source.*material-paths\.md/);
+  assert.deepEqual(snapshot(packagedProject), beforeFailedRefresh);
+
   console.log(
-    `Installer tests passed: 4 targets, selective routing, PO coexistence, malformed-block preflight, force refresh, preservation, collision preflight, nested-root and symlink guards, packaged CLI.`,
+    `Installer tests passed: 3 targets, removed-target rejection, moved projects, missing-file repair, installed helper execution, damaged-package preflight, selective routing, PO coexistence, force refresh, preservation, nested-root and symlink guards, packaged CLI.`,
   );
 } finally {
   rmSync(temporaryRoot, { recursive: true, force: true });

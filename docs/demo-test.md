@@ -76,7 +76,7 @@ QC review docs/requirements/fs-login.md. Bỏ qua Gap Analysis, thực hiện Di
 
 Expected checkpoints:
 
-1. Scope Gate confirms `scope-key = fs-login`, `scope-code = LOG`, the requested phases, and `Readiness Route = DIRECT_SOURCE_CHECK`.
+1. Scope Gate confirms `scope-key = fs-login`, `scope-code = LOG`, the requested phases, and `Readiness Route = DIRECT_SOURCE_CHECK`. Confirm Expected Result presentation before the later Test Case analysis/draft: one overall outcome by default, or optional step-linked checkpoints; reuse a confirmed choice.
 2. The Gap Analysis phase is `SKIP`; the Viewpoint header records `Gap Analysis = NOT_RUN` and `Parent Gap Revision = NOT_APPLICABLE`.
 3. Direct Source Check returns `PASS` and `Design Gate = READY` because each in-scope behavior has a test item, input, observable outcome, and required rule.
 4. The agent does not claim `No gaps` and does not create a Gap Report or OQ.
@@ -236,7 +236,7 @@ Confirm the PO block and project instructions remain byte-equivalent and there i
 | Material ownership | Discovery guide and optional extension are Viewpoint-only; techniques are Test Case-only |
 | Legacy design | Existing locked flat Viewpoints, Test Cases, and Runs are not rewritten; new TC design requires a new hierarchical Viewpoint revision |
 | Test data | Concrete and source-backed |
-| Expected Results | Natural language, observable, matched to Steps |
+| Expected Results | One overall source-backed outcome by default, potentially with multiple same-objective conditions; step-linked checkpoints only when selected |
 | Traceability | Source -> VP -> TC -> Run -> Report |
 | Readiness | Static, eligibility, and runtime states remain separate |
 | Installer update | Project-owned files preserved |

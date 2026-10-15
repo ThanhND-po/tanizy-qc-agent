@@ -11,3 +11,5 @@ Do not write or modify files.
 For each scenario, return the design decision or affected-scope handoff, any Test Case outline needed to make the decision observable, and the coverage reconciliation impact.
 Use the package's existing schemas and controlled statuses.
 Keep source facts, locked artifacts, and execution evidence read-only.
+
+Use the default case-level Expected Result presentation: one overall outcome after the complete Steps, allowing multiple conditions serving the same objective.

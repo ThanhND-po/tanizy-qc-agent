@@ -25,7 +25,9 @@ The objective must identify the source-backed behavior or relationship being tes
 Do not use a broad objective such as `Verify checkout` to combine otherwise independent validation, permission, state, or calculation objectives.
 The objective may be expressed by the Title and existing fields when their combined intent is unambiguous; do not add a mandatory Objective column.
 
-A Test Case may contain multiple Steps and Expected Results when they are coherent checkpoints for one transformation, transaction, interaction, or sequence.
+A Test Case may contain multiple Steps that establish one source-backed outcome.
+By default, write one overall Expected Result after the complete action sequence; it may contain several observable conditions serving that objective.
+Step-specific expectations are an explicitly selected presentation option, not a requirement for every action.
 A checkpoint may establish the path to an action, a condition needed to continue the flow, or a direct assertion for the objective.
 Sharing a screen, actor, feature, workflow, or setup does not by itself make checkpoints one objective.
 An output tuple, the same object's values on multiple observation surfaces, or a source-backed state sequence must not be split mechanically by the number of values, observations, actions, or transitions.
@@ -40,7 +42,14 @@ No single signal automatically requires a split.
 
 ## Artifact Contract
 
-Read the shared contract at `qc/config/material-paths.md`, `references/test-design-techniques.md`, and `references/automation-eligibility.md`.
+Read in this order before drafting:
+
+1. `qc/config/material-paths.md` for read boundaries, lifecycle, language, and shared classifications.
+2. [references/test-case-format.md](references/test-case-format.md) for the complete canonical template, table schemas, Legends, and traceability sections. Read it before seeking any format example.
+3. `references/test-design-techniques.md` for coverage selection, then `references/automation-eligibility.md` for eligibility decisions.
+
+The template is the format authority, not a requirement source.
+The selected approved specs and locked leaf Viewpoints provide all business behavior and oracles.
 
 Use the technique guide to choose how to cover a locked leaf Viewpoint.
 It is a design heuristic, not a requirement source.
@@ -49,11 +58,23 @@ Record a design rationale for every selected technique and target.
 
 ## Input Preflight
 
-Apply the shared `Input Boundary and Source Discovery` contract before reading phase inputs.
-If any required source or artifact locator or content is missing, stop with `BLOCKED_INPUT` in chat and ask the user to provide it or explicitly approve one bounded search root.
-Do not search the current project, parent directories, sibling projects, the broader workspace, the user home directory, or an external location to discover missing input, and do not request broader filesystem permission for that purpose.
-A feature name, module name, scope key, keyword, or prior project knowledge is context only, not a locator.
-If the user does not know the locator, ask requirement clarification questions in chat and do not infer unstated behavior.
+Resolve `qc/` paths from the confirmed project root and `references/` or `scripts/` paths from this loaded skill directory, never from an assumed working directory.
+If the project root is unclear, ask for it without filesystem discovery.
+If the shared contract or a required package reference/helper is missing or unreadable, stop the affected phase with `BLOCKED_INSTALLATION` in chat, name the exact path, and request repair with the installer; do not search for substitutes or reconstruct the contract from memory.
+After loading the contract, apply `Path Resolution and Recovery` to moved or deleted project inputs.
+
+Apply `Input Boundary and Source Discovery` and `Read Scope and Template Sources` in `qc/config/material-paths.md` before reading phase inputs.
+Use only the current approved intake, handoff, and the fixed-path checks listed below; never open historical artifacts to learn formatting.
+For a missing required locator or content, report `BLOCKED_INPUT` in chat and request the exact input or explicit approval for one bounded search root.
+Optional inputs stay optional; reuse confirmed locators and approvals from the current workstream.
+
+## Expected Result Presentation Intake
+
+Before Test Case analysis or drafting, apply [Expected Result Presentation](references/test-case-format.md#expected-result-presentation).
+Reuse an explicit project standard, user choice, or confirmed current-workstream choice; do not ask again merely because a phase changed.
+When no choice exists, ask once whether to use the default `CASE_OUTCOME` or optional `STEP_CHECKPOINTS`, and wait for the selection or explicit direction to use the default before drafting.
+This presentation choice does not grant content, path, Lock, or Execution approval.
+Preserve locked cases in their existing form; a presentation change requires an approved revision.
 
 ## Required Inputs
 
@@ -62,7 +83,8 @@ If the user does not know the locator, ask requirement clarification questions i
 - A complete Test Target Map, Viewpoint Breakdown, Discovery Coverage Map, and Discovery Material Manifest in that locked revision;
 - Matching Gap Report only when the Viewpoint uses `GAP_ANALYSIS`;
 - `qc/open-questions.md` when it exists or the locked Viewpoint references OQs;
-- Relevant System Context, Bug Base, and Test Data spec when available.
+- Relevant rows from `qc/refs/system-context.md`, `qc/refs/bug-base.md`, and `qc/refs/test-data-spec.md` when present. Their absence alone does not block design; disclose the resulting limitation.
+- The exact current Test Case artifact only when revising or continuing that approved artifact, to preserve IDs, decisions, and history; never other cases as style examples.
 
 Stop if the Viewpoint revision is not locked, contains an unmapped `DEFINED` discovery prompt, or lacks a leaf Viewpoint for the selected design scope.
 For a `PARTIAL` design gate, create cases only for unblocked leaf Viewpoints.
@@ -86,7 +108,7 @@ Never renumber an existing TC to close a gap.
 8. Keep Steps atomic and numbered. Identify the actor or role, action surface, concrete action, and observable checkpoint needed by the test intent.
 9. Do not use meta-steps such as confirming Preconditions, preparing the stated Test Data, or observing through an unspecified approved channel as substitutes for executable actions.
 10. Require an exact route, selector, query, or observation command only when an approved source or verified runtime evidence provides it. Never invent implementation detail to make a Test Case appear executable.
-11. Write Expected Results in natural language as observable outcomes. Number them to match the relevant Steps and keep only case-specific UI, business state, persisted data, file, audit, and side-effect or no-side-effect oracles.
+11. Write Expected Results in natural language using the confirmed presentation from `references/test-case-format.md`. Default to one overall outcome after all Steps with the stated Preconditions and Test Data; multiple conditions may establish that outcome without step-number matching. Use explicit step references only in the selected checkpoint mode, and keep only case-specific UI, business state, persisted data, file, audit, and side-effect or no-side-effect oracles.
 12. Every oracle must trace to an approved source or explicit recorded decision and identify the expected value or state and the observation surface when that surface is source-defined.
 13. Do not repeat fixture validation, Preconditions, readiness statements, or generic control-boundary wording in Expected Results.
 14. Use concrete synthetic Test Data. The values may be generated, but every business limit, format, status, and validation outcome must trace to a source.
@@ -158,12 +180,12 @@ Missing endpoint, route, locator, fixture, auth, cleanup, or runner evidence pre
 
 ## Workflow
 
-1. Inventory locked high-level and leaf Viewpoints, parent relationships, exact source refs, Test Target Map, Discovery Coverage Map, and material revision.
+1. Complete Expected Result Presentation Intake before design analysis, then inventory locked high-level and leaf Viewpoints, parent relationships, exact source refs, Test Target Map, Discovery Coverage Map, and material revision.
 2. Confirm the shared scope code and intended coverage dimensions.
 3. Verify that the current approved source revisions match the locked parent manifest. This is a staleness check, not Viewpoint rediscovery.
 4. For every in-scope leaf Viewpoint, choose the coverage item, coverage target, denominator or selection rule, and appropriate technique from `references/test-design-techniques.md`. Record the rationale and any constraint that limits coverage.
 5. Apply the Test Case Split Decision. Return a bundled or stale locked leaf to `qc-design-viewpoints` without changing it, and continue unaffected coherent leaves allowed by the gate.
-6. Draft human-executable cases with one specific primary objective, case-specific Preconditions, distinguishing Test Data, numbered Steps, numbered Expected Results, source-backed oracles, trace refs, priority, and automation metadata in the reader-facing language confirmed at the Scope Gate.
+6. Draft human-executable cases with one specific primary objective, case-specific Preconditions, distinguishing Test Data, numbered Steps, Expected Results in the confirmed presentation, source-backed oracles, trace refs, priority, and automation metadata in the reader-facing language confirmed at the Scope Gate.
 7. Reconcile each claimed coverage item to the exact Test Case, Steps, and Expected Results that exercise and assert it.
 8. Build traceability matrices and separate coverage totals for AC, business rule, NFR, impact or regression, high-level Viewpoints, leaf Viewpoints, design coverage targets, and execution evidence when available.
 9. List blocked source items and leaf Viewpoints with OQ IDs and no TC IDs, and record design omissions or approved exclusions without shrinking the declared denominator to obtain `100%`.
@@ -178,46 +200,15 @@ Missing endpoint, route, locator, fixture, auth, cleanup, or runner evidence pre
 Do not create an execution log during Test Case design.
 `qc-record-manual-results` appends it only after the Manual Result Gate, and a runtime execution skill appends it only after an approved Execution Gate.
 
-## File Structure
+## Output Format
 
-```markdown
-# Test Cases: <Scope Key>
-
-## 1. Artifact Header
-| Scope Key | Scope Code | Artifact Type | Revision | State | Parent Viewpoint Revision | Readiness Route | Blocking OQs | Approved By | Approved At |
-
-## 2. Controlled Value Legends
-| Vocabulary | Value | Meaning |
-
-## 3. Source Manifest
-| Source | Revision or hash | Role |
-
-## 4. Test Design Basis
-| Leaf VP ID | Coverage Item | Coverage Target | Denominator or Selection Rule | Test Design Technique | Rationale | TC IDs | Status or Blocked Reason |
-
-## 5. Test Case Table
-```
-
-Use relative Markdown links for project-local sources in the Source Manifest and trace columns.
-Preserve an approved external source as its exact `external, non-portable` locator.
-The locked Viewpoint revision is an immediate parent artifact.
-
-## Design-Only Test Case Table
-
-```markdown
-| TC ID | Module | Risk | Title | Preconditions | Test Data | Steps | Expected Results | Source Trace | VP ID | Priority | Automation Eligibility | Tags |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| TC-LOG-001 | Login | High | Đăng nhập hợp lệ | User active, logged out | email `qc.login.01@example.test`; password from approved fixture | 1. Mở Login. 2. Nhập fixture. 3. Submit. | 1. Login hiển thị. 2. Giá trị được nhận. 3. Dashboard hiển thị và session được tạo. | [AC-01](../../requirements/login.md#ac-01) | [VP-LOG-002](../test-viewpoints/fs-login-viewpoints.md#vp-log-002) | P1 | UI-AUTO | @Smoke |
-```
-
+Use the complete template in [references/test-case-format.md](references/test-case-format.md).
+Keep one canonical Test Design Basis and one design-only Test Case Table; do not create parallel working tables with synonymous columns in the final artifact.
 Keep all mutable execution fields out of the locked design table, including Attempt, Selected for Run, Test Result, Actual Result, executor, execution date, evidence, defect, cleanup, and execution note.
 Derive them from the append-only executions log without modifying the approved Test Case revision.
 
 `Automation Eligibility` is design metadata, not an execution result.
-Preserve it in the canonical table.
-
-The canonical `VP ID` column remains backward-compatible with downstream execution tooling.
-Its value must identify the primary locked `LEAF` Viewpoint, never a `HIGH_LEVEL` parent.
+The canonical `VP ID` column remains backward-compatible with downstream execution tooling and identifies the primary locked `LEAF` Viewpoint, never a `HIGH_LEVEL` parent.
 
 ## Manual Execution Handoff
 
@@ -262,7 +253,7 @@ Mapping every leaf Viewpoint to at least one TC does not prove that every covera
 7. Preconditions contain case-specific initial state only and are sufficient for human execution without claiming that an unspecified fixture exists.
 8. Test Data distinguishes the expected outcome from the fault the case is intended to detect and identifies the object to observe.
 9. Steps are numbered and identify the actor or role, action surface, concrete action, and observable checkpoint without generic meta-wrappers.
-10. Expected Results are numbered, semantically matched to Steps, contain only case-specific observable oracles rather than repeated Preconditions or readiness boilerplate, and trace expected values or states to approved evidence.
+10. Expected Results follow the confirmed presentation: one overall outcome by default, or explicitly step-linked checkpoints when selected. Conditions are observable, serve one primary objective, and trace to approved evidence; do not require an expectation for every Step or repeat Preconditions and readiness boilerplate.
 11. Test Data is concrete and contains no unsupported business value. An optional Fixture Requirement ID resolves to an existing approved test-data source and is not treated as automation-only metadata.
 12. A coherent leaf may produce multiple Test Cases; a bundled locked leaf is returned through the existing Viewpoint revision lifecycle for the affected scope only.
 13. Every coverage claim maps to supporting actions and oracles. Totals preserve the declared denominator and disclose omissions, exclusions, and blockers.

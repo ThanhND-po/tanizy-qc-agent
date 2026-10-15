@@ -22,6 +22,15 @@ A blocking Open Question prevents downstream work for its affected scope.
 - `CONFLICT`: sources state incompatible behavior.
 - `RISK`: a verified dependency, known bug, or current-state fact creates test risk.
 
+### Priority Values
+
+- `High`: highest decision urgency within the approved scope.
+- `Medium`: normal decision urgency within the approved scope.
+- `Low`: lower decision urgency within the approved scope.
+
+Record the urgency basis without inventing a deadline.
+Priority is separate from Blocks From Phase and from Test Priority.
+
 ### Blocks From Phase Values
 
 - `DESIGN`: unresolved evidence first prevents a source-backed Viewpoint or Test Case.
@@ -38,7 +47,7 @@ Record the business or technical topic separately in Question Domain, for exampl
 Proposed Options are proposals, not decisions.
 
 Owner and Target Date are optional.
-Leave them blank or use `OPEN` when they have not been explicitly assigned.
+Leave them blank when they have not been explicitly assigned; `OPEN` is a Status, not an owner or date.
 Do not infer an owner, deadline, decision, or approval.
 
 ## Ledger

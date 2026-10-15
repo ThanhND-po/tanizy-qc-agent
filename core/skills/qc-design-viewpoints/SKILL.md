@@ -67,11 +67,15 @@ Use the confirmed scope key across every artifact that exists for the workstream
 
 ## Input Preflight
 
-Apply the shared `Input Boundary and Source Discovery` contract before reading phase inputs.
-If any required source locator or content is missing, stop with `BLOCKED_INPUT` in chat and ask the user to provide it or explicitly approve one bounded search root.
-Do not search the current project, parent directories, sibling projects, the broader workspace, the user home directory, or an external location to discover missing input, and do not request broader filesystem permission for that purpose.
-A feature name, module name, scope key, keyword, or prior project knowledge is context only, not a locator.
-If the user does not know the locator, ask requirement clarification questions in chat and do not infer unstated behavior.
+Resolve `qc/` paths from the confirmed project root and `references/` or `scripts/` paths from this loaded skill directory, never from an assumed working directory.
+If the project root is unclear, ask for it without filesystem discovery.
+If the shared contract or a required package reference/helper is missing or unreadable, stop the affected phase with `BLOCKED_INSTALLATION` in chat, name the exact path, and request repair with the installer; do not search for substitutes or reconstruct the contract from memory.
+After loading the contract, apply `Path Resolution and Recovery` to moved or deleted project inputs.
+
+Apply `Input Boundary and Source Discovery` and `Read Scope and Template Sources` in `qc/config/material-paths.md` before reading phase inputs.
+Use only the current approved intake, handoff, and the fixed-path checks listed below; never open historical artifacts to learn formatting.
+For a missing required locator or content, report `BLOCKED_INPUT` in chat and request the exact input or explicit approval for one bounded search root.
+Optional inputs stay optional; reuse confirmed locators and approvals from the current workstream.
 
 ## Required Inputs
 
@@ -79,12 +83,13 @@ If the user does not know the locator, ask requirement clarification questions i
 - One approved readiness route: `GAP_ANALYSIS` or `DIRECT_SOURCE_CHECK`;
 - `qc/gap-reports/<scope-key>-gap-report.md` only for `GAP_ANALYSIS`;
 - `qc/open-questions.md` when it exists or the selected route references OQs;
-- Relevant System Context and Bug Base, when available;
+- Relevant rows in `qc/refs/system-context.md` and `qc/refs/bug-base.md`, when present; absence is a disclosed regression limitation, not a required-input blocker;
 - Explicit product or test objectives when they are not already in an approved source.
 
 ## Readiness Routing
 
-Use `GAP_ANALYSIS` when a current Gap Report revision already exists or the user explicitly requests that phase.
+Use `GAP_ANALYSIS` only when that route is approved and a current Gap Report revision is supplied in the intake or handoff.
+The mere existence of a report does not select the route or authorize searching for it.
 Require its Design Gate to be `READY` or `PARTIAL`.
 Stop when its gate is `STOP` or its revision is stale.
 The Gap Report artifact state is not the downstream readiness decision and does not block Viewpoint design by itself.
@@ -192,6 +197,9 @@ For `DIRECT_SOURCE_CHECK`, set `Gap Analysis` and `Parent Gap Revision` to `NOT_
 Preserve an approved external source as its exact `external, non-portable` locator.
 
 Use `IN_SCOPE`, `PARTIAL`, `BLOCKED_SPEC`, or `OUT_OF_SCOPE` for Test Item Inventory scope status.
+Use the shared `Test Priority` definitions for new Viewpoints; preserve an explicitly approved project vocabulary.
+For the Legend, `HIGH_LEVEL` means a root lens with leaf children and `LEAF` means one source-backed condition with exactly one high-level parent.
+`IN_SCOPE` means included and source-backed; `PARTIAL` means the item contains an explicitly identified supported subset under approved Gap Analysis; `BLOCKED_SPEC` means required behavior is unresolved; `OUT_OF_SCOPE` means explicitly excluded by an approved scope decision.
 Keep the selected prompt classifications in the locked Discovery Coverage Map so downstream phases can reproduce the handoff without running discovery again.
 Do not copy unused catalog sections into the artifact.
 

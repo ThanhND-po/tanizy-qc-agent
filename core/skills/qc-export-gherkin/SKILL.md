@@ -20,11 +20,15 @@ Save all output below `qc/automation/gherkin/<scope-key>/`.
 
 ## Input Preflight
 
-Apply the shared `Input Boundary and Source Discovery` contract before reading phase inputs.
-If any required source or artifact locator or content is missing, stop with `BLOCKED_INPUT` in chat and ask the user to provide it or explicitly approve one bounded search root.
-Do not search the current project, parent directories, sibling projects, the broader workspace, the user home directory, or an external location to discover missing input, and do not request broader filesystem permission for that purpose.
-A feature name, module name, scope key, keyword, or prior project knowledge is context only, not a locator.
-If the user does not know the locator, ask requirement clarification questions in chat and do not infer unstated behavior.
+Resolve `qc/` paths from the confirmed project root and `references/` or `scripts/` paths from this loaded skill directory, never from an assumed working directory.
+If the project root is unclear, ask for it without filesystem discovery.
+If the shared contract or a required package reference/helper is missing or unreadable, stop the affected phase with `BLOCKED_INSTALLATION` in chat, name the exact path, and request repair with the installer; do not search for substitutes or reconstruct the contract from memory.
+After loading the contract, apply `Path Resolution and Recovery` to moved or deleted project inputs.
+
+Apply `Input Boundary and Source Discovery` and `Read Scope and Template Sources` in `qc/config/material-paths.md` before reading phase inputs.
+Use only the current approved intake, handoff, and the fixed-path checks listed below; never open historical artifacts to learn formatting.
+For a missing required locator or content, report `BLOCKED_INPUT` in chat and request the exact input or explicit approval for one bounded search root.
+Optional inputs stay optional; reuse confirmed locators and approvals from the current workstream.
 
 ## Required Inputs
 
@@ -57,7 +61,7 @@ If the canonical column is absent or has an unknown value, reject the case as `B
 | Preconditions | `Background` when shared, otherwise `Given` |
 | Concrete Test Data | Inline values or `Examples` table |
 | Steps | Behavior-level `Given`, `When`, and `Then` |
-| Expected Results | Observable `Then` assertions |
+| Expected Results | Observable `Then` and supporting `And` conditions for the same Scenario; preserve all required outcome conditions |
 | VP and source refs | Tags and source comment |
 
 Use user-facing behavior, not DOM actions.
@@ -66,6 +70,11 @@ Do not invent selectors, routes, error copy, or step-definition names.
 Use a lowercase kebab-case `module-key` from the locked Test Case module.
 Keep it unique within the scope directory.
 If selected cases map to more than one module or the module is unclear, propose the file split and obtain approval.
+
+Consume the locked Expected Results without changing their presentation or intent, including legacy cases with no presentation note.
+An unnumbered overall outcome may contain multiple source-backed conditions; preserve all of them without adding an expectation for every action or splitting the TC by assertion count.
+Preserve any explicitly required intermediate checkpoints and their observation timing; do not move a transient check to the end of the sequence.
+Do not ask the user to reselect a presentation during export or rewrite the locked source.
 
 ## Workflow
 

@@ -4,6 +4,36 @@ Read this contract before creating or updating any QC artifact.
 The installer publishes this canonical package source once per target project at `qc/config/material-paths.md`.
 Every installed QC skill reads that shared runtime file instead of carrying a duplicate copy.
 
+## Path Resolution and Recovery
+
+`qc/` is relative to the confirmed target project root, not the current terminal directory, package checkout, or user home.
+Use the project root already established by the current workstream or host project context; if it is ambiguous, ask for the exact root without listing directories.
+`references/` and `scripts/` in a skill are relative to that loaded skill's own directory.
+Use its actual absolute path when invoking a helper and resolve project input/output arguments against the confirmed project root.
+Installed skills and package references are local copies; moving the complete project with its hidden skill directories preserves these relative relationships.
+Recorded external absolute paths, Source Manifest locators, and existing links still require verification after a move.
+
+| Missing or moved material | Required handling |
+|---|---|
+| Shared contract, required package reference, helper, or selected skill | Report `BLOCKED_INSTALLATION` in chat with the exact failed path; pause the affected phase until installer repair and reread the repaired instructions |
+| Required source, locked parent, selected Run, evidence required by policy, or existing artifact being continued | Report `BLOCKED_INPUT` in chat; request the exact new locator or restored content, then verify identity, scope, revision/hash, and approval before continuing |
+| Optional System Context, Bug Base, extension, or evidence optional under the approved policy | Disclose absence and the resulting limitation; do not block solely on absence or claim there are no existing behaviors, bugs, or history |
+| Expected existing OQ ledger or execution history | Treat known history as missing input; do not seed an empty replacement or reset IDs, decisions, run history, or approvals |
+| Confirmed first-time output or new OQ ledger | Draft using this contract and the selected skill's routed format/schema, then apply the normal write gate; no package-checkout seed is needed at runtime |
+
+Do not search alternate folders, legacy copies, package caches, other projects, or historical examples for a substitute.
+The Input Boundary still governs any user-approved bounded search.
+A moved project input may be read at an exact newly approved locator; record the locator and retain its original identity and lifecycle evidence.
+Canonical output paths remain under `qc/`; changing input locators does not authorize a new output layout or a second ledger/history.
+If the user moved `qc/` or the installed skill directories themselves, request restoration to the supported layout or an explicitly reviewed migration before writing.
+Never silently create a second `qc/` tree at the terminal's current directory.
+
+For package repair, use the same trusted package version or source checkout with the confirmed adapter and project root.
+Preview an installer refresh with `--force --skip-refs --dry-run`, then apply the reviewed plan without `--dry-run`.
+Use `--skill <name>` for a damaged selected skill; omit it for a full refresh or an intentional version update.
+`--skip-refs` avoids recreating absent project-owned seeds; repair restores package files, not lost project data.
+Do not run an installer automatically as part of QC design or execution.
+
 ## Ownership Boundary
 
 Keep package-managed instructions separate from project-owned artifacts:
@@ -11,7 +41,7 @@ Keep package-managed instructions separate from project-owned artifacts:
 | Owner | Location | Update rule |
 |---|---|---|
 | Package | Target-native skill directory, for example `.agents/skills/qc-*` | Installer may replace only selected skill folders with `--force` |
-| Package | Managed QC block in `AGENTS.md`, `CLAUDE.md`, or `GEMINI.md` | Installer may update only the marked block |
+| Package | Managed QC block in `AGENTS.md` or `CLAUDE.md` | Installer may update only the marked block |
 | Package | `qc/config/material-paths.md` | Installer may refresh with `--force` |
 | Project | `qc/config/viewpoint-discovery-extension.md`, when provided | Preserve during install and update; extend catalog IDs or target routing without copying the package guide |
 | Project | All other files under `qc/` | Preserve during install and update |
@@ -25,6 +55,19 @@ QC may consume approved requirement sources from the current project, another re
 Record the exact locator, approval state, and revision or hash.
 Keep every source read-only.
 
+A PO handoff makes sources available to QC.
+It does not imply QC phase scope, artifact write approval, Lock Gate approval, Execution Gate approval, or release authority.
+QC starts only after an explicit QC request and applies its own gates.
+
+For a source inside the project, use a relative Markdown link.
+For a user-supplied or explicitly approved readable source outside the project, record its exact absolute path or canonical URI and mark it `external, non-portable` in the Source Manifest.
+Do not fabricate a project-relative link.
+Read the source in place.
+Do not copy an external source into the project unless the user separately approves the snapshot content and path.
+If the source cannot be read, has no stable revision, or its approval state is unknown, request the missing source evidence.
+Under `GAP_ANALYSIS`, classify the affected scope as `PARTIAL` or `STOP`.
+Under `DIRECT_SOURCE_CHECK`, return `FAIL` and do not create an affected Viewpoint.
+
 ## Input Boundary and Source Discovery
 
 - Treat only user-supplied file paths, attachments, pasted content, canonical URLs, and explicitly approved project artifact locators as authorized requirement, design, execution, or reporting inputs.
@@ -33,8 +76,58 @@ Keep every source read-only.
 - If a required locator or content is absent, stop with `BLOCKED_INPUT` in chat and ask the user to provide it. Do not run exploratory file listings, filename searches, content searches, or broader workspace scans to discover it.
 - Never search parent directories, sibling projects, the broader workspace, the user home directory, or another external location unless the user explicitly authorizes that exact bounded search root.
 - Do not request broader filesystem permission to discover a missing input. A filesystem permission prompt is not a substitute for explicit user authorization of the source location and search scope.
-- Reading the selected skill, its package-managed references, `qc/config/material-paths.md`, and a fixed project artifact path explicitly named by the selected skill is contract loading, not source discovery. If a named artifact is absent, do not search for an alternative location.
+- Contract loading means reading the selected skill, its explicitly routed package-managed references, this shared contract, and applicable project instructions or standards at their known locators. Project Viewpoints, Test Cases, task notes, execution logs, and reports are phase inputs or outputs, never format contracts.
+- A fixed project artifact path named by the selected skill permits only the phase-specific check described there, for the confirmed scope. It does not authorize browsing its directory, other scopes, or alternative locations. An absent optional input is a disclosed limitation, not `BLOCKED_INPUT`; an absent required input follows the blocking rule above.
 - If the user does not know the locator, ask requirement clarification questions in chat. Treat an answer as an explicit user decision only after it is confirmed, and do not infer unstated behavior.
+
+## Read Scope and Template Sources
+
+Before opening a phase input, identify its exact locator and purpose from the approved intake, the current phase handoff, or a fixed-path check explicitly required by the selected skill.
+Reuse a locator or approval already established in this workstream; do not ask for it again merely because the phase changed.
+
+| Read purpose | Permitted material | Limit |
+|---|---|---|
+| Format and controlled values | Selected skill, its routed package references, this contract, and explicit project standards | Never use an old project artifact as an implicit template |
+| Design evidence | Approved specs, current locked parent revision, applicable OQs, and verified context for the selected scope | Follow only governing dependency refs needed for the selected intent; a link is not permission to traverse a whole module or wiki |
+| Revision or continuation | Exact existing artifact being revised, including history needed to preserve IDs and decisions | The target must already belong to the approved workstream; same scope alone does not authorize every artifact |
+| Export, execution, or report | Exact locked designs, selected Runs, approved result sources, and evidence required by that phase | Historical inputs are valid for this purpose, not a style sample for another phase |
+| Explicit comparison | User-selected example or cross-scope dependency with a stated purpose | Record its role; never import its business rules, IDs, approvals, or fixture facts into the current scope |
+
+Do not open or search existing Viewpoints, Test Cases, execution logs, or reports, from the same scope or another scope, merely to imitate formatting, wording, legends, priority, or table structure.
+This restriction applies even when those files are readable or already listed by a tool.
+If a package template or controlled-value definition is missing or contradictory, report the exact contract gap in chat and request only the needed decision; do not hunt for a specimen artifact.
+Read only the selected skill's required references and the references relevant to the current mode; do not load every installed skill or every reference directory.
+
+For shared `qc/open-questions.md`, `qc/refs/system-context.md`, and `qc/refs/bug-base.md`, read their schema and legends, then select rows by the confirmed scope, exact referenced IDs, or an explicitly relevant dependency.
+The containing file is not permission to consume unrelated scopes as design evidence.
+An approved update may read the complete target to preserve existing content; that does not make unrelated rows requirement sources.
+
+### Identifier Collision Check
+
+For a new scope code only, a metadata-only lookup is allowed in `qc/tasks/`, `qc/gap-reports/`, `qc/test-viewpoints/`, `qc/test-cases/`, and `qc/open-questions.md` when present.
+Return only Scope Key / Scope Code header fields or exact matching ID and scope cells; do not open matched artifact bodies or use them as examples.
+Do not scan executions, evidence, automation, reports, parent directories, or the broader workspace for this check.
+If the existing layouts cannot be checked without reading unrelated content, disclose that uniqueness is unverified and request a bounded metadata check or a user-confirmed code.
+An already confirmed code inherited from the current locked parent does not require another inventory scan.
+
+## Shared Design Classifications
+
+Use these package defaults for new Viewpoint and Test Case designs unless an explicit project standard or approved scope decision defines another vocabulary.
+Do not infer a project convention from historical artifacts or silently relabel an existing locked revision.
+Preserve an approved custom or historical value with its recorded definition under the Legend rules below.
+
+| Vocabulary | Value | Meaning |
+|---|---|---|
+| Risk | `High` | QC assessment of substantial harm to the selected product objective if the behavior fails; record the basis |
+| Risk | `Medium` | QC assessment of material but bounded harm to the selected product objective; record the basis |
+| Risk | `Low` | QC assessment of limited harm to the selected product objective; record the basis |
+| Test Priority | `P1` | Highest test priority within the approved scope; justify using risk and test objective |
+| Test Priority | `P2` | Normal test priority within the approved scope; justify using risk and test objective |
+| Test Priority | `P3` | Lower test priority within the approved scope; justify using risk and test objective |
+
+Risk and Test Priority are different decisions, with no automatic one-to-one mapping.
+Finding and OQ Priority use `High`, `Medium`, and `Low` as defined by `qc-gap-finder`; do not substitute them for Test Priority without an approved project convention.
+These classifications are QC judgments, not business rules or release verdicts.
 
 ## Artifact Language Scope Gate
 
@@ -52,7 +145,7 @@ Use the artifact-specific canonical definitions from the selected skill and its 
 
 Apply these rules whenever an artifact is created or revised:
 
-1. Read the complete current artifact, collect controlled values from every section governed by each Legend, and reread the canonical definitions before drafting the update.
+1. Read the complete current artifact being created or revised, not all artifacts in its directory, and collect controlled values from every section governed by each Legend, and reread the canonical definitions before drafting the update.
 2. When a canonical vocabulary has seven or fewer values, include the complete canonical vocabulary in its Legend, even when the current revision does not use every value.
 3. When a canonical vocabulary has more than seven values, include every value used in the current artifact, every value still needed to interpret retained history, and every value required by the artifact-specific template.
 4. Every controlled value used in the governed artifact content must have exactly one matching Legend definition. Reconcile the Legend after adding, changing, or removing content; export-time generation alone is insufficient.
@@ -78,27 +171,14 @@ Update Review History when a classification change or Legend definition change a
 
 ## Cross-Phase Iteration Policy
 
-When Test Case Design returns an affected VP ID to Viewpoint Design, both phases must track the cumulative return count for that VP ID within the current scope revision.
+When Test Case Design returns an affected VP ID to Viewpoint Design, both phases must track the cumulative return count for that unresolved VP ID in the current workstream.
 
-- After the third return for the same VP ID without a resolved revision that Test Case Design accepts, both phases must stop the affected scope.
+- After the third return for the same VP ID without a resolved revision that Test Case Design accepts, both phases must stop the affected scope. Carry the unresolved return count across attempted Viewpoint revisions; do not reset it by incrementing a revision.
 - Present the full iteration history to the user: each VP ID, the condition or risk under dispute, the rationale from each return, and the Viewpoint revision attempted.
 - Do not attempt a fourth Viewpoint revision or Test Case design pass for the same VP ID without explicit user direction.
 - The user may resolve the dispute by approving one interpretation, redefining the scope, splitting or merging the leaf with an explicit decision, or waiving the affected scope.
 - A scope that is stopped by this policy is not failed or out of scope; it is awaiting human judgment.
 - Record the iteration count and stop reason in the handoff message and in the artifact's Review History when the revision is next written.
-
-A PO handoff makes sources available to QC.
-It does not imply QC phase scope, artifact write approval, Lock Gate approval, Execution Gate approval, or release authority.
-QC starts only after an explicit QC request and applies its own gates.
-
-For a source inside the project, use a relative Markdown link.
-For a user-supplied or explicitly approved readable source outside the project, record its exact absolute path or canonical URI and mark it `external, non-portable` in the Source Manifest.
-Do not fabricate a project-relative link.
-Read the source in place.
-Do not copy an external source into the project unless the user separately approves the snapshot content and path.
-If the source cannot be read, has no stable revision, or its approval state is unknown, request the missing source evidence.
-Under `GAP_ANALYSIS`, classify the affected scope as `PARTIAL` or `STOP`.
-Under `DIRECT_SOURCE_CHECK`, return `FAIL` and do not create an affected Viewpoint.
 
 ## Scope Key
 
@@ -106,8 +186,8 @@ Use one `scope-key` for every artifact in the same QC workstream.
 
 1. For one requirement file, use its exact filename stem in lowercase kebab-case. Preserve semantic prefixes such as `epic-`, `fs-`, `req-`, and `cr-`.
 2. For several requirement files, propose a parent scope key and obtain user confirmation before writing. Do not infer which source is primary.
-3. Record the scope key and every source path in each artifact header.
-4. Confirm one uppercase `scope-code` of 2 to 12 letters or digits for generated IDs. Before approval, verify that another scope does not already use it in existing artifacts or the OQ ledger. Preserve it across revisions.
+3. Record the scope key in each artifact header and exact source paths in its Source Manifest.
+4. Confirm one uppercase `scope-code` of 2 to 12 letters or digits for generated IDs. Before approval of a new code, apply the metadata-only Identifier Collision Check above. Preserve the confirmed code across revisions and downstream phases.
 
 Example for `fs-shopping-cart.md`:
 
@@ -173,7 +253,8 @@ qc/
     └── <scope-key>-test-report-<YYYY-MM-DD>[-vN].<ext>
 ```
 
-Only `open-questions.md` is shared across scopes.
+The OQ ledger and verified context stores under `qc/refs/` may contain rows from multiple scopes.
+Apply the row-selection boundary above; workstream artifacts remain scope-specific.
 Keep task progress in `qc/tasks/`, not in a single `qc/qc-task.md` that later scopes can overwrite.
 Do not create `qc/refs/open-questions.md`.
 

@@ -13,11 +13,15 @@ Read the shared contract at `qc/config/material-paths.md`, then read `references
 
 ## Input Preflight
 
-Apply the shared `Input Boundary and Source Discovery` contract before reading phase inputs.
-If any required source, result, or artifact locator or content is missing, stop with `BLOCKED_INPUT` in chat and ask the user to provide it or explicitly approve one bounded search root.
-Do not search the current project, parent directories, sibling projects, the broader workspace, the user home directory, or an external location to discover missing input, and do not request broader filesystem permission for that purpose.
-A feature name, module name, scope key, keyword, or prior project knowledge is context only, not a locator.
-If the user does not know the locator, ask clarification questions in chat and do not infer unstated execution data.
+Resolve `qc/` paths from the confirmed project root and `references/` or `scripts/` paths from this loaded skill directory, never from an assumed working directory.
+If the project root is unclear, ask for it without filesystem discovery.
+If the shared contract or a required package reference/helper is missing or unreadable, stop the affected phase with `BLOCKED_INSTALLATION` in chat, name the exact path, and request repair with the installer; do not search for substitutes or reconstruct the contract from memory.
+After loading the contract, apply `Path Resolution and Recovery` to moved or deleted project inputs.
+
+Apply `Input Boundary and Source Discovery` and `Read Scope and Template Sources` in `qc/config/material-paths.md` before reading phase inputs.
+Use only the current approved intake, handoff, and the fixed-path checks listed below; never open historical artifacts to learn formatting.
+For a missing required locator or content, report `BLOCKED_INPUT` in chat and request the exact input or explicit approval for one bounded search root.
+Optional inputs stay optional; reuse confirmed locators and approvals from the current workstream.
 
 ## Modes
 
@@ -46,24 +50,27 @@ Override this default only when the user or approved release criteria require ev
 ## Bundled Manual Result Capability
 
 Use the bundled `scripts/manual-results.mjs` as the baseline PREPARE and IMPORT engine for XLSX, CSV, and Markdown on every target.
-It uses only Node.js built-in modules and travels with this skill, so these formats do not depend on Gemini, Codex, Claude, Antigravity, Microsoft Excel, Python, a connector, or a network-installed spreadsheet library.
+Preserve the locked `Expected Results` cell exactly as design context, whether it contains an unnumbered compound outcome or explicit step checkpoints; do not renumber, collapse conditions, or rewrite legacy cases during PREPARE or IMPORT.
+It uses only Node.js built-in modules and travels with this skill, so these formats do not depend on Codex, Claude, Antigravity, Microsoft Excel, Python, a connector, or a network-installed spreadsheet library.
 
 Use `scripts/manual-results-xlsx.mjs` only as an XLSX compatibility wrapper.
 Use a native spreadsheet capability only as an optional enhancement for visual review or advanced edits.
 Native capability absence must not block artifact creation or cause an automatic format fallback.
 CSV and the separate Markdown form are explicit user-selected alternatives only.
 
-Run from the installed skill directory or use the absolute script path:
+Run with the confirmed project root as the working directory and the absolute path to the loaded skill script.
+Resolve source, input, and output arguments from that project root, or pass their approved absolute paths.
+Replace `<installed-skill-dir>` with the actual loaded skill directory; it is a placeholder, not a directory to create.
 
 ```bash
-node scripts/manual-results.mjs prepare \
+node "<installed-skill-dir>/scripts/manual-results.mjs" prepare \
   --source <locked-test-cases.md> \
   --output <manual-results.xlsx> \
   --run-id <RUN-ID> \
   --selected all-unblocked \
   --evidence-policy OPTIONAL
 
-node scripts/manual-results.mjs import \
+node "<installed-skill-dir>/scripts/manual-results.mjs" import \
   --source <locked-test-cases.md> \
   --input <completed-manual-results.xlsx> \
   --output <import-preview.json>

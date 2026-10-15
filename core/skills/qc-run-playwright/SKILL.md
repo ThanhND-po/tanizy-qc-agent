@@ -26,16 +26,20 @@ Record the need as deferred enhancement `QC-AUTO-001` when project documentation
 
 ## Artifact Contract
 
-Read the shared contract at `qc/config/material-paths.md`.
+Read the shared contract at `qc/config/material-paths.md` and this skill's `references/executions-log.md` before drafting a Run.
 Treat `qc/executions/<scope-key>-executions.md` as an append-only run history.
 
 ## Input Preflight
 
-Apply the shared `Input Boundary and Source Discovery` contract before reading phase inputs.
-If any required Test Case, environment, account, fixture, policy, or artifact locator or content is missing, stop with `BLOCKED_INPUT` in chat and ask the user to provide it or explicitly approve one bounded search root.
-Do not search the current project, parent directories, sibling projects, the broader workspace, the user home directory, or an external location to discover missing input, and do not request broader filesystem permission for that purpose.
-A feature name, module name, scope key, keyword, or prior project knowledge is context only, not a locator.
-If the user does not know the locator, ask clarification questions in chat and do not infer unstated execution data.
+Resolve `qc/` paths from the confirmed project root and `references/` or `scripts/` paths from this loaded skill directory, never from an assumed working directory.
+If the project root is unclear, ask for it without filesystem discovery.
+If the shared contract or a required package reference/helper is missing or unreadable, stop the affected phase with `BLOCKED_INSTALLATION` in chat, name the exact path, and request repair with the installer; do not search for substitutes or reconstruct the contract from memory.
+After loading the contract, apply `Path Resolution and Recovery` to moved or deleted project inputs.
+
+Apply `Input Boundary and Source Discovery` and `Read Scope and Template Sources` in `qc/config/material-paths.md` before reading phase inputs.
+Use only the current approved intake, handoff, and the fixed-path checks listed below; never open historical artifacts to learn formatting.
+For a missing required locator or content, report `BLOCKED_INPUT` in chat and request the exact input or explicit approval for one bounded search root.
+Optional inputs stay optional; reuse confirmed locators and approvals from the current workstream.
 
 ## Required Inputs
 

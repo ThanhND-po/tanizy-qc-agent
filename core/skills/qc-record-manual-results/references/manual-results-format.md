@@ -149,12 +149,12 @@ ExpectedResults,VPID,SourceTrace,AutomationEligibility,Tags
 Accept an RFC 4180-compatible UTF-8 CSV with a header row.
 Detect inconsistent repeated Run metadata as an import error.
 Blank `TestResult` rows do not create attempts.
+For legacy CSV without `SelectedForRun`, treat supplied rows as selected and emit a warning.
 
 ## Markdown Input
 
 The separate Markdown form uses the same scan-first execution fields as XLSX, followed by the locked design context with the canonical Markdown Test Case column names.
 Preserve Title as `Test Title` and preserve Module, Risk, Priority, Preconditions, Test Data, Steps, Expected Results, VP ID, Source Trace, Automation Eligibility, and Tags without translation or paraphrase.
-For legacy CSV without `SelectedForRun`, treat supplied rows as selected and emit a warning.
 
 ## Non-Canonical Tabular Sources
 
@@ -178,13 +178,13 @@ qc/execution-inputs/<scope-key>/<run-id-lowercase>-manual-results.md
 ```
 
 Use the Run Header from `references/executions-log.md`, then one table with the same editable execution fields.
-Link the locked Test Cases instead of copying the complete design table.
+Link the locked Test Cases in the header and retain their locked design columns after the scan-first execution fields, as emitted by the bundled engine.
+Do not ask the agent to choose between a link-only form and the canonical full-context form.
 Never add manual results to the locked Test Case file.
 
 ```markdown
-| Selected for Run | Attempt | TC ID | Test Title | Test Result | Actual Result | Tested By | Tested At | Evidence | Defect | Cleanup | Note |
-|---|---:|---|---|---|---|---|---|---|---|---|---|
-| TRUE | 1 | TC-LOG-001 | Đăng nhập hợp lệ | | | | | | | | |
+| Selected for Run | Attempt | TC ID | Test Title | Test Result | Actual Result | Tested By | Tested At | Evidence | Defect | Cleanup | Note | Module | Risk | Priority | Preconditions | Test Data | Steps | Expected Results | VP ID | Source Trace | Automation Eligibility | Tags |
+|---|---:|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 ```
 
 ## Spreadsheet Verification

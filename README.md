@@ -6,7 +6,7 @@
 
 ## English
 
-Tanizy QC Agent is a portable, explicitly invoked Quality Control workflow for Codex, Gemini CLI, Claude Code, and Antigravity.
+Tanizy QC Agent is a portable, explicitly invoked Quality Control workflow for Codex, Antigravity, and Claude Code.
 It helps a Product Owner, QA lead, or tester review approved requirements, manage specification gaps, design traceable Test Viewpoints and Test Cases, prepare automation artifacts, execute approved UI tests, record manual test results, and report outcomes with optional evidence.
 
 QC never starts automatically and never modifies requirement documents.
@@ -32,6 +32,14 @@ Use Vietnamese by default unless the user explicitly requests another language, 
 The language is a workflow decision for the current scope, not artifact metadata.
 Do not add an artifact-language field to generated headers or infer a different language from prior sessions, machine memory, or a user profile.
 
+### Read Boundaries and Templates
+
+Use package templates and explicit project standards for format, never historical project artifacts as implicit examples.
+Design evidence comes from the approved intake and current locked handoff; an existing artifact is read only for an authorized revision, selected run/report input, or explicit comparison or dependency.
+New scope-code checks inspect metadata only; a confirmed code inherited from the current parent is reused.
+Test Case Design loads the complete canonical `test-case-format.md` before drafting and preserves explicit project vocabulary overrides.
+See the [0.8.8 review](docs/review-read-boundaries.md) for findings, reference ownership, verification, and behavioral evaluation limits.
+
 ### Test Case Authoring Quality
 
 - Design every Test Case so a human can execute it before automation implementation exists.
@@ -39,6 +47,7 @@ Do not add an artifact-language field to generated headers or infer a different 
 - Split independent objectives that share only setup or workflow proximity. Do not split mechanically because data, outcomes, possible root causes, checkpoints, or transitions differ.
 - Use Preconditions only for case-specific initial state. An existing approved Fixture Requirement ID may be referenced in Preconditions or Test Data for either manual or automated cases, but no Fixture Catalog or Fixture ID column is mandatory.
 - Write Steps with an actor or role, action surface, concrete action, and observable checkpoint. Do not substitute generic preparation or observation wrappers for executable actions.
+- Default to one overall Expected Result after all Steps with the stated Preconditions and Test Data; it may contain multiple observable conditions serving one objective. Confirm the presentation once before Test Case analysis/drafting, with step-linked checkpoints as an explicit option; preserve required intermediate evidence and locked legacy cases.
 - Keep Expected Results limited to case-specific observable oracles, persisted state, audit evidence, and side effects.
 - Reconcile every coverage claim to the Test Case actions and oracles that exercise it. Keep Viewpoint mapping, achieved design coverage, and runtime results separate.
 - Review repeated Preconditions, Steps, and Expected Results before Lock, while allowing repetition that remains necessary and specific.
@@ -154,10 +163,9 @@ Runtime QC artifacts use `qc/` only.
 
 ```text
 project/
-├── AGENTS.md, CLAUDE.md, or GEMINI.md  # existing content plus managed QC block
+├── AGENTS.md or CLAUDE.md  # existing content plus managed QC block
 ├── .agents/skills/qc-*/                # Codex and Antigravity
 ├── .claude/skills/qc-*/                # Claude Code
-├── skills/qc-*/                        # Gemini CLI
 └── qc/
     ├── config/
     │   ├── material-paths.md                 # one shared package-managed contract
@@ -190,6 +198,9 @@ Read [the artifact contract](core/references/material-paths.md) for the complete
 
 ### Install
 
+Supported targets: Codex, Antigravity, and Claude Code.
+For deleted package files, moved project inputs, and repair without reseeding project data, see [Missing Files and Project Moves](docs/install-codex.md#missing-files-and-project-moves).
+
 Preview first:
 
 ```bash
@@ -200,7 +211,6 @@ Install all skills:
 
 ```bash
 npx @thanhndpo/tanizy-qc-agent --target codex --project /path/to/project
-npx @thanhndpo/tanizy-qc-agent --target gemini-cli --project /path/to/project
 npx @thanhndpo/tanizy-qc-agent --target claude-code --project /path/to/project
 npx @thanhndpo/tanizy-qc-agent --target antigravity --project /path/to/project
 ```
@@ -229,7 +239,7 @@ Use `--skip-refs` when runtime references are managed separately.
 
 Use [Tanizy PO Agent](https://github.com/ThanhND-po/tanizy-po-agent) as the companion package for discovery, approved requirement artifacts, diagrams, mockups, and meeting memos.
 
-The installer does not own the whole `AGENTS.md`, `CLAUDE.md`, or `GEMINI.md`.
+The installer does not own the whole `AGENTS.md` or `CLAUDE.md`.
 It appends one marked QC block and, with `--force`, replaces only that block.
 Existing PO instructions, project rules, and other managed blocks remain outside QC ownership.
 
@@ -325,11 +335,12 @@ If release criteria or decision authority are missing, the report verdict is `UN
 
 ```bash
 npm run validate
+npm run test:read-boundaries
 npm run test:install
 npm run pack:check
 ```
 
-Validation covers skill frontmatter, naming, local references, installer destinations, preservation semantics, collision preflight, packaged CLI execution, force refresh, symlink safeguards, and all four targets.
+Validation covers skill frontmatter, naming, local references, installer destinations, preservation semantics, collision preflight, packaged CLI execution, force refresh, symlink safeguards, and all three supported targets.
 
 ### License
 
@@ -342,10 +353,18 @@ See [LICENSE](LICENSE).
 
 ## Tiếng Việt
 
-Tanizy QC Agent là một workflow Quality Control portable, chỉ được kích hoạt khi có yêu cầu rõ ràng, dành cho Codex, Gemini CLI, Claude Code và Antigravity.
+Tanizy QC Agent là một workflow Quality Control portable, chỉ được kích hoạt khi có yêu cầu rõ ràng, dành cho Codex, Antigravity và Claude Code.
 Workflow hỗ trợ Product Owner, QA lead hoặc tester review requirement đã được phê duyệt, quản lý specification gap, thiết kế Test Viewpoint và Test Case có traceability, chuẩn bị automation artifact, thực thi UI test đã được phê duyệt, ghi nhận kết quả manual test và báo cáo kết quả kèm evidence tùy chọn.
 
 QC không tự động bắt đầu và không chỉnh sửa requirement document.
+
+### Phạm vi đọc và template
+
+Lấy format từ package template và project standards đã xác định; không mở artifact cũ để tự học cách trình bày.
+Design dùng approved intake và locked handoff hiện tại; chỉ đọc artifact hiện hữu để sửa đúng target đã được duyệt, dùng Run đã chọn, hoặc tham chiếu dependency/ví dụ được yêu cầu rõ ràng.
+Kiểm tra scope code mới chỉ đọc metadata; tái sử dụng code đã xác nhận từ parent hiện tại.
+Test Case Design phải đọc canonical `test-case-format.md` trước khi draft và giữ vocabulary riêng đã được phê duyệt.
+Xem [review 0.8.8](docs/review-read-boundaries.md) để biết findings, nguồn sở hữu rules, kết quả kiểm tra và giới hạn của behavioral evaluation.
 
 ### Hành vi cốt lõi
 
@@ -375,6 +394,7 @@ Không thêm artifact-language field vào generated header và không suy ra lan
 - Tách các objective độc lập chỉ đang dùng chung setup hoặc gần nhau trong workflow. Không split máy móc chỉ vì data, outcome, possible root cause, checkpoint hoặc transition khác nhau.
 - Chỉ dùng Preconditions cho case-specific initial state. Có thể tham chiếu Fixture Requirement ID đã được phê duyệt trong Preconditions hoặc Test Data cho cả manual và automated case, nhưng không bắt buộc Fixture Catalog hoặc cột Fixture ID.
 - Steps phải có actor hoặc role, action surface, hành động cụ thể và observable checkpoint. Không dùng generic preparation hoặc observation wrapper thay cho executable action.
+- Mặc định dùng một Expected Result tổng thể sau toàn bộ Steps với Preconditions và Test Data tương ứng; outcome có thể gồm nhiều điều kiện cùng phục vụ một objective. Xác nhận cách trình bày một lần trước khi phân tích/draft Test Case, với checkpoint theo step là lựa chọn rõ ràng; giữ required intermediate evidence và các legacy case đã locked.
 - Expected Results chỉ giữ case-specific observable oracle, persisted state, audit evidence và side effect.
 - Đối soát mọi coverage claim với Test Case action và oracle thực sự exercise item đó. Tách riêng Viewpoint mapping, achieved design coverage và runtime result.
 - Review Preconditions, Steps và Expected Results bị lặp trước Lock Gate, nhưng vẫn cho phép nội dung lặp khi cần thiết và cụ thể.
@@ -490,10 +510,9 @@ Runtime QC artifact chỉ được lưu trong `qc/`.
 
 ```text
 project/
-├── AGENTS.md, CLAUDE.md, hoặc GEMINI.md  # nội dung hiện có và managed QC block
+├── AGENTS.md hoặc CLAUDE.md  # nội dung hiện có và managed QC block
 ├── .agents/skills/qc-*/                  # Codex và Antigravity
 ├── .claude/skills/qc-*/                  # Claude Code
-├── skills/qc-*/                          # Gemini CLI
 └── qc/
     ├── config/
     │   ├── material-paths.md                 # một shared package-managed contract
@@ -526,6 +545,9 @@ Không tạo `qc/refs/open-questions.md` hoặc file dùng chung `qc/qc-task.md`
 
 ### Cài đặt
 
+Chỉ hỗ trợ Codex, Antigravity và Claude Code.
+Xem [Missing Files and Project Moves](docs/install-codex.md#missing-files-and-project-moves) để phục hồi file package hoặc xử lý input đã di chuyển mà không seed lại dữ liệu project.
+
 Preview trước:
 
 ```bash
@@ -536,7 +558,6 @@ Cài đặt toàn bộ skill:
 
 ```bash
 npx @thanhndpo/tanizy-qc-agent --target codex --project /path/to/project
-npx @thanhndpo/tanizy-qc-agent --target gemini-cli --project /path/to/project
 npx @thanhndpo/tanizy-qc-agent --target claude-code --project /path/to/project
 npx @thanhndpo/tanizy-qc-agent --target antigravity --project /path/to/project
 ```
@@ -565,7 +586,7 @@ Dùng `--skip-refs` khi runtime reference được quản lý riêng.
 
 Dùng [Tanizy PO Agent](https://github.com/ThanhND-po/tanizy-po-agent) làm companion package cho discovery, approved requirement artifact, diagram, mockup và meeting memo.
 
-Installer không sở hữu toàn bộ `AGENTS.md`, `CLAUDE.md` hoặc `GEMINI.md`.
+Installer không sở hữu toàn bộ `AGENTS.md` hoặc `CLAUDE.md`.
 Installer append một QC block có marker và khi dùng `--force`, chỉ thay thế block đó.
 PO instruction, project rule và managed block hiện có vẫn nằm ngoài quyền sở hữu của QC.
 
@@ -661,6 +682,7 @@ Nếu thiếu release criteria hoặc decision authority, report verdict phải 
 
 ```bash
 npm run validate
+npm run test:read-boundaries
 npm run test:install
 npm run pack:check
 ```

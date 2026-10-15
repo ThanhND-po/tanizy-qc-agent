@@ -14,24 +14,29 @@ Do not treat it as a mandatory prerequisite for Test Viewpoint design.
 ## Artifact Contract
 
 Read the shared contract at `qc/config/material-paths.md` and `references/open-questions-guide.md` before drafting.
+Read [references/context-templates.md](references/context-templates.md) only when verified context or Bug Base updates are explicitly included in the write set.
 Use the approved scope key for both the report and OQ rows.
 
 ## Input Preflight
 
-Apply the shared `Input Boundary and Source Discovery` contract before reading phase inputs.
-If the approved requirement source locator or content is missing, stop with `BLOCKED_INPUT` in chat and ask the user to provide it or explicitly approve one bounded search root.
-Do not search the current project, parent directories, sibling projects, the broader workspace, the user home directory, or an external location to discover missing input, and do not request broader filesystem permission for that purpose.
-A feature name, module name, scope key, keyword, or prior project knowledge is context only, not a locator.
-If the user does not know the locator, ask requirement clarification questions in chat and do not infer unstated behavior.
+Resolve `qc/` paths from the confirmed project root and `references/` or `scripts/` paths from this loaded skill directory, never from an assumed working directory.
+If the project root is unclear, ask for it without filesystem discovery.
+If the shared contract or a required package reference/helper is missing or unreadable, stop the affected phase with `BLOCKED_INSTALLATION` in chat, name the exact path, and request repair with the installer; do not search for substitutes or reconstruct the contract from memory.
+After loading the contract, apply `Path Resolution and Recovery` to moved or deleted project inputs.
+
+Apply `Input Boundary and Source Discovery` and `Read Scope and Template Sources` in `qc/config/material-paths.md` before reading phase inputs.
+Use only the current approved intake, handoff, and the fixed-path checks listed below; never open historical artifacts to learn formatting.
+For a missing required locator or content, report `BLOCKED_INPUT` in chat and request the exact input or explicit approval for one bounded search root.
+Optional inputs stay optional; reuse confirmed locators and approvals from the current workstream.
 
 ## Inputs
 
 | Input | Handling when missing |
 |---|---|
 | Approved requirement sources | Stop with `BLOCKED_INPUT` and request an exact locator or pasted content |
-| Existing OQ ledger | Load `qc/open-questions.md`; create from the installed seed only after approval |
-| System context | Mark current behavior unknown and limit regression claims |
-| Bug base | Mark known-bug coverage unavailable |
+| Existing OQ ledger | Load relevant rows at `qc/open-questions.md` when present; for a confirmed new ledger, draft from `references/open-questions-guide.md` only after approval. If an expected ledger was moved or deleted, apply Path Resolution and Recovery before creating a replacement |
+| System context | Select relevant rows at `qc/refs/system-context.md` when present; otherwise mark current behavior unknown and limit regression claims |
+| Bug base | Select relevant rows at `qc/refs/bug-base.md` when present; otherwise mark known-bug coverage unavailable |
 | Mockup, API, or technical sources cited by requirements | Verify a cited source only when it governs behavior in the approved scope; create a gap only when the missing source is needed for testability |
 
 ## Finding Classes
@@ -91,7 +96,7 @@ Silence never resolves an OQ.
 ## Workflow
 
 1. Confirm Gap Analysis is explicitly requested and record `Readiness Route = GAP_ANALYSIS`.
-2. Inventory exact source paths, sections, identifiers, approval states, and in-scope source items. Establish the coverage denominator before assigning a gate. Verify the confirmed scope code is not assigned to another scope.
+2. Inventory exact source paths, sections, identifiers, approval states, and in-scope source items. Establish the coverage denominator before assigning a gate. For a new scope code, apply the shared metadata-only collision check; reuse a code already confirmed in the current handoff.
 3. Scan applicable validation, boundaries, states, roles, integrations, data ownership, errors, concurrency, security, accessibility, performance, audit, and known regressions.
 4. Classify candidate checks as `APPLICABLE`, `NOT_APPLICABLE`, or `OUT_OF_SCOPE` before creating findings.
 5. Reuse an existing Finding ID when the same intent recurs. Otherwise assign the next stable `FND-<SCOPE-CODE>-NNN`; never renumber or reuse a retired ID for different intent.

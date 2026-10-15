@@ -15,7 +15,13 @@ Location: `qc/refs/system-context.md`
 An empty table means current behavior is unknown.
 It does not mean the feature is greenfield.
 Use `CTX-<SCOPE-CODE>-NNN`.
-Status is `ACTIVE`, `STALE`, or `SUPERSEDED`.
+Status meanings are:
+
+| Status | Meaning |
+|---|---|
+| `ACTIVE` | Verified current fact applicable to the recorded scope and environment |
+| `STALE` | Source or environment changed and the fact requires verification before reuse |
+| `SUPERSEDED` | A newer verified record replaces this fact; preserve its history |
 
 Known environment constraints use this schema in the same file:
 

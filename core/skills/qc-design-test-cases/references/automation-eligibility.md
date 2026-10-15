@@ -5,16 +5,11 @@ Preserve one canonical eligibility value in every Test Case row.
 
 ## Canonical Values
 
-| Eligibility | Use when |
-|---|---|
-| `UI-AUTO` | The source-backed intent is deterministic and observable through UI automation |
-| `API-AUTO` | The source-backed intent is deterministic and the complete API contract is available |
-| `BOTH` | The same intent is valid and independently observable through UI and API layers |
-| `MANUAL` | The approved test intent requires human judgment or an unsupported physical/third-party interaction |
-| `NEEDS_SPEC` | Test intent, data, Expected Result, endpoint, or another required contract is missing |
-
+Use the five Automation Eligibility definitions in the [canonical Test Case template](test-case-format.md#complete-template).
+That reference owns the vocabulary and reader-facing Legend; this guide owns selection and downstream routing.
 Do not use `MANUAL` to hide an incomplete specification.
-Use `NEEDS_SPEC` and link the blocking OQ.
+Use `NEEDS_SPEC` for the blocker and link the existing blocking OQ when the readiness route provides one.
+A design-blocking gap has no placeholder executable Test Case.
 
 ## Eligibility Rules
 

@@ -11,6 +11,14 @@ Route a conflict to the Gap Report and Open Questions ledger.
 Use `CTX-<SCOPE-CODE>-NNN` for Context ID and `CON-<SCOPE-CODE>-NNN` for Constraint ID.
 Status is `ACTIVE`, `STALE`, or `SUPERSEDED`.
 
+## Status Legend
+
+| Status | Meaning |
+|---|---|
+| `ACTIVE` | Verified current fact applicable to the recorded scope and environment |
+| `STALE` | Source or environment changed and the fact requires verification before reuse |
+| `SUPERSEDED` | A newer verified record replaces this fact; preserve its history |
+
 ## Verified Context
 
 | Context ID | Scope Key | Module | Environment | Verified Current Behavior or Constraint | Source | Source Revision | Verified At | Verified By | Status |

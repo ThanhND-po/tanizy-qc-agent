@@ -26,11 +26,12 @@ npx @thanhndpo/tanizy-qc-agent \
 | Target | Skill root | Managed adapter |
 |---|---|---|
 | `codex` | `.agents/skills/` | QC block in `AGENTS.md` |
-| `gemini-cli` | `skills/` | QC block in `GEMINI.md` |
 | `claude-code` | `.claude/skills/` | QC block in `CLAUDE.md` |
 | `antigravity` | `.agents/skills/` | QC block in `AGENTS.md` plus namespaced rule |
 
 The installer preserves content outside its marked adapter block.
+Gemini CLI and its `gemini` alias are no longer supported.
+Existing `GEMINI.md` files or former Gemini skill directories are left untouched; migrate to a supported target and review obsolete instructions before removing them yourself.
 
 ## Existing PO or Project Instructions
 
@@ -129,6 +130,42 @@ Archive or delete the legacy file only after separate approval.
 Existing locked flat Viewpoint, Test Case, and execution artifacts remain immutable.
 Create and approve a new hierarchical Viewpoint revision before new Test Case Design.
 Existing locked Test Cases may continue downstream with their original `VP ID` trace; reports disclose that legacy parent and leaf coverage cannot be reconstructed.
+
+## Missing Files and Project Moves
+
+All `qc/` paths are relative to the confirmed project root.
+Skill `references/` and `scripts/` paths are relative to the loaded installed skill directory.
+Moving the whole project, including hidden `.agents/` or `.claude/` directories, keeps the installation portable; external absolute locators and existing links must still be rechecked.
+Moving only `qc/` or the skill directory requires restoration or a reviewed migration to the supported layout.
+
+| Situation | Workflow response |
+|---|---|
+| Missing shared contract, required template, helper, or selected skill | `BLOCKED_INSTALLATION`; report the exact path and repair the installation |
+| Missing required source, locked parent, selected Run, or expected history | `BLOCKED_INPUT`; supply the restored content or an exact approved new locator |
+| Missing optional context or extension | Continue with a disclosed coverage limitation |
+
+For repair, use the same trusted package version or local source checkout rather than silently upgrading.
+Replace `<installed-version>` with that version and choose the actual supported target and project root:
+
+```bash
+npx @thanhndpo/tanizy-qc-agent@<installed-version> \
+  --target codex \
+  --project /path/to/project \
+  --skill qc-design-test-cases \
+  --force --skip-refs --dry-run
+```
+
+Review the plan, then repeat without `--dry-run`.
+Omit `--skill` for a full repair; a shared-contract repair also occurs during a selected-skill refresh.
+For unpublished changes, use `node /path/to/tanizy-qc-agent/scripts/install.mjs` with the same flags instead of npm.
+`--skip-refs` prevents repair from reseeding deleted project-owned context or OQ files.
+It does not recover lost decisions, source documents, locked designs, results, or evidence.
+Restore those from the user's source or backup; never replace known history with an empty seed.
+The installed Gap Finder includes its OQ schema in `references/open-questions-guide.md`, so creating a confirmed new ledger does not depend on a package-checkout seed path.
+
+Before `--force` changes any destination, the installer checks planned source paths and the selected entrypoints' routed references/helpers.
+An incomplete package fails with the exact missing source path before replacing installed files.
+This is a preflight check, not a transactional rollback for unrelated disk or permission failures during copying.
 
 ## Runtime Layout
 

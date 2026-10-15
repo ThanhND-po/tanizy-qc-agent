@@ -19,6 +19,18 @@ Include the complete Result vocabulary: `PASS`, `FAIL`, `BLOCKED`, `ERROR`, `SKI
 Include the complete Verdict vocabulary: `GO`, `CONDITIONAL GO`, `NO-GO`, and `UNDETERMINED`.
 Use the canonical meanings from this specification and the execution contract, and reconcile the block whenever report content changes.
 
+### Report-Only Vocabulary
+
+Execution Result definitions remain canonical in `executions-log.md`; `NOT_RUN` is report-derived and means a locked TC has no execution row in the selected Runs.
+The Verdict definitions below do not supply release criteria or decision authority.
+
+| Verdict | Meaning |
+|---|---|
+| `GO` | The approved release criteria are satisfied and the identified decision authority permits release |
+| `CONDITIONAL GO` | The identified authority permits release subject to explicitly recorded conditions under approved criteria |
+| `NO-GO` | An approved release criterion prevents release under the identified authority |
+| `UNDETERMINED` | A release decision cannot be established from the supplied criteria, evidence, and authority |
+
 ### 1. Decision Summary
 
 Use one table:
@@ -96,5 +108,5 @@ Keep unexecuted and blocked source items visible in any included coverage matrix
 - Lead with metrics, then short explanations.
 - Keep dates and IDs machine-readable.
 - Use exact links and identifiers.
-- Avoid paragraphs longer than three lines where a table is clearer.
+- Use short paragraphs or a table when it makes the decision easier to scan; do not enforce line counts that depend on the renderer.
 - Omit empty sections, duplicate summaries, and charts that repeat a table.

@@ -17,9 +17,8 @@ import { fileURLToPath } from "node:url";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const packageConfig = JSON.parse(readFileSync(join(repoRoot, "package.json"), "utf8"));
-const targets = new Set(["gemini-cli", "codex", "claude-code", "antigravity"]);
+const targets = new Set(["codex", "claude-code", "antigravity"]);
 const aliases = new Map([
-  ["gemini", "gemini-cli"],
   ["claude", "claude-code"],
 ]);
 const managedBlockStart = "<!-- BEGIN TANIZY QC AGENT MANAGED BLOCK -->";
@@ -35,7 +34,7 @@ function optionValue(argv, index, option) {
 
 function usage() {
   console.log(`Usage:
-  npx ${packageConfig.name} --target <gemini-cli|codex|claude-code|antigravity> --project <project-root> [options]
+  npx ${packageConfig.name} --target <codex|claude-code|antigravity> --project <project-root> [options]
 
 Options:
   --skill <name>   Install or update one skill. Repeat for multiple skills.
@@ -99,16 +98,12 @@ function skillDirectories() {
 }
 
 function skillDestinationRoot(target, projectRoot) {
-  if (target === "gemini-cli") return join(projectRoot, "skills");
   if (target === "claude-code") return join(projectRoot, ".claude", "skills");
   return join(projectRoot, ".agents", "skills");
 }
 
 function adapterSpec(target, projectRoot) {
   const adapterRoot = join(repoRoot, "adapters", target);
-  if (target === "gemini-cli") {
-    return { from: join(adapterRoot, "GEMINI.md"), to: join(projectRoot, "GEMINI.md") };
-  }
   if (target === "claude-code") {
     return { from: join(adapterRoot, "CLAUDE.md"), to: join(projectRoot, "CLAUDE.md") };
   }
@@ -358,6 +353,29 @@ function inspectOperation(item, force) {
 }
 
 function preflight(projectRoot, plan, force) {
+  // Check sources before replacing any installed directory, including references
+  // that travel inside a skill rather than as their own copy-plan entry.
+  for (const item of plan.filter((entry) => entry.from)) {
+    if (!existsSync(item.from)) {
+      throw new Error(`Incomplete package: missing source ${item.from}. Restore the package before installing.`);
+    }
+    if (item.kind !== "replace-directory") continue;
+    const entrypoint = join(item.from, "SKILL.md");
+    if (!existsSync(entrypoint)) {
+      throw new Error(`Incomplete package: missing source ${entrypoint}. Restore the package before installing.`);
+    }
+    const content = readFileSync(entrypoint, "utf8");
+    const routes = [...content.matchAll(/(?:`|\]\()((?:references|scripts)\/[^`\s)]+)(?:`|\))/g)];
+    for (const [, href] of routes) {
+      const route = href.split("#", 1)[0];
+      const source = route === "references/executions-log.md"
+        ? join(repoRoot, "core", "references", "executions-log.md")
+        : join(item.from, route);
+      if (!existsSync(source)) {
+        throw new Error(`Incomplete package: missing source ${source}. Restore the package before installing.`);
+      }
+    }
+  }
   const inspected = plan.map((item) => {
     assertSafeProjectDestination(projectRoot, item.to);
     return { ...item, action: inspectOperation(item, force) };
@@ -426,6 +444,7 @@ function printPlan(projectRoot, target, selected, inspected, findings, dryRun) {
   console.log(`Tanizy QC Agent ${packageConfig.version}`);
   console.log(`Target: ${target}`);
   console.log(`Project root: ${projectRoot}`);
+  console.log(`Skill root: ${skillDestinationRoot(target, projectRoot)}`);
   console.log(`Runtime root: ${join(projectRoot, "qc")}`);
   console.log(`Skills: ${selected.join(", ")}`);
 
@@ -455,7 +474,7 @@ async function main() {
     return;
   }
   if (!args.target || !targets.has(args.target)) {
-    throw new Error("Missing or invalid --target. Use gemini-cli, codex, claude-code, or antigravity.");
+    throw new Error("Missing or invalid --target. Use codex, claude-code, or antigravity.");
   }
   if (!args.project) throw new Error("Missing --project.");
 

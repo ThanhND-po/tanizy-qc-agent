@@ -47,12 +47,25 @@ node /path/to/tanizy-qc-agent/scripts/install.mjs \
 
 | Flag | Ý nghĩa |
 |---|---|
-| `--target` | `codex`, `gemini-cli`, `claude-code`, hoặc `antigravity` |
+| `--target` | `codex`, `claude-code`, hoặc `antigravity` |
 | `--project` | Project root |
 | `--skill <name>` | Chọn skill, có thể lặp lại |
 | `--dry-run` | Validate và hiển thị write plan, không ghi file |
 | `--force` | Thay skill folders đã chọn, refresh shared contract tại `qc/config/material-paths.md`, và retire per-skill copy cũ trong các skill đã chọn |
 | `--skip-refs` | Không seed runtime refs |
+
+## Path bị xóa hoặc di chuyển
+
+Resolve `qc/` từ project root đã xác nhận; resolve `references/` và `scripts/` từ thư mục skill đang được load.
+Thiếu contract/template/helper bắt buộc trả về `BLOCKED_INSTALLATION`; thiếu source, locked parent hoặc lịch sử cần dùng trả về `BLOCKED_INPUT`.
+Context và extension tùy chọn vắng mặt chỉ làm giảm coverage đã xác minh.
+Repair từ cùng source checkout bằng `--force --skip-refs --dry-run`, review plan rồi bỏ `--dry-run` để apply.
+Thêm `--skill <name>` khi chỉ cần sửa một skill.
+Không seed lại ledger hoặc context đã mất để thay thế dữ liệu project.
+Xem [quy trình phục hồi và di chuyển project](install-codex.md#missing-files-and-project-moves).
+
+Chỉ hỗ trợ Codex, Antigravity và Claude Code.
+Gemini CLI và alias `gemini` bị từ chối trước khi ghi file; installer không tự xóa bản cài Gemini cũ trên máy người dùng.
 
 ## Material cho Test Viewpoint và Test Case Design
 

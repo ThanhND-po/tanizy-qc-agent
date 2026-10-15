@@ -1,7 +1,7 @@
 {
   "name": "@thanhndpo/tanizy-qc-agent",
-  "version": "0.8.7",
-  "description": "Portable Quality Control agent workflows for Gemini CLI, Codex, Claude Code, and Antigravity.",
+  "version": "0.8.8",
+  "description": "Portable Quality Control agent workflows for Codex, Antigravity, and Claude Code.",
   "license": "MIT",
   "type": "module",
   "bin": {
@@ -24,7 +24,8 @@
     "test:atomic-objectives": "node scripts/test-atomic-objectives.mjs",
     "test:install": "node scripts/test-install.mjs",
     "test:manual-results": "node scripts/test-manual-results.mjs",
-    "pack:check": "npm run validate && npm run test:atomic-objectives && npm run test:manual-results && npm run test:install"
+    "pack:check": "npm run validate && npm run test:atomic-objectives && npm run test:manual-results && npm run test:read-boundaries && npm run test:install",
+    "test:read-boundaries": "node scripts/test-read-boundaries.mjs"
   },
   "keywords": [
     "agent-skills",
@@ -34,7 +35,6 @@
     "playwright",
     "postman",
     "gherkin",
-    "gemini-cli",
     "claude-code",
     "antigravity"
   ],

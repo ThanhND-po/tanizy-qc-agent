@@ -13,7 +13,8 @@ Never create `qc/refs/open-questions.md`.
 Use `GAP`, `AMB`, `CONFLICT`, or `RISK` for Finding Class.
 Use Question Domain for the business or technical topic, for example `Business Rule`, `File Contract`, `NFR`, or `UI Contract`.
 Do not mix those two dimensions.
-Use `High`, `Medium`, or `Low` for Priority.
+Use `High`, `Medium`, or `Low` for Finding and OQ Priority: highest, normal, or lower decision urgency within the approved scope, respectively.
+This is not Test Priority or a blocking decision; record the urgency basis without inventing a deadline.
 Use `DESIGN`, `EXPORT`, `EXECUTION`, `REPORT`, or `NONE` for Blocks From Phase.
 
 Use `OQ-<SCOPE-CODE>-NNN`.
@@ -44,7 +45,7 @@ Silence, inactivity, or delivery pressure never changes status.
 | Governing source updated | `RESOLVED` | Record the exact Resolved Source Ref and Status Updated At |
 
 Owner and Target Date are optional.
-Leave them blank or use `OPEN` when they have not been explicitly assigned.
+Leave them blank when they have not been explicitly assigned; `OPEN` is a Status, not an owner or date.
 Do not infer ownership, dates, decision authority, or approval.
 Proposed Options remain proposals until an explicit decision is recorded.
 
