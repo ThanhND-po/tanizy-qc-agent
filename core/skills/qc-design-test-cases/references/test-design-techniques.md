@@ -97,6 +97,7 @@ Use the smallest set of techniques that makes the declared coverage target expli
 | `TDT-CO` | Concurrency and Interleaving | Simultaneous or repeated actions can change integrity or state | Same record updates, duplicate submit, race order, lock conflict, retry overlap |
 | `TDT-MG` | Migration and Coexistence Matrix | Old and new data, clients, contracts, schemas, or rollout stages interact | Data age x app version, source schema x target schema, before/during/after rollout |
 | `TDT-NFR` | Quality Characteristic Design | A source defines a measurable non-functional risk or oracle | Performance workload, accessibility checks, security misuse, recovery, compatibility |
+| `TDT-SEC` | Threat, Misuse, and Injection Design | A locked security condition identifies a protection objective and trust boundary | Untrusted source to processing or output context, misuse variants, permitted controls, denied effects, and observable evidence |
 
 Experience-based error guessing or exploratory charters may supplement these techniques when the risk and scope are explicit.
 They do not replace traceable coverage of locked Viewpoints and approved sources.
@@ -212,13 +213,102 @@ Select a technique appropriate to the locked quality risk and measurable oracle.
 | Quality characteristic | Design considerations when source-backed |
 |---|---|
 | Performance and capacity | Workload model, data volume, concurrency, duration, percentile, threshold, warm-up, environment, and repeat count |
-| Security and privacy | Threat or misuse case, actor, asset, trust boundary, attack surface, allowed and denied outcome, disclosure, and audit |
+| Security and privacy | Apply `TDT-SEC` below for concrete threat, misuse, safe-rendering, and injection design; combine permission, state, or timing techniques when needed |
 | Accessibility | Applicable standard and level, keyboard path, name, role, state, focus, announcement, contrast, zoom, motion, and assistive technology |
 | Reliability and recovery | Failure injection, interruption point, retry, fallback, data integrity, recovery time, recovery point, and retained evidence |
 | Compatibility | Approved browser, device, OS, app, API, locale, timezone, and configuration matrix |
 | Observability and audit | Event trigger, required fields, correlation, ordering, retention, access, alert, and sensitive-data exclusion |
 
 Do not invent a threshold, supported platform matrix, security control, or accessibility conformance level from this guide.
+
+### `TDT-SEC`, Threat, Misuse, and Injection Design
+
+Use this technique only for security objectives included in the locked parent.
+An approved security exclusion permits omission of those cases; carry its decision ref into Coverage Totals and Blocked Scope and Omissions without creating a placeholder TC or a security-only blocker.
+For partial inclusion, preserve the exact objectives, actors, surfaces, and attack families included or excluded.
+If the handoff leaves security inclusion undecided, return the affected scope to Viewpoint review; do not silently choose inclusion or exclusion here.
+Use the approved feature source, applicable approved security baseline controls, or explicit recorded decision as the oracle.
+Methodology and sample data below do not define a product policy or authorize live security execution.
+
+#### Coverage construction
+
+1. Identify the locked protection objective, asset or action, actor, untrusted input source, trust boundary, and actual processing or output context. A sink is where input is rendered or interpreted, such as an HTML node, query, template, command, or spreadsheet cell.
+2. Trace the in-scope path from entry through validation, storage or transformation to each relevant consumer. Include reflected, stored, imported, dependency-supplied, and DOM paths only where the locked analysis places them in scope.
+3. Enumerate coverage items by relevant entry point, sink context, actor or state, and attack or misuse class. Distinguish independently protected paths unless source evidence justifies equivalence; one field or UI check does not establish all API and downstream coverage.
+4. Define a finite denominator or reproducible selection rule and a measurable target for the included items. Record the rationale for reduction, approved omissions, exclusions, and blockers; several payload strings for one path do not establish coverage of all injection families.
+5. Select concrete synthetic probes appropriate to that context and legitimate control values that distinguish safe handling from blanket rejection, a broken feature, or an unrelated failure. Preserve exact characters and any encoded representation used by the case.
+6. Define case-specific Preconditions, initial fixture state, actor, input surface, numbered trigger and retrieval Steps, and an observable source-backed Expected Result. For stored or second-order behavior, enter the value and later invoke the in-scope consumer that interprets or displays it.
+7. Identify how the input's arrival at the target context and the allowed or forbidden effect will be observed. Use UI text and DOM inspection, response content, authorized state or data inspection, or supported instrumentation as appropriate to the objective; specify the actual observation instead of `system is secure`.
+8. Reconcile every included item to the exact TC, action, and oracle, or disclose its blocker or approved omission. Split independent risks using the entrypoint policy while retaining a coherent multi-step stored-input sequence when needed to prove one protection objective.
+
+Design completeness means the declared security target is reconciled, not that every possible attack payload or vulnerability has been tested.
+Every in-scope item needs a complete case, an explicit blocker, or an approved omission; an incomplete security case is not counted as covered.
+
+#### Security families and distinguishing observations
+
+The following are conditional design prompts for locked security conditions, not a mandatory attack list for every feature.
+
+| Family and applicability | Coverage distinctions | Observable oracle to derive from approved evidence |
+|---|---|---|
+| Plain-text rendering and autoescape when untrusted text is displayed | Special characters `< > & " '`, markup-like text, legitimate punctuation, initial render versus later DOM update, and each actual output context | Text remains correct under the display contract without unintended markup, executable attributes, or double encoding; inspect displayed text and relevant DOM structure |
+| Reflected, stored, or DOM XSS when those paths exist | Entry to HTML text, attribute, URL, JavaScript, or CSS context as actually used; save/reload and another screen or role when included; raw-HTML or framework escape-hatch paths when known | Probe reaches the intended consumer and the source-defined safe output or rejection occurs, with no prohibited DOM interpretation or execution; evidence must distinguish protection from a probe that never reached the sink |
+| Rich text when approved HTML is supported | Permitted formatting versus prohibited tags, event attributes, URL schemes, or nested content; later rendering and transformations | Approved formatting survives and prohibited behavior is prevented according to the sanitization policy; do not replace this with an assumed reject-all-HTML rule |
+| SQL or NoSQL injection when an input reaches that query boundary | String, numeric, identifier, or structured-operator context where supported; relevant UI/API paths; later reuse of stored input; legitimate quotes or operator-like text | Query or filter semantics, authorization boundary, and data integrity remain as defined; compare concrete authorized result sets or state against controlled fixtures, and assert error disclosure only when that policy is included |
+| Template, command, LDAP, XML, path, or other interpreter misuse when the target model identifies it | Context-specific grammar, direct and later-use paths, approved path or resource boundaries, and legitimate look-alike input | The defined data treatment or rejection occurs without the prohibited interpretation or resource access; use an observable non-destructive canary suited to the actual interpreter |
+| Spreadsheet formula injection when exported untrusted text is opened as a spreadsheet | Formula-leading text, separators and quotes that can create cells, relevant prefix or encoding variants, supported consumer/version/locale, and save/reopen when included | Exported text is treated according to the approved formula-handling policy; inspect cell value/type or formula state in the supported consumer, not just the raw CSV string |
+| Authentication, session, authorization, request integrity, or upload controls when included | Allowed and denied actors, object/tenant ownership, session transitions, request origin or token conditions, and approved file handling; combine `TDT-RM`, `TDT-ST`, or `TDT-DT` as appropriate | Assert the exact allowed/denied action, visibility, state change, and relevant side effects; injection cases do not substitute for these independently included objectives |
+| Confidentiality and error, log, or audit handling when included | Actor, response or export surface, error path, sensitive field, and approved observation or audit access | Protected values and internal details are exposed or excluded only as the governing policy specifies; capture the actual surface and fields without inventing retention or audit requirements |
+
+#### Autoescape, sanitization, and evidence limits
+
+Autoescape is a protective mechanism, not a universal injection test technique.
+Distinguish plain-text output encoding, rich-text sanitization, input validation, query parameterization, and safe interpreter APIs.
+HTML escaping does not establish SQL injection protection, and safe HTML text output does not establish safe attribute, URL, script, or CSS handling.
+Do not require a storage encoding or database representation merely because output must be safe.
+A black-box rendering case establishes the observed output behavior; proving that a named autoescape setting or parameterized query mechanism is configured requires the corresponding approved code/configuration review or instrumentation.
+
+Absence of an alert, a crash, an HTTP 500, or a database error alone is not an adequate injection oracle.
+A CSP block may prevent execution while unsafe markup remains; that observation alone does not prove autoescape or sanitization.
+Assert the positive control and prohibited interpretation or state change relevant to the objective, using the agreed observation surface.
+Do not treat encoded variants as equivalent unless the relevant decoding path supports that conclusion.
+
+#### Concrete design examples
+
+These fictional examples illustrate executable detail for a shopping-cart feature.
+Their assumed behavior is not a package requirement; use them only when the actual locked leaf and approved source define the corresponding contract.
+Different outcome or context variants normally need separately diagnosable cases rather than one undifferentiated payload list.
+
+Example A assumes an approved contract that accepts a Cart Note as plain text and displays it verbatim in Cart Details after save and reload.
+
+- Objective: demonstrate safe stored plain-text rendering of one Cart Note in Cart Details.
+- Preconditions: a synthetic test user owns an editable cart; Cart Details is accessible; the clean test document has no `data-qc-marker` attribute on its root element.
+- Test Data: `<b>qc-marker</b><svg onload="document.documentElement.dataset.qcMarker='executed'"></svg>&`.
+- Steps: 1. Open the owned cart's Cart Note editor. 2. Enter the exact Test Data and save. 3. Reload Cart Details. 4. Compare the note's visible text to the input and inspect the note container's DOM and the document root attribute.
+- Expected Result: Cart Details displays the complete note literally under the assumed verbatim contract; the note creates no `b` or `svg` element or executable event attribute, and the root has no `data-qc-marker` attribute.
+- Evidence and limit: retain the displayed value and DOM inspection after reload; this covers that stored HTML-text path, not every XSS context or the autoescape implementation setting.
+
+Example B assumes an approved Product Search API contract: authenticated `POST /api/products/search` accepts a JSON object with a string `query`, treats it as literal exact-match text, preserves access restrictions, and returns HTTP 200 with a `products` array and `total` count.
+These endpoint and response details are fictional example facts, not defaults for another project.
+
+- Objective: demonstrate that one query-like search value cannot broaden the authorized product result set.
+- Preconditions: an API client has the test user's valid synthetic credentials; the synthetic catalog contains `Notebook` and `Pencil`, visible to that user, plus a product owned by another tenant; no product has the payload as its name; a control request for `Notebook` has established the expected exact-match behavior.
+- Test Data: JSON body `{"query":"' OR '1'='1"}` with `Content-Type: application/json`.
+- Steps: 1. Configure the API client with the test user's credentials. 2. Send `POST /api/products/search` with the exact Test Data to the designated test environment. 3. Inspect the transmitted request body and received HTTP status and JSON product records/count.
+- Expected Result: HTTP 200 returns `products: []` and `total: 0` under the assumed literal exact-match contract; neither unrelated same-tenant records nor the other tenant's record is returned.
+- Evidence and limit: retain the complete request/response pair to distinguish server processing from a UI-only rejection; this result does not prove query parameterization, write protection, or all SQL/NoSQL contexts, so add separately scoped evidence or cases when those objectives are included.
+
+Choose other concrete probe values from the actual context; do not submit these examples to every input field or invent an endpoint, database engine, filter syntax, error code, or rejection message.
+For formula-handling coverage, a synthetic arithmetic string such as `=1+1` can distinguish text from formula evaluation without an external link, but its expected treatment still comes from the approved export policy.
+Execution must stay within the existing environment, side-effect, fixture, and cleanup gates; design approval is not permission to run scanners, destructive payloads, external callbacks, or live probes.
+When the oracle or necessary interpretation policy is missing, follow the locked readiness route with no placeholder executable TC.
+When intent and oracle are complete but environment, endpoint, fixture, auth, cleanup, or instrumentation is unverified, disclose the execution limitation and withhold `RUNTIME_READY` rather than inventing it or marking a design gap solely for that reason.
+
+Methodology references support technique choice; they do not grant scope or replace an approved project oracle:
+
+- [OWASP XSS Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html) for framework autoescape limits, context-dependent encoding, HTML sanitization, and safe sinks.
+- [OWASP WSTG v4.2: Reflected XSS](https://wstg.owasp.org/v4.2/4-Web_Application_Security_Testing/07-Input_Validation_Testing/01-Testing_for_Reflected_Cross_Site_Scripting/) and [Stored XSS](https://wstg.owasp.org/v4.2/4-Web_Application_Security_Testing/07-Input_Validation_Testing/02-Testing_for_Stored_Cross_Site_Scripting/) for tracing input to its later rendering context.
+- [OWASP WSTG v4.2: SQL Injection](https://wstg.owasp.org/v4.2/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05-Testing_for_SQL_Injection/) and [SQL Injection Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html) for query-context testing and the distinction between parameterization and escaping.
+- [OWASP CSV Injection](https://owasp.org/www-community/attacks/CSV_Injection) for spreadsheet interpretation and consumer/round-trip limits.
 
 ## Concrete Test Data
 
@@ -245,6 +335,7 @@ After drafting, use the Coverage Reconciliation table in [test-case-format.md](t
 - Keep `SPEC_GAP`, design-blocking OQ, and unresolved conflict items out of the covered numerator.
 - Keep `NOT_APPLICABLE` and approved `OUT_OF_SCOPE` items out of the denominator.
 - Record any approved risk-based omission or waiver explicitly.
+- Reconcile each included security path, context, and misuse class against the declared target; a generic security case or payload list does not cover unmapped items, and excluded security scope remains an approved exclusion.
 - Report Viewpoint, requirement, business-rule, NFR, and impact or regression coverage separately when required by the parent artifact.
 - Keep Viewpoint-to-TC mapping, achieved design coverage, and runtime execution results separate.
 - Do not claim `100%` unless the denominator and inclusion rule are explicit and every item reconciles.
@@ -266,6 +357,7 @@ Test Case Design is ready for review only when:
 - Every excluded or blocked item has the correct status and traceable reason.
 - Coverage totals reconcile with the locked parent and Coverage Design Map.
 - Automation eligibility remains separate from static and runtime readiness.
+- Included security cases identify concrete probes, legitimate control evidence, the actual trigger/consumer path, and an observable protection oracle; exclusions and blockers remain visible without placeholder cases or claims of complete product security.
 - No Viewpoint was silently added, removed, merged, split, or reinterpreted.
 
 Technique coverage demonstrates the agreed design scope.

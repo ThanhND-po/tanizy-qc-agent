@@ -1,6 +1,6 @@
 {
   "name": "@thanhndpo/tanizy-qc-agent",
-  "version": "0.8.8",
+  "version": "0.8.9",
   "description": "Portable Quality Control agent workflows for Codex, Antigravity, and Claude Code.",
   "license": "MIT",
   "type": "module",

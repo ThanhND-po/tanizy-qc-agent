@@ -94,6 +94,34 @@ Under `GAP_ANALYSIS`, map a new `SPEC_GAP` to the applicable existing Finding or
 Under `DIRECT_SOURCE_CHECK`, report the exact blocker and propose Gap Analysis as a separate phase.
 This guide does not authorize creating or resolving Findings, OQs, rules, or expected outcomes.
 
+## Security Scope and Readiness
+
+Evaluate `VDG-COM-SECURITY` against the approved Scope Gate before selecting detailed security prompts.
+Reuse a recorded decision; do not ask again merely because the phase changed.
+An explicit exclusion of all security testing permits omission of security Viewpoints and Test Cases.
+Record that exclusion once in the Discovery Coverage Map with its decision ref and affected items; do not enumerate every injection family or raise security spec gaps for excluded work.
+Keep validation, permission, or data behavior independently included in functional scope even when it also has security relevance.
+For a partial exclusion, identify the included objectives, surfaces, actors, and excluded areas so downstream design can preserve the boundary.
+If security inclusion is undecided and changes the proposed coverage, request a focused scope decision in chat before designing that security scope.
+Do not infer exclusion from silence or from a functional specification that does not mention security.
+
+For included security objectives, use approved feature sources, an applicable approved project security baseline, or explicit recorded decisions as the oracle basis.
+Record exact refs and revisions, including which baseline controls apply; do not require every feature specification to repeat an approved cross-cutting control.
+Read a baseline only at an authorized locator under the existing Input Boundary.
+This catalog and the external methodology references do not become an approved security baseline automatically.
+
+For each included security angle, identify the untrusted source or actor, protected asset or action, trust boundary, processing or output surface, and source-backed allowed and forbidden behavior.
+Trace stored or imported input through later consumers, including another role or screen, when those consumers are in scope.
+Use the relevant item-type prompts below to distinguish rendering, query, interpreter, authorization, and disclosure risks instead of one broad leaf named `Security` or `Injection`.
+Authentication, session, authorization, tenant isolation, request integrity, upload, and privacy objectives remain relevant when the approved security scope includes them; injection coverage alone does not establish their coverage.
+Keep these as test conditions; choose payloads, coverage targets, concrete setup, and execution observations during Test Case Design.
+
+Classify a relevant included angle as `DEFINED` only when its approved evidence supports an observable oracle.
+Use `SPEC_GAP` and the existing readiness route when that oracle is missing; never turn an unknown policy into `NOT_APPLICABLE`, an assumed rejection, or a provisional case.
+Use `NOT_APPLICABLE` only with a product-context basis, such as an interpreter or output surface absent from the approved target model.
+Use `OUT_OF_SCOPE` for an approved exclusion, including an explicit decision that a technically possible attack family is outside this revision.
+Preserve every included angle through leaf mapping or the existing blocked-scope record; no included security risk may disappear merely because it needs several cases.
+
 ## Optional Project Extension Contract
 
 Use `qc/config/viewpoint-discovery-extension.md` only when the project has reusable discovery prompts that are not represented by this guide.
@@ -182,6 +210,7 @@ Each row is a discovery prompt, not a requirement.
 | `VDG-COM-MIGRATION` | Migration and coexistence | How do legacy and new data, clients, contracts, schemas, and behaviors coexist before, during, and after rollout? |
 | `VDG-COM-REGRESSION` | Impact and regression | Which existing flows, calculations, consumers, reports, bugs, and neighboring functions can be affected? |
 | `VDG-COM-NFR` | Quality characteristics | Which source-backed performance, security, privacy, accessibility, reliability, usability, compatibility, observability, recovery, or compliance risks apply? |
+| `VDG-COM-SECURITY` | Security scope and objectives | Which security objectives, actors, assets, trust boundaries, and surfaces are included or explicitly excluded, which approved baseline or decision governs them, and which included outcomes remain undefined? |
 
 ## Item-Type Routing
 
@@ -212,6 +241,7 @@ A migration-backed batch can need the batch, data, integration, and migration ro
 | `VDG-INP-FILE` | File input | Extension, MIME and signature, size and count, empty or corrupted file, filename, progress, cancel, retry, scanning, storage, and access |
 | `VDG-INP-METHOD` | Input method | Typing, paste, drag, autofill, suggestion, mobile keyboard, pointer, touch, keyboard, IME composition, and assistive technology |
 | `VDG-INP-PERSISTENCE` | Value persistence | Refresh, navigation, retry, draft, failed submission, session expiry, stored value, masking, privacy, and audit behavior |
+| `VDG-INP-INJECTION` | Untrusted input handling | Which entered, pasted, uploaded, or indirect values can reach a renderer, query, template, command, path, or other interpreter, and which approved control defines safe handling at that boundary? |
 
 ### UI Component Route
 
@@ -225,6 +255,7 @@ A migration-backed batch can need the batch, data, integration, and migration ro
 | `VDG-UI-ACCESS` | Accessibility | Name, role, state, focus order, keyboard, announcement, contrast, zoom, reduced motion, caption, and alternative text when governed by source |
 | `VDG-UI-RESPONSIVE` | Presentation context | Viewport, orientation, touch target, text expansion, overflow, reflow, image behavior, locale, and bidirectional layout |
 | `VDG-UI-SECURITY` | UI trust boundary | Authorization, sensitive-data visibility, masking, safe external navigation, privacy, analytics, and audit behavior |
+| `VDG-UI-OUTPUT` | Safe rendering and XSS | Plain text versus approved rich text, autoescape or sanitization policy, HTML/attribute/URL/script context, reflected or stored content, DOM updates, later screens or roles, and preservation of legitimate text without double encoding |
 
 Classify a segmented control by behavior.
 Route it through Input when it chooses a submitted value and through UI when it changes the current view.
@@ -241,6 +272,7 @@ Use both when the approved design gives it both responsibilities.
 | `VDG-API-AUTH` | Access and data exposure | Authentication, authorization, ownership, tenant isolation, token state, sensitive field, and error disclosure |
 | `VDG-API-FAILURE` | Dependency and recovery | Timeout, unavailable dependency, malformed dependency response, rate limit, cancellation, retry, circuit behavior, and recovery |
 | `VDG-API-OBSERVE` | Observability | Trace, correlation ID, audit event, log, metric, alert, and sensitive-data handling when defined |
+| `VDG-API-INJECTION` | Server processing boundary | Which path, query, header, body, or structured values reach a query or interpreter, how server-side handling applies independently of UI validation, and whether error or response behavior can disclose protected information |
 
 ### Batch, Scheduled Job, Import, and Export Route
 
@@ -252,6 +284,7 @@ Use both when the approved design gives it both responsibilities.
 | `VDG-BAT-OUTPUT` | Output contract | Filename, format, encoding, delimiter, record count, ordering, checksum, destination, access, and downstream consumption |
 | `VDG-BAT-RECOVERY` | Failure and recovery | Interruption, dependency failure, rerun, resume, rollback, duplicate prevention, cleanup, notification, and operator action |
 | `VDG-BAT-OBSERVE` | Operational evidence | Run status, processed and failed count, error detail, audit, logs, metrics, alerting, and retention when defined |
+| `VDG-BAT-INJECTION` | Import and export interpretation | Imported values reused in queries or rendering, spreadsheet formula interpretation of exported text, filename or template interpretation, and approved consumer, format, locale, and round-trip behavior |
 
 ### Integration Route
 
@@ -263,6 +296,7 @@ Use both when the approved design gives it both responsibilities.
 | `VDG-INT-COMPAT` | Compatibility | Old and new consumer or provider, additive or breaking schema change, optional field, version negotiation, and rollout order |
 | `VDG-INT-SECURITY` | Boundary security | Credential, transport, authorization, signature, replay prevention, sensitive data, tenant isolation, and audit when defined |
 | `VDG-INT-OBSERVE` | Cross-system evidence | Correlation, trace, status mapping, reconciled totals, logs, metrics, alerts, and support diagnostics |
+| `VDG-INT-INJECTION` | Untrusted dependency content | Which dependency responses, callbacks, or messages enter downstream renderers, queries, headers, logs, or interpreters, and which trust and safe-handling rules apply despite the content's external origin |
 
 ### Data Route
 
@@ -275,6 +309,7 @@ Use both when the approved design gives it both responsibilities.
 | `VDG-DAT-QUERY` | Retrieval and reporting | Filter, sort, join, pagination, total, historical snapshot, permission, stale read, and displayed or exported parity |
 | `VDG-DAT-SECURITY` | Data protection | Classification, access, masking, encryption, privacy, tenant boundary, audit, retention, and deletion when defined |
 | `VDG-DAT-RECOVERY` | Resilience | Backup, restore, replication, reconciliation, partial write, interrupted transaction, and recovery point when defined |
+| `VDG-DAT-INJECTION` | Query and later-use boundaries | SQL or NoSQL query semantics, stored values later reused in interpreted contexts, parameter versus identifier handling, authorized result sets, data integrity, and approved internal-error disclosure policy |
 
 ### Migration, Coexistence, and Rollout Route
 

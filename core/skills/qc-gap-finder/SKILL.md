@@ -65,6 +65,14 @@ Only absent or unclear `APPLICABLE` evidence may become `GAP`, `AMB`, or `CONFLI
 Record the basis for `OUT_OF_SCOPE`; do not relabel it as `NOT_APPLICABLE`.
 Review security, accessibility, performance, concurrency, and other quality characteristics only when they are applicable to the approved scope.
 
+For security, reuse the approved inclusion or exclusion and its decision ref; if inclusion is undecided and affects coverage, request a focused scope decision before analyzing that security scope.
+An explicit exclusion permits downstream omission of security cases and does not create a security-only Finding, OQ, or blocker.
+For included security objectives, an approved project security baseline with exact applicable control refs may supply an oracle even when the feature specification does not repeat it.
+Check whether the included actors or untrusted inputs, assets, trust boundaries, processing or output contexts, allowed and forbidden behavior, and observation basis are defined.
+Do not treat a broad statement such as `secure input` or `prevent injection` as sufficient evidence for every rendering, query, interpreter, authorization, and disclosure outcome.
+Missing included behavior or policy is a design gap; missing environment, fixture, auth, or runtime tooling alone follows the execution-blocker rule below.
+The scope decision and baseline locators remain subject to the existing Input Boundary; a security review does not authorize source discovery or live attack execution.
+
 ## Blocking Decision
 
 Assign the earliest affected phase in `Blocks From Phase`:

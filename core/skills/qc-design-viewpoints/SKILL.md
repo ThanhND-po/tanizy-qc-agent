@@ -119,6 +119,16 @@ List each blocked requirement separately and do not create a provisional Viewpoi
 Treat unresolved OQs with `Blocks From Phase = DESIGN` as design blockers.
 An execution-only blocker does not erase source-backed design coverage.
 
+## Security Scope Handoff
+
+Apply `Security Scope and Readiness` in the discovery guide before decomposing included security objectives.
+Reuse the approved security inclusion, partial inclusion, or exclusion and its decision ref in the Test Target Map and Discovery Coverage Map.
+An approved exclusion permits downstream omission of security cases without a security-only blocker; missing scope approval or a missing included oracle does not.
+An approved project security baseline may govern several features when its exact locator, revision, applicable control refs, and approval are recorded in the Source Manifest.
+Identify included actors or untrusted inputs, trust boundaries, assets, processing or rendering surfaces, and observable protection intent at leaf level.
+Map every included security angle to a coherent source-backed leaf or the existing blocked-scope record; a generic `Security` leaf does not establish complete coverage.
+Preserve the existing readiness route for missing or conflicting evidence and the phase boundary for payloads, techniques, and concrete Steps.
+
 ## Workflow
 
 1. Confirm and record the readiness route.
@@ -126,7 +136,7 @@ An execution-only blocker does not erase source-backed design coverage.
 3. Build a source inventory of ACs, business rules, NFRs, state transitions, roles, impact or regression items, and explicit user decisions.
 4. Build the Test Target Map. Separate feature and business value, product risks, test level, stakeholders or users, test objects, named test items, lifecycle impact, data, versions, integrations, and environments. Mark a QC risk assessment as `QC_RISK_ASSESSMENT`; do not present it as a sourced business rule.
 5. Inventory named test items and classify each item type, parent object, and scope status. Do not force non-UI items into a UI taxonomy.
-6. Use the discovery guide to select only relevant catalog IDs and item-type routes. Record the optional extension status without asking for a locator merely because the file is absent. Apply a project extension only when it exists, its revision is confirmed for the scope, and its provenance is recorded. When an extension candidate is triggered, follow the guide's draft, approval, canonical-write, and rerun workflow. Do not copy the guide as a generic checklist.
+6. Use the discovery guide to select only relevant catalog IDs and item-type routes, applying the Security Scope Handoff before detailed security discovery. Record the optional extension status without asking for a locator merely because the file is absent. Apply a project extension only when it exists, its revision is confirmed for the scope, and its provenance is recorded. When an extension candidate is triggered, follow the guide's draft, approval, canonical-write, and rerun workflow. Do not copy the guide as a generic checklist.
 7. Classify every selected discovery prompt as `DEFINED`, `SPEC_GAP`, `NOT_APPLICABLE`, or `OUT_OF_SCOPE` using the guide contract.
 8. Derive source-backed high-level Viewpoints from `DEFINED` prompts, Test Objectives, and supported product risks. Decompose each one into leaf Viewpoints that state one condition or risk for one named test item.
 9. If analysis reveals a new `SPEC_GAP` or conflict that blocks from `DESIGN`, stop the affected scope. Under `GAP_ANALYSIS`, return it to `qc-gap-finder` because the parent report is incomplete or stale. Under `DIRECT_SOURCE_CHECK`, report the blocker and propose that skill. Do not create an OQ or Gap Report in this skill.
@@ -223,6 +233,8 @@ Do not copy unused catalog sections into the artifact.
 - Every selected `DEFINED` discovery prompt maps to at least one leaf Viewpoint.
 - Every `SPEC_GAP` prompt stops the affected design scope, with no provisional Viewpoint.
 - Every `OUT_OF_SCOPE` prompt has an approved scope decision or waiver.
+- Security inclusion or exclusion is traceable; every included security angle has a source-backed leaf or blocker, and an approved exclusion adds no security-only design prerequisite.
+- Included rendering and injection angles identify their actual trust boundaries and processing or output contexts; security scope is not satisfied by a generic security label or permission coverage alone.
 - Blocked items are excluded from the covered numerator.
 - Coverage denominators are explicit and reproducible.
 - Coverage reporting names its approved source-backed denominator, lists blocked and waived or `OUT_OF_SCOPE` items separately, and does not present a bare `100%` as complete product coverage.

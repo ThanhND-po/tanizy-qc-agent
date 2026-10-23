@@ -17,6 +17,8 @@ The template supplies structure and package vocabulary only, never product behav
 - Use relative Markdown links resolved from `qc/test-cases/<scope-key>-test-cases.md` for every existing project-local source and parent. Preserve exact approved external locators as `external, non-portable`.
 - Keep the Source Manifest complete enough to verify exact source approval and revision. Link the locked Viewpoint as the immediate parent; do not reload its discovery materials.
 - Include all sections below. Use `None` for empty Blocked Scope or exclusions and `N/A` with a reason for a coverage dimension that has no approved denominator; do not create fictitious rows or claim `100%`.
+- For included security coverage, use the existing Test Design Basis rows to enumerate paths, processing/output contexts, actors or states, and misuse classes with a finite target or selection rule. Reconcile each item to concrete Steps and an observable oracle, blocker, or approved omission; a label such as `XSS` is not a coverage item set by itself.
+- Trace an applicable approved security baseline in the Source Manifest with its exact control refs and revision. Carry inherited security exclusions and their decision refs into Coverage Totals and Blocked Scope and Omissions; approved exclusion permits no security TC rows and requires no placeholder case or security-only blocker.
 
 ## Expected Result Presentation
 

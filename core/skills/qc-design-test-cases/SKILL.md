@@ -90,6 +90,20 @@ Stop if the Viewpoint revision is not locked, contains an unmapped `DEFINED` dis
 For a `PARTIAL` design gate, create cases only for unblocked leaf Viewpoints.
 Never create a placeholder or provisional executable case for an OQ with `Blocks From Phase = DESIGN`.
 
+## Security Design Contract
+
+Inherit the security inclusion, partial inclusion, or exclusion from the locked parent and its exact source or decision refs.
+An approved exclusion permits omission of security cases; retain it in coverage exclusions without adding a security-only blocker.
+Keep independently included functional validation, permission, and data cases even when they also protect security boundaries.
+Do not infer exclusion because the functional cases or feature specification omit security.
+For included security leaves, apply `TDT-SEC` in the technique guide to enumerate relevant paths, processing or output contexts, actors or states, and misuse classes before selecting concrete cases.
+An applicable approved project security baseline may supply the oracle when its approval, revision, and exact controls are traced in the source manifest.
+Every included security coverage item needs a human-executable case with distinguishing Test Data, the actual trigger and consumer path, and an observable source-backed Expected Result, or an explicit blocker or approved omission.
+Do not count a generic `test injection` case, a payload list without actions and oracles, or permission cases as complete security coverage.
+Use the existing Test Design Basis, Traceability and Coverage Reconciliation, Coverage Totals, and Blocked Scope and Omissions sections; do not introduce a parallel security artifact or table schema.
+An undefined included oracle follows the parent readiness route; a complete design with unverified environment or instrumentation remains separate from `RUNTIME_READY`.
+An undefined security scope or a new security condition without a locked leaf returns only the affected scope to Viewpoint review under the existing lifecycle.
+
 ## Test Case IDs
 
 Use `TC-<SCOPE-CODE>-NNN`.
@@ -183,7 +197,7 @@ Missing endpoint, route, locator, fixture, auth, cleanup, or runner evidence pre
 1. Complete Expected Result Presentation Intake before design analysis, then inventory locked high-level and leaf Viewpoints, parent relationships, exact source refs, Test Target Map, Discovery Coverage Map, and material revision.
 2. Confirm the shared scope code and intended coverage dimensions.
 3. Verify that the current approved source revisions match the locked parent manifest. This is a staleness check, not Viewpoint rediscovery.
-4. For every in-scope leaf Viewpoint, choose the coverage item, coverage target, denominator or selection rule, and appropriate technique from `references/test-design-techniques.md`. Record the rationale and any constraint that limits coverage.
+4. For every in-scope leaf Viewpoint, choose the coverage item, coverage target, denominator or selection rule, and appropriate technique from `references/test-design-techniques.md`. Apply the Security Design Contract for included security leaves and preserve approved exclusions. Record the rationale and any constraint that limits coverage.
 5. Apply the Test Case Split Decision. Return a bundled or stale locked leaf to `qc-design-viewpoints` without changing it, and continue unaffected coherent leaves allowed by the gate.
 6. Draft human-executable cases with one specific primary objective, case-specific Preconditions, distinguishing Test Data, numbered Steps, Expected Results in the confirmed presentation, source-backed oracles, trace refs, priority, and automation metadata in the reader-facing language confirmed at the Scope Gate.
 7. Reconcile each claimed coverage item to the exact Test Case, Steps, and Expected Results that exercise and assert it.
@@ -269,6 +283,8 @@ Mapping every leaf Viewpoint to at least one TC does not prove that every covera
 23. All relative links resolve.
 24. Artifact state is `LOCKED`, with an explicit revision and approver.
 25. Every controlled value used in the artifact has exactly one matching Legend definition, every governed canonical vocabulary with seven or fewer values is complete, and no `LEGEND_UNDEFINED_VALUE` remains unresolved.
+26. The inherited security boundary is preserved; every included security coverage item maps to a concrete case, blocker, or approved omission, while excluded security adds no placeholder TC or security-only prerequisite.
+27. Security cases identify the input or actor, actual processing/output context, distinguishing control evidence, numbered trigger and retrieval actions, and an observable oracle; absence of a popup or server error alone does not establish protection.
 
 ## Rules
 

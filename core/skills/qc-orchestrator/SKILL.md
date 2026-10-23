@@ -33,6 +33,7 @@ Confirm these inputs before dispatching a phase:
 |---|---|
 | Approved requirement sources | Required. Accept only exact user-supplied or explicitly approved project, external local, or canonical URI locators; record approval state and revision or hash |
 | QC phase scope | Required. List only phases requested for this session |
+| Security coverage boundary | For analysis/design phases, reuse the approved inclusion, partial inclusion, or exclusion with its decision ref. If undecided and material to coverage, request a focused scope decision; record included objectives, actors, and surfaces plus applicable approved baseline refs without expanding source discovery |
 | Reader-facing artifact language | Confirm at the Scope Gate. Default to Vietnamese unless the user explicitly requests another language; do not add it to artifact headers |
 | Expected Result presentation | When Test Case design is requested, confirm one overall outcome after all Steps by default (`CASE_OUTCOME`), or optional step-linked expectations (`STEP_CHECKPOINTS`), before Test Case analysis/drafting. Reuse an explicit project standard or confirmed current-workstream choice; record it in the handoff and do not ask again |
 | Viewpoint readiness route | Required when Viewpoint design is requested: `GAP_ANALYSIS` or `DIRECT_SOURCE_CHECK` |
@@ -68,7 +69,7 @@ Approval for one gate does not imply approval for another.
 
 | Gate | Required decision |
 |---|---|
-| Scope Gate | User confirms sources, scope key, scope code, phases, reader-facing artifact language, and Expected Result presentation when Test Case design is included |
+| Scope Gate | User confirms sources, scope key, scope code, phases, applicable security coverage boundary, reader-facing artifact language, and Expected Result presentation when Test Case design is included |
 | Persist Gate | User approves draft content and exact files to write |
 | Lock Gate | User approves the Viewpoint or Test Case revision for downstream use |
 | Manual Result Gate | User approves prepared or imported result content, source locator, and exact execution-log path |
@@ -76,6 +77,8 @@ Approval for one gate does not imply approval for another.
 | Release Verdict Gate | Release criteria and decision authority are identified |
 
 Silence is not approval.
+Carry the security boundary through analysis/design handoffs: excluded security may omit dedicated cases, while included coverage must map to concrete cases, blockers, or approved omissions under the owning skill's gates.
+Do not turn a security exclusion into an extra prerequisite or drop independently included functional validation, permission, or data behavior.
 Do not add a prerequisite phase automatically.
 Gap Analysis is not a prerequisite for Viewpoint design when `DIRECT_SOURCE_CHECK` passes.
 If another prerequisite is missing, stop and propose the required handoff.
